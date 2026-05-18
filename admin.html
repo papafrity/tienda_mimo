@@ -13,7 +13,8 @@
     <div id="loginScreen" class="admin-login">
         <div class="login-card tilt-card">
             <h2 class="reveal-text">Mimo<span class="accent">!</span> Admin</h2>
-            <input type="password" id="adminPin" placeholder="PIN de acceso (Prueba: 1234)" />
+            <input type="password" id="adminPin" placeholder="Escribe el PIN aquí" autocomplete="new-password" />
+            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: -1rem; margin-bottom: 1.5rem;">PIN de prueba: 1234</p>
             <button id="loginBtn" class="magnetic-btn">Entrar al Panel</button>
             <p id="loginError" class="error-msg"></p>
         </div>
