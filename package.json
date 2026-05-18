@@ -1,0 +1,12 @@
+{
+  "name": "tienda-mimo-backend",
+  "version": "1.0.0",
+  "description": "Vercel backend for Mimo Store",
+  "main": "api/checkout.js",
+  "scripts": {
+    "start": "node api/checkout.js"
+  },
+  "dependencies": {
+    "mercadopago": "^2.0.0"
+  }
+}

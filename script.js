@@ -173,8 +173,8 @@ document.addEventListener('DOMContentLoaded', () => {
             renderProducts();
             renderCarousel();
             initDynamicEvents();
-            // Also re-initialize the carousel logic if necessary
             initCarouselLogic();
+            initProductFiltersAndModals();
         } catch(e) {
             console.error("Error fetching products", e);
         }
@@ -378,62 +378,137 @@ document.addEventListener('DOMContentLoaded', () => {
             cards.forEach((c, i) => { if (bt[i]) c.style.transform = bt[i] + ` rotateX(${tx2}deg) rotateY(${ty2}deg)`; });
         });
         cw.addEventListener('mouseleave', () => { cards.forEach((c, i) => { if (bt[i]) c.style.transform = bt[i]; }); });
+
+        // ─── CHECKOUT LOGIC ──────────────────────────────────────
+        const checkoutBtn = document.getElementById('checkoutBtn');
+        if (checkoutBtn) {
+            checkoutBtn.addEventListener('click', async () => {
+                if (cart.length === 0) {
+                    alert('Tu carrito está vacío');
+                    return;
+                }
+
+                checkoutBtn.textContent = 'Procesando...';
+                checkoutBtn.disabled = true;
+
+                try {
+                    // Check if running on GitHub Pages and alert user about Vercel (Temp handling)
+                    if(window.location.hostname.includes('github.io')) {
+                        alert('Atención: El servidor de pagos Mercado Pago funciona a través de Vercel. Ve al paso de configuración de Vercel en la guía.');
+                        checkoutBtn.textContent = 'Ir a Pagar';
+                        checkoutBtn.disabled = false;
+                        return;
+                    }
+
+                    const response = await fetch('/api/checkout', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(cart)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.init_point) {
+                        window.location.href = data.init_point;
+                    } else {
+                        console.error('Error de Mercado Pago:', data);
+                        alert('No se pudo procesar el pago: ' + (data.message || 'Error desconocido'));
+                    }
+                } catch (error) {
+                    console.error('Error de red:', error);
+                    alert('Error de conexión con el servidor de pagos.');
+                }
+
+                checkoutBtn.textContent = 'Ir a Pagar';
+                checkoutBtn.disabled = false;
+            });
+        }
     }
 
-    // ─── FILTER TABS ────────────────────────────────────────
-    const tabs = document.querySelectorAll('.filter-tab');
-    const pCards = document.querySelectorAll('.product-card');
-
-    tabs.forEach(tab => tab.addEventListener('click', () => {
-        tabs.forEach(btn => btn.classList.remove('active'));
-        tab.classList.add('active');
-        const f = tab.dataset.filter;
-        pCards.forEach(c => {
-            if (f === 'all' || c.dataset.category === f) { c.classList.remove('hidden'); c.style.animation = 'fadeInUp .5s ease forwards'; }
-            else c.classList.add('hidden');
+    // ─── FILTER TABS & MODALS (Dynamic Initialization) ────────
+    function initProductFiltersAndModals() {
+        const pCards = document.querySelectorAll('.product-card');
+        const tabs = document.querySelectorAll('.filter-tab');
+        
+        // Remove old active states
+        tabs.forEach(tab => {
+            const newTab = tab.cloneNode(true);
+            tab.parentNode.replaceChild(newTab, tab);
         });
-    }));
+        const freshTabs = document.querySelectorAll('.filter-tab');
 
-    // ─── SCROLL REVEAL PRODUCTS ─────────────────────────────
-    const sObs = new IntersectionObserver(es => {
-        es.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = 'translateY(0)'; sObs.unobserve(e.target); } });
-    }, { threshold: .1, rootMargin: '0px 0px -40px 0px' });
-    pCards.forEach((el, i) => {
-        el.style.opacity = '0'; el.style.transform = 'translateY(40px)';
-        el.style.transition = `opacity .5s ease ${(i % 6) * .08}s, transform .5s ease ${(i % 6) * .08}s`;
-        sObs.observe(el);
+        freshTabs.forEach(tab => tab.addEventListener('click', () => {
+            freshTabs.forEach(btn => btn.classList.remove('active'));
+            tab.classList.add('active');
+            const f = tab.dataset.filter;
+            pCards.forEach(c => {
+                if (f === 'all' || c.dataset.category === f) { c.classList.remove('hidden'); c.style.animation = 'fadeInUp .5s ease forwards'; }
+                else c.classList.add('hidden');
+            });
+        }));
+
+        // ─── SCROLL REVEAL PRODUCTS ─────────────────────────────
+        const sObs = new IntersectionObserver(es => {
+            es.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = 'translateY(0)'; sObs.unobserve(e.target); } });
+        }, { threshold: .1, rootMargin: '0px 0px -40px 0px' });
+        pCards.forEach((el, i) => {
+            el.style.opacity = '0'; el.style.transform = 'translateY(40px)';
+            el.style.transition = `opacity .5s ease ${(i % 6) * .08}s, transform .5s ease ${(i % 6) * .08}s`;
+            sObs.observe(el);
+        });
+
+        // ─── PRODUCT MODAL BINDINGS ─────────────────────────────
+        const modal = document.getElementById('productModal');
+        const mImg = document.getElementById('modalMainImg');
+        const mTh = document.getElementById('modalThumbs');
+        const mCat = document.getElementById('modalCategory');
+        const mTit = document.getElementById('modalTitle');
+        const mPr = document.getElementById('modalPrice');
+        const mDesc = document.getElementById('modalDescription');
+
+        function openM(card) {
+            mCat.textContent = card.querySelector('.category').textContent;
+            mTit.textContent = card.querySelector('h3').textContent;
+            mPr.textContent = card.querySelector('.price').textContent;
+            mDesc.textContent = card.dataset.description || '';
+            let imgs = JSON.parse(card.dataset.images || '[]');
+            mImg.src = imgs[0];
+            mTh.innerHTML = '';
+            if (imgs.length > 1) imgs.forEach((s, i) => {
+                const t = document.createElement('div'); t.classList.add('modal-thumb'); if (i === 0) t.classList.add('active');
+                const im = document.createElement('img'); im.src = s; t.appendChild(im);
+                t.addEventListener('click', () => { mImg.src = s; mTh.querySelectorAll('.modal-thumb').forEach(x => x.classList.remove('active')); t.classList.add('active'); });
+                mTh.appendChild(t);
+            });
+            modal.classList.add('active'); document.body.style.overflow = 'hidden';
+            
+            // Re-bind the "Añadir al Carrito" inside modal
+            const addBtn = modal.querySelector('.modal-add-cart');
+            const newAddBtn = addBtn.cloneNode(true);
+            addBtn.parentNode.replaceChild(newAddBtn, addBtn);
+            
+            const prodId = card.querySelector('.add-to-cart').getAttribute('onclick').match(/'([^']+)'/)[1];
+            newAddBtn.addEventListener('click', () => {
+                window.addToCart(prodId);
+                closeM();
+            });
+        }
+        function closeM() { modal.classList.remove('active'); document.body.style.overflow = ''; }
+
+        pCards.forEach(c => c.addEventListener('click', e => { if (!e.target.closest('.add-to-cart')) openM(c); }));
+        
+        // Modal global listeners (only need to bind once, but replacing clone prevents dupes if called multiple times)
+        const newModal = modal.cloneNode(true);
+        modal.parentNode.replaceChild(newModal, modal);
+        newModal.addEventListener('click', e => { if (e.target === newModal || e.target === document.getElementById('modalClose')) { newModal.classList.remove('active'); document.body.style.overflow = ''; } });
+    }
+    
+    document.addEventListener('keydown', e => { 
+        if (e.key === 'Escape') { 
+            const m = document.getElementById('productModal'); 
+            if(m && m.classList.contains('active')) { m.classList.remove('active'); document.body.style.overflow = ''; }
+        } 
     });
-
-    // ─── PRODUCT MODAL ──────────────────────────────────────
-    const modal = document.getElementById('productModal');
-    const mImg = document.getElementById('modalMainImg');
-    const mTh = document.getElementById('modalThumbs');
-    const mCat = document.getElementById('modalCategory');
-    const mTit = document.getElementById('modalTitle');
-    const mPr = document.getElementById('modalPrice');
-    const mDesc = document.getElementById('modalDescription');
-
-    function openM(card) {
-        mCat.textContent = card.querySelector('.category').textContent;
-        mTit.textContent = card.querySelector('h3').textContent;
-        mPr.textContent = card.querySelector('.price').textContent;
-        mDesc.textContent = card.dataset.description || '';
-        let imgs = JSON.parse(card.dataset.images || '[]');
-        mImg.src = imgs[0];
-        mTh.innerHTML = '';
-        if (imgs.length > 1) imgs.forEach((s, i) => {
-            const t = document.createElement('div'); t.classList.add('modal-thumb'); if (i === 0) t.classList.add('active');
-            const im = document.createElement('img'); im.src = s; t.appendChild(im);
-            t.addEventListener('click', () => { mImg.src = s; mTh.querySelectorAll('.modal-thumb').forEach(x => x.classList.remove('active')); t.classList.add('active'); });
-            mTh.appendChild(t);
-        });
-        modal.classList.add('active'); document.body.style.overflow = 'hidden';
-    }
-    function closeM() { modal.classList.remove('active'); document.body.style.overflow = ''; }
-
-    pCards.forEach(c => c.addEventListener('click', e => { if (!e.target.closest('.add-to-cart')) openM(c); }));
-    modal.addEventListener('click', e => { if (e.target === modal || e.target === document.getElementById('modalClose')) closeM(); });
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeM(); });
 
     function initDynamicEvents() {
         document.querySelectorAll('.tilt-card').forEach(card => {
