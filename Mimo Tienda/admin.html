@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimo! - Panel de Administración</title>
+    <link rel="stylesheet" href="styles.css"> 
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="admin-login">
+        <div class="login-card tilt-card">
+            <h2 class="reveal-text">Mimo<span class="accent">!</span> Admin</h2>
+            <input type="password" id="adminPin" placeholder="PIN de acceso (Prueba: 1234)" />
+            <button id="loginBtn" class="magnetic-btn">Entrar al Panel</button>
+            <p id="loginError" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard hidden">
+        <header class="admin-header">
+            <h2>Panel de Control</h2>
+            <div class="header-actions">
+                <button id="migrateBtn" class="magnetic-btn outline">Cargar Catálogo Inicial</button>
+                <button id="logoutBtn" class="magnetic-btn">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <main class="admin-main">
+            <div class="toolbar">
+                <h3>Tus Productos Activos</h3>
+                <button id="addProductBtn" class="magnetic-btn">+ Nuevo Producto</button>
+            </div>
+
+            <div class="table-container">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Imagen</th>
+                            <th>Nombre</th>
+                            <th>Categoría</th>
+                            <th>Precio</th>
+                            <th>Oferta</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminProductList">
+                        <!-- Products will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="admin-modal-content">
+            <h3 id="modalTitle">Agregar Producto</h3>
+            <form id="productForm">
+                <input type="hidden" id="prodId">
+                <div class="form-group">
+                    <label>Nombre del Producto</label>
+                    <input type="text" id="prodName" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="prodCategory" required>
+                        <option value="auriculares">Auriculares</option>
+                        <option value="parlantes">Parlantes</option>
+                        <option value="tvbox">TV Box</option>
+                        <option value="televisores">Televisores</option>
+                        <option value="cocinas">Cocinas</option>
+                        <option value="heladeras">Heladeras</option>
+                    </select>
+                </div>
+                <div class="form-group-row">
+                    <div class="form-group">
+                        <label>Precio Regular ($)</label>
+                        <input type="number" id="prodPrice" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Precio Oferta ($) (Opcional)</label>
+                        <input type="number" id="prodOffer" step="0.01">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Etiqueta (Ej: -30%, Más Vendido)</label>
+                    <input type="text" id="prodBadge">
+                </div>
+                <div class="form-group">
+                    <label>Descripción Corta</label>
+                    <textarea id="prodDesc" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>URL de la Imagen Principal</label>
+                    <input type="url" id="prodImg" required>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="prodFeatured">
+                    <label for="prodFeatured">Destacar en el Carrusel de Inicio</label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="magnetic-btn outline">Cancelar</button>
+                    <button type="submit" id="saveBtn" class="magnetic-btn">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimo! | Tu Tienda de Tecnología Premium</title>
+    <meta name="description" content="Descubre la mejor tecnología en Mimo! Auriculares, parlantes, televisores, cocinas y mucho más.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-logo">Mimo<span class="accent">!</span></div>
+        <div class="preloader-bar"><div class="preloader-fill"></div></div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <!-- Noise Overlay -->
+    <div class="noise-overlay"></div>
+
+    <!-- Hex Grid Pattern -->
+    <div class="hex-grid"></div>
+
+    <!-- Interactive Background Canvas -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="logo magnetic-btn">Mimo<span class="accent">!</span></div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#home">Inicio</a></li>
+            <li><a href="#products">Categorías</a></li>
+            <li><a href="#carousel">Ofertas</a></li>
+            <li><a href="#products">Productos</a></li>
+            <li><a href="#contact">Contacto</a></li>
+        </ul>
+        <div class="nav-right">
+            <div class="cart-btn magnetic-btn" id="cartBtn">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <span class="cart-count" id="cartCount">0</span>
+            </div>
+            <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+                <span class="bar"></span>
+                <span class="bar"></span>
+                <span class="bar"></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-tag reveal-text">
+                <span class="tag-line">⚡ La tienda del futuro</span>
+            </div>
+            <h1 class="split-title" id="heroTitle">El Futuro en tus Manos</h1>
+            <p class="reveal-text">Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con <strong>Mimo!</strong></p>
+            <a href="#carousel" class="cta-button magnetic-btn">
+                <span>Ver Ofertas 🔥</span>
+                <div class="btn-ripple"></div>
+            </a>
+        </div>
+        <div class="hero-visual">
+            <div class="glow-orb orb1"></div>
+            <div class="glow-orb orb2"></div>
+        </div>
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator">
+            <div class="scroll-line"></div>
+            <span>Scroll</span>
+        </div>
+    </header>
+
+    <!-- Marquee Banner -->
+    <div class="marquee-banner">
+        <div class="marquee-track">
+            <span>AURICULARES</span><span class="marquee-dot">✦</span>
+            <span>PARLANTES</span><span class="marquee-dot">✦</span>
+            <span>TV BOX</span><span class="marquee-dot">✦</span>
+            <span>TELEVISORES</span><span class="marquee-dot">✦</span>
+            <span>COCINAS</span><span class="marquee-dot">✦</span>
+            <span>HELADERAS</span><span class="marquee-dot">✦</span>
+            <span>AURICULARES</span><span class="marquee-dot">✦</span>
+            <span>PARLANTES</span><span class="marquee-dot">✦</span>
+            <span>TV BOX</span><span class="marquee-dot">✦</span>
+            <span>TELEVISORES</span><span class="marquee-dot">✦</span>
+            <span>COCINAS</span><span class="marquee-dot">✦</span>
+            <span>HELADERAS</span><span class="marquee-dot">✦</span>
+        </div>
+    </div>
+
+    <!-- Big Outline Text -->
+    <div class="outline-text-section" data-parallax="0.15">
+        <span class="outline-text">TECNOLOGÍA</span>
+        <span class="outline-text filled">PREMIUM</span>
+    </div>
+
+    <!-- 3D Carousel - Ofertas / Más Vendidos -->
+    <section id="carousel" class="carousel-section">
+        <h2 class="section-title reveal-text">🔥 Ofertas &amp; Más Vendidos</h2>
+        <div class="carousel-wrapper">
+            <button class="carousel-btn prev magnetic-btn" id="prevBtn" aria-label="Anterior">❮</button>
+            <div class="carousel-3d" id="carousel3d">
+                <!-- Dynamically rendered via JS -->
+            </div>
+            <button class="carousel-btn next magnetic-btn" id="nextBtn" aria-label="Siguiente">❯</button>
+        </div>
+        <div class="carousel-dots" id="carouselDots"></div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="stat-card reveal-text">
+            <span class="stat-number" data-target="5000">0</span><span class="stat-plus">+</span>
+            <p>Productos Vendidos</p>
+        </div>
+        <div class="stat-card reveal-text">
+            <span class="stat-number" data-target="98">0</span><span class="stat-plus">%</span>
+            <p>Clientes Satisfechos</p>
+        </div>
+        <div class="stat-card reveal-text">
+            <span class="stat-number" data-target="24">0</span><span class="stat-plus">h</span>
+            <p>Soporte Continuo</p>
+        </div>
+        <div class="stat-card reveal-text">
+            <span class="stat-number" data-target="15">0</span><span class="stat-plus">+</span>
+            <p>Marcas Asociadas</p>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products" class="products-section">
+        <h2 class="section-title reveal-text">Todos los Productos</h2>
+
+        <div class="filter-tabs" id="filterTabs">
+            <button class="filter-tab active magnetic-btn" data-filter="all">Todos</button>
+            <button class="filter-tab magnetic-btn" data-filter="auriculares">Auriculares</button>
+            <button class="filter-tab magnetic-btn" data-filter="parlantes">Parlantes</button>
+            <button class="filter-tab magnetic-btn" data-filter="tvbox">TV Box</button>
+            <button class="filter-tab magnetic-btn" data-filter="televisores">Televisores</button>
+            <button class="filter-tab magnetic-btn" data-filter="cocinas">Cocinas</button>
+            <button class="filter-tab magnetic-btn" data-filter="heladeras">Heladeras</button>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            <!-- Dynamically rendered via JS -->
+        </div>
+    </section>
+
+    <!-- Big CTA Section (Lusion-inspired) -->
+    <section class="big-cta-section">
+        <div class="big-cta-content reveal-text">
+            <h2 class="big-cta-title" style="font-size:3rem;text-align:center;line-height:1.2;margin-bottom:1.5rem;">¿Listo para <span style="background:var(--gradient-glow);-webkit-background-clip:text;color:transparent;">elevar</span> tu<br>experiencia?</h2>
+            <p style="text-align:center;color:var(--text-secondary);margin-bottom:2rem;">Descubre tecnología que transforma tu día a día.</p>
+            <div style="text-align:center;">
+                <a href="#products" class="cta-button magnetic-btn">
+                    <span>Explorar Mimo! →</span>
+                    <div class="btn-ripple"></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <h2 class="reveal-text">Mimo<span class="accent">!</span></h2>
+                <p class="reveal-text">Tu destino para la tecnología de mañana, hoy.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Categorías</h4>
+                <a href="#">Auriculares</a><a href="#">Parlantes</a><a href="#">TV Box / Stick</a>
+                <a href="#">Televisores</a><a href="#">Cocinas</a><a href="#">Heladeras</a>
+            </div>
+            <div class="footer-links">
+                <h4>Contacto</h4>
+                <a href="#">soporte@mimo.com</a><a href="#">+1 234 567 890</a><a href="#">Instagram</a>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2026 Mimo! Tienda de Tecnología. Todos los derechos reservados.</p>
+        </div>
+    </footer>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button class="cart-close" id="cartClose">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="empty-cart">Tu carrito está vacío</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotalValue">$0.00</span>
+            </div>
+            <button class="checkout-btn magnetic-btn" id="checkoutBtn">Ir a Pagar</button>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div class="modal-overlay" id="productModal">
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-body">
+                <div class="modal-gallery">
+                    <div class="modal-main-image"><img src="" alt="Producto" id="modalMainImg"></div>
+                    <div class="modal-thumbs" id="modalThumbs"></div>
+                </div>
+                <div class="modal-details">
+                    <span class="modal-category" id="modalCategory"></span>
+                    <h2 id="modalTitle"></h2>
+                    <p class="modal-price" id="modalPrice"></p>
+                    <p class="modal-description" id="modalDescription"></p>
+                    <button class="modal-add-cart magnetic-btn">Agregar al Carrito</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
