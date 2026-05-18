@@ -458,6 +458,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let lastSY = 0;
     window.addEventListener('scroll', () => {
         const sy = window.scrollY;
+        if (sy > lastSY && sy > 100) {
+            navbar.classList.add('nav-hidden');
         } else {
             navbar.classList.remove('nav-hidden');
         }
