@@ -126,6 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!grid) return;
         grid.innerHTML = '';
         products.forEach(p => {
+            const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
+            let priceHtml = hasDiscount 
+                ? `<p class="price"><span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${p.price.toFixed(2)}</span><span class="accent">$${p.offerPrice.toFixed(2)}</span></p>`
+                : `<p class="price">$${(p.offerPrice || p.price).toFixed(2)}</p>`;
+                
             grid.innerHTML += `
             <div class="product-card tilt-card" data-category="${p.category}" data-description="${p.description}" data-images='${p.fullImages}'>
                 <div class="card-glow"></div>
@@ -133,7 +138,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="product-info">
                     <span class="category">${p.category}</span>
                     <h3>${p.name}</h3>
-                    <p class="price">$${p.price.toFixed(2)}</p>
+                    ${priceHtml}
                     <button class="add-to-cart magnetic-btn" onclick="addToCart('${p.id}')">Agregar al Carrito</button>
                 </div>
             </div>`;
@@ -146,20 +151,31 @@ document.addEventListener('DOMContentLoaded', () => {
         carousel.innerHTML = '';
         const featured = products.filter(p => p.isFeatured);
         featured.forEach(p => {
-            let priceHtml = p.oldPrice 
+            const hasDiscount = p.oldPrice && p.offerPrice && p.oldPrice !== p.offerPrice;
+            let priceHtml = hasDiscount 
                 ? `<p class="old-price">$${p.oldPrice.toFixed(2)}</p><p class="offer-price">$${p.offerPrice.toFixed(2)}</p>` 
-                : `<p class="offer-price">$${p.offerPrice.toFixed(2)}</p>`;
+                : `<p class="offer-price">$${(p.offerPrice || p.price).toFixed(2)}</p>`;
                 
-            carousel.innerHTML += `
-            <div class="carousel-card">
+            const card = document.createElement('div');
+            card.className = 'carousel-card';
+            card.innerHTML = `
                 <img src="${p.image}" alt="${p.name}">
                 <div class="carousel-card-info">
-                    <span class="badge">${p.badge}</span>
+                    <span class="badge">${p.badge || ''}</span>
                     <h3>${p.name}</h3>
                     ${priceHtml}
-                    <button class="add-to-cart magnetic-btn" onclick="addToCart('${p.id}')" style="margin-top: 10px; width: 100%; border-radius: 20px; font-size: 0.85rem;">Agregar al Carrito</button>
-                </div>
-            </div>`;
+                    <button class="add-to-cart magnetic-btn" data-product-id="${p.id}" style="margin-top: 10px; width: 100%; border-radius: 20px; font-size: 0.85rem;">Agregar al Carrito</button>
+                </div>`;
+            
+            // Attach click directly to button element
+            const btn = card.querySelector('.add-to-cart');
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                e.preventDefault();
+                addToCart(p.id);
+            });
+            
+            carousel.appendChild(card);
         });
     }
 
@@ -370,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Carousel parallax (clamped)
         const MT = 6;
         cw.addEventListener('mousemove', e => {
+            if (e.target.closest('.add-to-cart') || e.target.closest('.carousel-btn')) return; // Allow clicks without recalculating transforms
             const r = cw.getBoundingClientRect();
             const x = (e.clientX - r.left) / r.width - .5;
             const y = (e.clientY - r.top) / r.height - .5;

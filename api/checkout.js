@@ -59,6 +59,8 @@ module.exports = async (req, res) => {
 
     } catch (error) {
         console.error("Error en Mercado Pago:", error);
-        res.status(500).json({ message: 'Error procesando el pago', error: error.message });
+        // Si error.cause existe en MP v2, a veces tiene los detalles de validación
+        const detail = error.cause ? JSON.stringify(error.cause) : error.message;
+        res.status(500).json({ message: 'Error procesando el pago: ' + detail, error: error.message });
     }
 };
