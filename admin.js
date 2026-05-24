@@ -48,7 +48,7 @@ const tbody = document.getElementById('adminProductList');
 async function loadProducts() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
     try {
-        const querySnapshot = await db.collection("products").get();
+        const querySnapshot = await db.collection("products").get({ source: 'server' });
         adminProducts = [];
         querySnapshot.forEach((doc) => {
             adminProducts.push({ id: doc.id, ...doc.data() });
@@ -211,6 +211,49 @@ document.getElementById('migrateBtn').addEventListener('click', async () => {
         btn.textContent = 'Reintentar';
         btn.disabled = false;
     }
+});
+
+// Remove duplicates logic
+document.getElementById('initCatalogBtn').insertAdjacentHTML('afterend', `
+    <button id="cleanDuplicatesBtn" class="magnetic-btn" style="background: rgba(255,50,50,0.2); color: #ff4757; border: 1px solid #ff4757; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; margin-left: 10px;">
+        Limpiar Duplicados
+    </button>
+`);
+document.getElementById('cleanDuplicatesBtn').addEventListener('click', async () => {
+    if (!confirm("¿Seguro que quieres eliminar los productos duplicados (dejando solo uno de cada uno)?")) return;
+    const btn = document.getElementById('cleanDuplicatesBtn');
+    btn.disabled = true;
+    btn.textContent = "Limpiando...";
+    
+    try {
+        const snapshot = await db.collection("products").get({ source: 'server' });
+        const seenNames = new Set();
+        const batch = db.batch();
+        let deletedCount = 0;
+        
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (seenNames.has(data.name)) {
+                batch.delete(doc.ref);
+                deletedCount++;
+            } else {
+                seenNames.add(data.name);
+            }
+        });
+        
+        if (deletedCount > 0) {
+            await batch.commit();
+            alert(`Se eliminaron ${deletedCount} productos duplicados.`);
+        } else {
+            alert("No se encontraron productos duplicados.");
+        }
+        loadProducts();
+    } catch (e) {
+        console.error(e);
+        alert("Error limpiando duplicados.");
+    }
+    btn.textContent = "Limpiar Duplicados";
+    btn.disabled = false;
 });
 
 // Image Upload and Preview Handler
