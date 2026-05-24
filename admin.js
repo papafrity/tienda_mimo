@@ -214,7 +214,7 @@ document.getElementById('migrateBtn').addEventListener('click', async () => {
 });
 
 // Remove duplicates logic
-document.getElementById('initCatalogBtn').insertAdjacentHTML('afterend', `
+document.getElementById('migrateBtn').insertAdjacentHTML('afterend', `
     <button id="cleanDuplicatesBtn" class="magnetic-btn" style="background: rgba(255,50,50,0.2); color: #ff4757; border: 1px solid #ff4757; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; margin-left: 10px;">
         Limpiar Duplicados
     </button>
