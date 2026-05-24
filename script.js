@@ -626,7 +626,9 @@ document.head.appendChild(st);
     
     // Add touch support for mobile
     document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+    document.addEventListener('touchstart', e => { mx = e.touches[0].clientX; my = e.touches[0].clientY; }, {passive: true});
     document.addEventListener('touchmove', e => { mx = e.touches[0].clientX; my = e.touches[0].clientY; }, {passive: true});
+    document.addEventListener('touchend', e => { mx = -1000; my = -1000; }, {passive: true});
 
     function anim() {
         ctx.clearRect(0, 0, w, h);
@@ -674,7 +676,7 @@ document.head.appendChild(st);
 
         // 2. Draw the "circuit electricity" effect
         // A radial gradient that only lights up paths near the mouse
-        const R = Math.min(180, w * 0.4); // Dynamic radius for mobile
+        const R = w < 768 ? Math.min(100, w * 0.25) : Math.min(180, w * 0.4); // Dynamic radius for mobile
         const grad = ctx.createRadialGradient(mx, my, 0, mx, my, R);
         grad.addColorStop(0, 'rgba(0, 240, 255, 1)');      // Bright center
         grad.addColorStop(0.3, 'rgba(0, 240, 255, 0.8)');
