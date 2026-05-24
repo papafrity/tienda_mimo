@@ -132,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<p class="price">$${(p.offerPrice || p.price).toFixed(2)}</p>`;
                 
             grid.innerHTML += `
-            <div class="product-card tilt-card" onclick="if(!event.target.closest('.add-to-cart')) window.openProductModal('${p.id}')">
+            <div class="product-card tilt-card" data-category="${p.category}" onclick="if(!event.target.closest('.add-to-cart')) window.openProductModal('${p.id}')">
                 <div class="card-glow"></div>
                 <div class="product-image"><img src="${p.image}" alt="${p.name}"></div>
                 <div class="product-info">
@@ -491,6 +491,14 @@ document.addEventListener('DOMContentLoaded', () => {
         window.openProductModal = function(prodId) {
             const p = products.find(x => x.id === prodId);
             if (!p) return;
+            const liveModal = document.getElementById('productModal');
+            const mImg = document.getElementById('modalMainImg');
+            const mTh = document.getElementById('modalThumbs');
+            const mCat = document.getElementById('modalCategory');
+            const mTit = document.getElementById('modalTitle');
+            const mPr = document.getElementById('modalPrice');
+            const mDesc = document.getElementById('modalDescription');
+
             mCat.textContent = p.category;
             mTit.textContent = p.name;
             const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
@@ -512,10 +520,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     mTh.appendChild(t);
                 });
             }
-            modal.classList.add('active'); document.body.style.overflow = 'hidden';
+            liveModal.classList.add('active'); document.body.style.overflow = 'hidden';
             
             // Re-bind the "Añadir al Carrito" inside modal
-            const addBtn = modal.querySelector('.modal-add-cart');
+            const addBtn = liveModal.querySelector('.modal-add-cart');
             const newAddBtn = addBtn.cloneNode(true);
             addBtn.parentNode.replaceChild(newAddBtn, addBtn);
             
@@ -525,12 +533,13 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        function closeM() { modal.classList.remove('active'); document.body.style.overflow = ''; }
+        function closeM() { document.getElementById('productModal').classList.remove('active'); document.body.style.overflow = ''; }
 
         // Modal global listeners
-        const newModal = modal.cloneNode(true);
-        modal.parentNode.replaceChild(newModal, modal);
-        newModal.addEventListener('click', e => { if (e.target === newModal || e.target === document.getElementById('modalClose')) { newModal.classList.remove('active'); document.body.style.overflow = ''; } });
+        const liveModal = document.getElementById('productModal');
+        const newModal = liveModal.cloneNode(true);
+        liveModal.parentNode.replaceChild(newModal, liveModal);
+        newModal.addEventListener('click', e => { if (e.target === newModal || e.target.closest('#modalClose')) { closeM(); } });
     }
     
     document.addEventListener('keydown', e => { 
