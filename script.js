@@ -132,14 +132,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<p class="price">$${(p.offerPrice || p.price).toFixed(2)}</p>`;
                 
             grid.innerHTML += `
-            <div class="product-card tilt-card" data-category="${p.category}" data-description="${p.description}" data-images='${p.fullImages}'>
+            <div class="product-card tilt-card" onclick="if(!event.target.closest('.add-to-cart')) window.openProductModal('${p.id}')">
                 <div class="card-glow"></div>
                 <div class="product-image"><img src="${p.image}" alt="${p.name}"></div>
                 <div class="product-info">
                     <span class="category">${p.category}</span>
                     <h3>${p.name}</h3>
                     ${priceHtml}
-                    <button class="add-to-cart magnetic-btn" onclick="addToCart('${p.id}')">Agregar al Carrito</button>
+                    <button class="add-to-cart magnetic-btn" onclick="event.stopPropagation(); window.addToCart('${p.id}')">Agregar al Carrito</button>
                 </div>
             </div>`;
         });
@@ -172,7 +172,12 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
-                addToCart(p.id);
+                window.addToCart(p.id);
+            });
+            
+            // Attach modal to the card itself
+            card.addEventListener('click', function(e) {
+                if(!e.target.closest('.add-to-cart')) window.openProductModal(p.id);
             });
             
             carousel.appendChild(card);
@@ -483,20 +488,30 @@ document.addEventListener('DOMContentLoaded', () => {
         const mPr = document.getElementById('modalPrice');
         const mDesc = document.getElementById('modalDescription');
 
-        function openM(card) {
-            mCat.textContent = card.querySelector('.category').textContent;
-            mTit.textContent = card.querySelector('h3').textContent;
-            mPr.textContent = card.querySelector('.price').textContent;
-            mDesc.textContent = card.dataset.description || '';
-            let imgs = JSON.parse(card.dataset.images || '[]');
+        window.openProductModal = function(prodId) {
+            const p = products.find(x => x.id === prodId);
+            if (!p) return;
+            mCat.textContent = p.category;
+            mTit.textContent = p.name;
+            const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
+            mPr.innerHTML = hasDiscount 
+                ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${p.price.toFixed(2)}</span><span class="accent">$${p.offerPrice.toFixed(2)}</span>`
+                : `$${(p.offerPrice || p.price).toFixed(2)}`;
+            mDesc.textContent = p.description || '';
+            
+            let imgs = p.fullImages ? JSON.parse(p.fullImages) : [p.image];
+            if (imgs.length === 0) imgs = [p.image];
+            
             mImg.src = imgs[0];
             mTh.innerHTML = '';
-            if (imgs.length > 1) imgs.forEach((s, i) => {
-                const t = document.createElement('div'); t.classList.add('modal-thumb'); if (i === 0) t.classList.add('active');
-                const im = document.createElement('img'); im.src = s; t.appendChild(im);
-                t.addEventListener('click', () => { mImg.src = s; mTh.querySelectorAll('.modal-thumb').forEach(x => x.classList.remove('active')); t.classList.add('active'); });
-                mTh.appendChild(t);
-            });
+            if (imgs.length > 1) {
+                imgs.forEach((s, i) => {
+                    const t = document.createElement('div'); t.classList.add('modal-thumb'); if (i === 0) t.classList.add('active');
+                    const im = document.createElement('img'); im.src = s; t.appendChild(im);
+                    t.addEventListener('click', () => { mImg.src = s; mTh.querySelectorAll('.modal-thumb').forEach(x => x.classList.remove('active')); t.classList.add('active'); });
+                    mTh.appendChild(t);
+                });
+            }
             modal.classList.add('active'); document.body.style.overflow = 'hidden';
             
             // Re-bind the "Añadir al Carrito" inside modal
@@ -504,17 +519,15 @@ document.addEventListener('DOMContentLoaded', () => {
             const newAddBtn = addBtn.cloneNode(true);
             addBtn.parentNode.replaceChild(newAddBtn, addBtn);
             
-            const prodId = card.querySelector('.add-to-cart').getAttribute('onclick').match(/'([^']+)'/)[1];
             newAddBtn.addEventListener('click', () => {
-                window.addToCart(prodId);
+                window.addToCart(p.id);
                 closeM();
             });
-        }
+        };
+
         function closeM() { modal.classList.remove('active'); document.body.style.overflow = ''; }
 
-        pCards.forEach(c => c.addEventListener('click', e => { if (!e.target.closest('.add-to-cart')) openM(c); }));
-        
-        // Modal global listeners (only need to bind once, but replacing clone prevents dupes if called multiple times)
+        // Modal global listeners
         const newModal = modal.cloneNode(true);
         modal.parentNode.replaceChild(newModal, modal);
         newModal.addEventListener('click', e => { if (e.target === newModal || e.target === document.getElementById('modalClose')) { newModal.classList.remove('active'); document.body.style.overflow = ''; } });
