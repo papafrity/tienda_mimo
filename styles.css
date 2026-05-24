@@ -8,6 +8,7 @@
     --accent-color: #00f0ff;
     --accent-secondary: #8a2be2;
     --gradient-glow: linear-gradient(135deg, var(--accent-color), var(--accent-secondary));
+    --primary: var(--accent-color);
     --card-radius: 16px;
     --transition-base: 0.3s ease;
 }

@@ -102,6 +102,13 @@ function openModal(id = null) {
     document.getElementById('prodId').value = '';
     document.getElementById('modalTitle').textContent = 'Agregar Producto';
     
+    // Reset file uploads and preview
+    document.getElementById('prodImgFile').value = '';
+    const previewContainer = document.getElementById('imgPreviewContainer');
+    const previewImg = document.getElementById('imgPreview');
+    previewContainer.style.display = 'none';
+    previewImg.src = '';
+    
     if (id) {
         document.getElementById('modalTitle').textContent = 'Editar Producto';
         const p = adminProducts.find(x => x.id === id);
@@ -115,6 +122,11 @@ function openModal(id = null) {
             document.getElementById('prodDesc').value = p.description || '';
             document.getElementById('prodImg').value = p.image || '';
             document.getElementById('prodFeatured').checked = p.isFeatured || false;
+            
+            if (p.image) {
+                previewImg.src = p.image;
+                previewContainer.style.display = 'flex';
+            }
         }
     }
     modal.classList.add('active');
@@ -198,5 +210,80 @@ document.getElementById('migrateBtn').addEventListener('click', async () => {
         alert("Error al cargar productos iniciales.");
         btn.textContent = 'Reintentar';
         btn.disabled = false;
+    }
+});
+
+// Image Upload and Preview Handler
+document.getElementById('prodImgFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Show loading state
+    const previewContainer = document.getElementById('imgPreviewContainer');
+    const previewImg = document.getElementById('imgPreview');
+    const statusText = previewContainer.querySelector('span');
+    
+    statusText.textContent = 'Cargando imagen...';
+    statusText.style.color = 'var(--text-secondary)';
+    previewContainer.style.display = 'flex';
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        const img = new Image();
+        img.onload = function() {
+            // Compress using HTML5 Canvas to keep Firestore documents small (under 100KB)
+            const canvas = document.createElement('canvas');
+            const MAX_WIDTH = 800;
+            const MAX_HEIGHT = 800;
+            let width = img.width;
+            let height = img.height;
+
+            if (width > height) {
+                if (width > MAX_WIDTH) {
+                    height *= MAX_WIDTH / width;
+                    width = MAX_WIDTH;
+                }
+            } else {
+                if (height > MAX_HEIGHT) {
+                    width *= MAX_HEIGHT / height;
+                    height = MAX_HEIGHT;
+                }
+            }
+
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Compress to JPEG with 0.75 quality
+            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
+            
+            // Set value in the URL field
+            document.getElementById('prodImg').value = compressedBase64;
+            
+            // Show preview
+            previewImg.src = compressedBase64;
+            statusText.textContent = '✓ Imagen lista';
+            statusText.style.color = '#2ed573';
+        };
+        img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+});
+
+// Update preview live if typing a URL
+document.getElementById('prodImg').addEventListener('input', function(e) {
+    const url = e.target.value.trim();
+    const previewContainer = document.getElementById('imgPreviewContainer');
+    const previewImg = document.getElementById('imgPreview');
+    const statusText = previewContainer.querySelector('span');
+
+    if (url) {
+        previewImg.src = url;
+        statusText.textContent = '✓ Imagen cargada';
+        statusText.style.color = '#2ed573';
+        previewContainer.style.display = 'flex';
+    } else {
+        previewContainer.style.display = 'none';
     }
 });
