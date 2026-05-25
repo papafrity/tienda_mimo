@@ -103,11 +103,11 @@
                         <label for="prodImgFile" class="magnetic-btn" style="padding: 0.8rem 1.5rem; background: var(--surface-border); border: 1px solid var(--surface-border); color: #fff; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; text-align: center; white-space: nowrap; display: inline-block;">
                             Subir desde PC/Móvil
                         </label>
-                        <input type="file" id="prodImgFile" accept="image/*" style="display: none;">
+                        <input type="file" id="prodImgFile" accept="image/*" multiple style="display: none;">
                     </div>
-                    <small style="color: var(--text-secondary); margin-top: 0.25rem; font-size: 0.75rem;">Puedes ingresar un enlace directo o seleccionar un archivo de tu dispositivo.</small>
-                    <div id="imgPreviewContainer" style="margin-top: 10px; display: none; align-items: center; gap: 10px;">
-                        <img id="imgPreview" src="" alt="Vista previa" style="width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);">
+                    <small style="color: var(--text-secondary); margin-top: 0.25rem; font-size: 0.75rem;">Puedes ingresar un enlace directo o seleccionar archivos de tu dispositivo. Se permiten múltiples imágenes.</small>
+                    <div id="imgPreviewContainer" style="margin-top: 10px; display: none; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <span style="font-size: 0.85rem; margin-right: 5px;"></span>
                         <span style="color: #2ed573; font-size: 0.8rem; font-weight: 500;">✓ Imagen lista</span>
                     </div>
                 </div>

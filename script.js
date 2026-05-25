@@ -11,6 +11,28 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// ─── TOAST NOTIFICATION SYSTEM ──────────────────────────────
+function showToast(message, type = 'info', duration = 3500) {
+    const container = document.getElementById('toastContainer');
+    if (!container) return;
+    const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+    const toast = document.createElement('div');
+    toast.classList.add('toast', `toast-${type}`);
+    toast.innerHTML = `
+        <span class="toast-icon">${icons[type] || icons.info}</span>
+        <span class="toast-text">${message}</span>
+        <button class="toast-close" onclick="this.parentElement.classList.add('removing'); setTimeout(() => this.parentElement.remove(), 300);">&times;</button>
+    `;
+    container.appendChild(toast);
+    setTimeout(() => {
+        if (toast.parentElement) {
+            toast.classList.add('removing');
+            setTimeout(() => toast.remove(), 300);
+        }
+    }, duration);
+}
+window.showToast = showToast;
+
 document.addEventListener('DOMContentLoaded', () => {
     // ─── PRELOADER ──────────────────────────────────────────
     const preloader = document.getElementById('preloader');
@@ -243,6 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cart.push({ ...product, qty: 1 });
         }
         saveCart();
+        showToast(`${product.name} agregado al carrito`, 'success');
         
         // Bump animation
         const cartCount = document.getElementById('cartCount');
@@ -403,46 +426,108 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ─── CHECKOUT LOGIC ──────────────────────────────────────
         const checkoutBtn = document.getElementById('checkoutBtn');
-        if (checkoutBtn) {
-            checkoutBtn.addEventListener('click', async () => {
+        const checkoutModal = document.getElementById('checkoutModal');
+        const checkoutModalClose = document.getElementById('checkoutModalClose');
+        const checkoutForm = document.getElementById('checkoutForm');
+        const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+
+        if (checkoutBtn && checkoutModal && checkoutModalClose && checkoutForm) {
+            checkoutBtn.addEventListener('click', () => {
                 if (cart.length === 0) {
-                    alert('Tu carrito está vacío');
+                    showToast('Tu carrito está vacío', 'warning');
+                    return;
+                }
+                // Close cart sidebar and overlay
+                document.getElementById('cartSidebar').classList.remove('active');
+                document.getElementById('cartOverlay').classList.remove('active');
+                
+                // Open checkout modal
+                checkoutModal.classList.add('active');
+            });
+
+            checkoutModalClose.addEventListener('click', () => {
+                checkoutModal.classList.remove('active');
+            });
+
+            // Close modal on clicking outside content
+            checkoutModal.addEventListener('click', (e) => {
+                if (e.target === checkoutModal) {
+                    checkoutModal.classList.remove('active');
+                }
+            });
+
+            checkoutForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (cart.length === 0) {
+                    showToast('Tu carrito está vacío', 'warning');
                     return;
                 }
 
-                checkoutBtn.textContent = 'Procesando...';
-                checkoutBtn.disabled = true;
+                confirmPaymentBtn.textContent = 'Procesando...';
+                confirmPaymentBtn.disabled = true;
 
                 try {
-                    // Check if running on GitHub Pages and alert user about Vercel (Temp handling)
-                    if(window.location.hostname.includes('github.io')) {
-                        alert('Atención: El servidor de pagos Mercado Pago funciona a través de Vercel. Ve al paso de configuración de Vercel en la guía.');
-                        checkoutBtn.textContent = 'Ir a Pagar';
-                        checkoutBtn.disabled = false;
+                    // Extract client shipping info
+                    const customer = {
+                        name: document.getElementById('checkoutName').value.trim(),
+                        dni: document.getElementById('checkoutDni').value.trim(),
+                        phone: document.getElementById('checkoutPhone').value.trim(),
+                        email: document.getElementById('checkoutEmail').value.trim(),
+                        province: document.getElementById('checkoutProvince').value.trim(),
+                        city: document.getElementById('checkoutCity').value.trim(),
+                        address: document.getElementById('checkoutAddress').value.trim(),
+                        zip: document.getElementById('checkoutZip').value.trim()
+                    };
+
+                    // Check if running on GitHub Pages
+                    if (window.location.hostname.includes('github.io')) {
+                        showToast('El servidor de pagos funciona a través de Vercel.', 'warning');
+                        confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
+                        confirmPaymentBtn.disabled = false;
                         return;
                     }
 
+                    // Save pending order to Firestore
+                    const orderRef = await db.collection('orders').add({
+                        customer: customer,
+                        cart: cart.map(item => ({
+                            id: item.id,
+                            name: item.name,
+                            price: Number(item.offerPrice || item.price),
+                            qty: item.qty
+                        })),
+                        status: 'pending',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        total: cart.reduce((sum, item) => sum + (Number(item.offerPrice || item.price) * item.qty), 0)
+                    });
+
+                    const orderId = orderRef.id;
+
+                    // Send orderId and cart to Vercel checkout API
                     const response = await fetch('/api/checkout', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(cart)
+                        body: JSON.stringify({ cart, orderId })
                     });
 
                     const data = await response.json();
 
                     if (response.ok && data.init_point) {
+                        // Redirect to Mercado Pago checkout
                         window.location.href = data.init_point;
                     } else {
                         console.error('Error de Mercado Pago:', data);
-                        alert('No se pudo procesar el pago: ' + (data.message || 'Error desconocido'));
+                        showToast('No se pudo procesar el pago: ' + (data.message || 'Error desconocido'), 'error', 5000);
+                        confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
+                        confirmPaymentBtn.disabled = false;
                     }
                 } catch (error) {
-                    console.error('Error de red:', error);
-                    alert('Error de conexión con el servidor de pagos.');
+                    console.error('Error de red/db:', error);
+                    showToast('Error al registrar el pedido o conectar con el servidor de pagos.', 'error', 5000);
+                    confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
+                    confirmPaymentBtn.disabled = false;
                 }
-
-                checkoutBtn.textContent = 'Ir a Pagar';
-                checkoutBtn.disabled = false;
             });
         }
     }
@@ -566,6 +651,67 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
     initDynamicEvents();
+    // ─── SEARCH BAR LOGIC ───────────────────────────────────
+    const searchToggle = document.getElementById('searchToggle');
+    const searchDropdown = document.getElementById('searchDropdown');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+
+    if (searchToggle) {
+        searchToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            searchDropdown.classList.toggle('active');
+            if (searchDropdown.classList.contains('active')) {
+                setTimeout(() => searchInput.focus(), 100);
+            }
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.search-container')) {
+                searchDropdown.classList.remove('active');
+            }
+        });
+
+        searchInput.addEventListener('input', () => {
+            const query = searchInput.value.toLowerCase().trim();
+            searchResults.innerHTML = '';
+
+            if (query.length < 2) {
+                searchResults.innerHTML = '<div class="search-no-results">Escribe al menos 2 caracteres...</div>';
+                return;
+            }
+
+            const matches = products.filter(p =>
+                p.name.toLowerCase().includes(query) ||
+                p.category.toLowerCase().includes(query) ||
+                (p.description && p.description.toLowerCase().includes(query))
+            );
+
+            if (matches.length === 0) {
+                searchResults.innerHTML = '<div class="search-no-results">No se encontraron productos 😕</div>';
+                return;
+            }
+
+            matches.slice(0, 8).forEach(p => {
+                const item = document.createElement('div');
+                item.classList.add('search-result-item');
+                const displayPrice = (p.offerPrice && p.offerPrice !== p.price) ? p.offerPrice : p.price;
+                item.innerHTML = `
+                    <img src="${p.image}" alt="${p.name}">
+                    <div class="search-result-info">
+                        <h4>${p.name}</h4>
+                        <p>$${displayPrice.toFixed(2)}</p>
+                    </div>
+                `;
+                item.addEventListener('click', () => {
+                    searchDropdown.classList.remove('active');
+                    searchInput.value = '';
+                    window.openProductModal(p.id);
+                });
+                searchResults.appendChild(item);
+            });
+        });
+    }
 
     // ─── NAVBAR HIDE/SHOW ON SCROLL ─────────────────────────
     const navbar = document.getElementById('navbar');
@@ -611,9 +757,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const r = outlineSection.getBoundingClientRect();
             if (r.top < window.innerHeight && r.bottom > 0) {
                 const p = (window.innerHeight - r.top) / (window.innerHeight + r.height);
+                const multiplier = window.innerWidth < 768 ? 40 : 150;
                 texts.forEach((t, i) => {
                     const dir = i === 0 ? 1 : -1;
-                    t.style.transform = `translateX(${(p - 0.5) * 150 * dir}px)`;
+                    t.style.transform = `translateX(${(p - 0.5) * multiplier * dir}px)`;
                 });
             }
         });

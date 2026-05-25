@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¡Gracias por tu compra! | Mimo!</title>
+    <meta name="description" content="Tu pago fue procesado exitosamente. Gracias por comprar en Mimo!">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            min-height: 100vh;
+            background: #06080d;
+            font-family: 'Outfit', sans-serif;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        /* Animated background */
+        .bg-glow {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(120px);
+            opacity: .25;
+            animation: floatGlow 8s ease-in-out infinite;
+        }
+        .bg-glow.g1 { width: 500px; height: 500px; background: #a855f7; top: -10%; left: -10%; }
+        .bg-glow.g2 { width: 400px; height: 400px; background: #06b6d4; bottom: -10%; right: -10%; animation-delay: 4s; }
+        .bg-glow.g3 { width: 300px; height: 300px; background: #f97316; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: 2s; }
+        @keyframes floatGlow {
+            0%, 100% { transform: translate(0, 0) scale(1); }
+            33% { transform: translate(30px, -20px) scale(1.1); }
+            66% { transform: translate(-20px, 30px) scale(0.9); }
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 3rem 2rem;
+            max-width: 580px;
+        }
+
+        .check-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2ed573, #06b6d4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 2rem;
+            animation: popIn .6s cubic-bezier(.4, 0, .2, 1);
+            box-shadow: 0 0 60px rgba(46, 213, 115, .3);
+        }
+        .check-circle svg {
+            width: 50px;
+            height: 50px;
+            stroke: #fff;
+            stroke-width: 3;
+            fill: none;
+            stroke-dasharray: 80;
+            stroke-dashoffset: 80;
+            animation: drawCheck .5s .6s ease forwards;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0); opacity: 0; }
+            80% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes drawCheck {
+            to { stroke-dashoffset: 0; }
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: .8rem;
+            background: linear-gradient(135deg, #a855f7, #06b6d4);
+            -webkit-background-clip: text;
+            color: transparent;
+            animation: fadeUp .5s .3s ease both;
+        }
+        .subtitle {
+            font-size: 1.15rem;
+            color: rgba(255,255,255,.65);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
+            animation: fadeUp .5s .5s ease both;
+        }
+
+        .order-card {
+            background: rgba(255,255,255,.04);
+            border: 1px solid rgba(255,255,255,.1);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+            animation: fadeUp .5s .7s ease both;
+        }
+        .order-card h3 {
+            font-size: 1rem;
+            color: rgba(255,255,255,.5);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+        .order-card p {
+            font-size: 1rem;
+            color: rgba(255,255,255,.8);
+            line-height: 1.8;
+        }
+        .order-card .highlight {
+            color: #2ed573;
+            font-weight: 700;
+        }
+
+        .actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            animation: fadeUp .5s .9s ease both;
+        }
+        .btn {
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            text-decoration: none;
+            transition: all .3s;
+            cursor: pointer;
+            border: none;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #a855f7, #06b6d4);
+            color: #fff;
+            box-shadow: 0 4px 20px rgba(168, 85, 247, .3);
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(168, 85, 247, .4);
+        }
+        .btn-outline {
+            background: transparent;
+            color: #fff;
+            border: 1px solid rgba(255,255,255,.2);
+        }
+        .btn-outline:hover {
+            background: rgba(255,255,255,.05);
+            border-color: rgba(255,255,255,.4);
+        }
+
+        .confetti {
+            position: fixed;
+            top: -10px;
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+            animation: confettiFall linear forwards;
+        }
+        @keyframes confettiFall {
+            to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media(max-width: 480px) {
+            h1 { font-size: 1.8rem; }
+            .subtitle { font-size: 1rem; }
+            .order-card { padding: 1.5rem; }
+        }
+
+        /* Payment verifier overlay */
+        .verifier-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: #06080d;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Outfit', sans-serif;
+            transition: opacity 0.5s ease, transform 0.5s ease;
+            padding: 2rem;
+            text-align: center;
+        }
+        .verifier-overlay.done {
+            opacity: 0;
+            pointer-events: none;
+            transform: scale(1.05);
+        }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 240, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #06b6d4;
+            animation: spin 1s ease-in-out infinite;
+            margin-bottom: 1.5rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .verifier-text { font-size: 1.2rem; color: #fff; margin-bottom: 0.5rem; font-weight: 600; }
+        .verifier-subtext { font-size: 0.9rem; color: rgba(255,255,255,0.5); line-height: 1.5; }
+    </style>
+</head>
+<body>
+    <div class="verifier-overlay" id="verifierOverlay">
+        <div class="spinner"></div>
+        <div class="verifier-text" id="verifierText">Verificando Pago...</div>
+        <div class="verifier-subtext" id="verifierSubtext">Por favor, no cierres esta ventana. Consultando con Mercado Pago.</div>
+    </div>
+
+    <div class="bg-glow g1"></div>
+    <div class="bg-glow g2"></div>
+    <div class="bg-glow g3"></div>
+
+    <div class="container">
+        <div class="check-circle">
+            <svg viewBox="0 0 24 24"><polyline points="4 12 9 17 20 6"></polyline></svg>
+        </div>
+        <h1>¡Gracias por tu compra!</h1>
+        <p class="subtitle">Tu pago fue procesado exitosamente. En breve recibirás los detalles de tu pedido.</p>
+
+        <div class="order-card">
+            <h3>¿Qué sigue?</h3>
+            <p>Nos pondremos en contacto contigo por <span class="highlight">WhatsApp</span> o <span class="highlight">email</span> para coordinar el envío de tus productos.</p>
+            <p style="margin-top: .8rem;">Si tenés alguna duda, escribinos a <span class="highlight">soporte@mimo.com</span></p>
+        </div>
+
+        <div class="actions">
+            <a href="index.html" class="btn btn-primary">Seguir Comprando</a>
+            <a href="https://wa.me/1234567890" target="_blank" class="btn btn-outline">Contactar por WhatsApp</a>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script>
+        const firebaseConfig = {
+          apiKey: "AIzaSyCilME1Fv3Sjb6YBIBSZT3zZshCedEL9LM",
+          authDomain: "tienda-mimo.firebaseapp.com",
+          projectId: "tienda-mimo",
+          storageBucket: "tienda-mimo.firebasestorage.app",
+          messagingSenderId: "451218117227",
+          appId: "1:451218117227:web:96a87214151a03db63172e",
+          measurementId: "G-DQWL3HL2VG"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        // Confetti effect
+        function launchConfetti() {
+            const colors = ['#a855f7', '#06b6d4', '#2ed573', '#f97316', '#ff4757', '#ffd32a'];
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.classList.add('confetti');
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                confetti.style.width = (Math.random() * 8 + 6) + 'px';
+                confetti.style.height = (Math.random() * 8 + 6) + 'px';
+                document.body.appendChild(confetti);
+            }
+        }
+
+        async function verifyPayment() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const paymentId = urlParams.get('payment_id');
+            const status = urlParams.get('status');
+            const orderId = urlParams.get('external_reference');
+
+            const overlay = document.getElementById('verifierOverlay');
+            const verifierText = document.getElementById('verifierText');
+            const verifierSubtext = document.getElementById('verifierSubtext');
+
+            if (!paymentId || !orderId || status !== 'approved') {
+                // No payment params to verify, assume user opened page manually
+                overlay.classList.add('done');
+                return;
+            }
+
+            try {
+                // 1. Fetch order details from Firestore
+                const orderDoc = await db.collection('orders').doc(orderId).get();
+                if (!orderDoc.exists) {
+                    throw new Error('El pedido no existe en nuestro sistema.');
+                }
+                const orderData = orderDoc.data();
+
+                // 2. Call our Vercel confirmation API to double check and send email via Resend
+                const response = await fetch('/api/confirm-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        payment_id: paymentId,
+                        orderId: orderId,
+                        orderDetails: orderData
+                    })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // 3. Mark the order as paid in Firestore
+                    await db.collection('orders').doc(orderId).update({
+                        status: 'paid',
+                        paymentId: paymentId,
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    // Clear cart since payment is approved and processed
+                    localStorage.removeItem('mimo_cart');
+                    
+                    // Trigger animations and hide loading screen
+                    launchConfetti();
+                    overlay.classList.add('done');
+                } else {
+                    throw new Error(data.message || 'Error al validar el pago.');
+                }
+
+            } catch (error) {
+                console.error(error);
+                verifierText.textContent = 'Hubo un inconveniente';
+                verifierText.style.color = '#ff4757';
+                verifierSubtext.innerHTML = `No pudimos confirmar tu pago automáticamente: <br><strong>${error.message}</strong><br><br>Por favor contáctanos por WhatsApp para coordinar tu pedido.`;
+                const spinner = overlay.querySelector('.spinner');
+                if (spinner) spinner.style.display = 'none';
+            }
+        }
+        
+        window.addEventListener('DOMContentLoaded', verifyPayment);
+    </script>
+</body>
+</html>

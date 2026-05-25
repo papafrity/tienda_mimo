@@ -102,12 +102,12 @@ function openModal(id = null) {
     document.getElementById('prodId').value = '';
     document.getElementById('modalTitle').textContent = 'Agregar Producto';
     
-    // Reset file uploads and preview
-    document.getElementById('prodImgFile').value = '';
+    currentUploadedImages = [];
     const previewContainer = document.getElementById('imgPreviewContainer');
-    const previewImg = document.getElementById('imgPreview');
+    Array.from(previewContainer.querySelectorAll('img')).forEach(img => img.remove());
+    const statusText = previewContainer.querySelector('span');
+    if (statusText) statusText.textContent = '';
     previewContainer.style.display = 'none';
-    previewImg.src = '';
     
     if (id) {
         document.getElementById('modalTitle').textContent = 'Editar Producto';
@@ -123,8 +123,23 @@ function openModal(id = null) {
             document.getElementById('prodImg').value = p.image || '';
             document.getElementById('prodFeatured').checked = p.isFeatured || false;
             
-            if (p.image) {
-                previewImg.src = p.image;
+            let imgsToLoad = [];
+            if (p.fullImages) {
+                try { imgsToLoad = JSON.parse(p.fullImages); } catch(e) {}
+            }
+            if (imgsToLoad.length === 0 && p.image) {
+                imgsToLoad = [p.image];
+            }
+            
+            if (imgsToLoad.length > 0) {
+                currentUploadedImages = imgsToLoad;
+                imgsToLoad.forEach(src => {
+                    const imgEl = document.createElement('img');
+                    imgEl.src = src;
+                    imgEl.style.cssText = "width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);";
+                    previewContainer.appendChild(imgEl);
+                });
+                if (statusText) statusText.textContent = \`\${imgsToLoad.length} imagen(es)\`;
                 previewContainer.style.display = 'flex';
             }
         }
@@ -136,6 +151,17 @@ form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('prodId').value;
     
+    let finalImages = currentUploadedImages;
+    let mainImgUrl = document.getElementById('prodImg').value;
+    
+    // Si metió un link manual o modificó el input URL
+    if (finalImages.length === 0) {
+        finalImages = [mainImgUrl];
+    } else if (mainImgUrl !== finalImages[0]) {
+        // Agrega el modificado manual al frente
+        finalImages.unshift(mainImgUrl);
+    }
+    
     const productData = {
         name: document.getElementById('prodName').value,
         category: document.getElementById('prodCategory').value,
@@ -143,9 +169,9 @@ form.addEventListener('submit', async (e) => {
         offerPrice: document.getElementById('prodOffer').value ? parseFloat(document.getElementById('prodOffer').value) : null,
         badge: document.getElementById('prodBadge').value,
         description: document.getElementById('prodDesc').value,
-        image: document.getElementById('prodImg').value,
-        isFeatured: document.getElementById('prodFeatured').checked,
-        fullImages: JSON.stringify([document.getElementById('prodImg').value])
+        image: mainImgUrl,
+        fullImages: JSON.stringify(finalImages),
+        isFeatured: document.getElementById('prodFeatured').checked
     };
 
     const saveBtn = document.getElementById('saveBtn');
@@ -257,62 +283,68 @@ document.getElementById('cleanDuplicatesBtn').addEventListener('click', async ()
 });
 
 // Image Upload and Preview Handler
-document.getElementById('prodImgFile').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
+document.getElementById('prodImgFile').addEventListener('change', async function(e) {
+    const files = Array.from(e.target.files);
+    if (!files.length) return;
 
-    // Show loading state
     const previewContainer = document.getElementById('imgPreviewContainer');
-    const previewImg = document.getElementById('imgPreview');
-    const statusText = previewContainer.querySelector('span');
+    // Clear old previews except the label/span
+    Array.from(previewContainer.querySelectorAll('img')).forEach(img => img.remove());
     
-    statusText.textContent = 'Cargando imagen...';
+    const statusText = previewContainer.querySelector('span') || document.createElement('span');
+    if(!statusText.parentNode) previewContainer.appendChild(statusText);
+    statusText.textContent = 'Cargando imágenes...';
     statusText.style.color = 'var(--text-secondary)';
     previewContainer.style.display = 'flex';
 
-    const reader = new FileReader();
-    reader.onload = function(event) {
-        const img = new Image();
-        img.onload = function() {
-            // Compress using HTML5 Canvas to keep Firestore documents small (under 100KB)
-            const canvas = document.createElement('canvas');
-            const MAX_WIDTH = 800;
-            const MAX_HEIGHT = 800;
-            let width = img.width;
-            let height = img.height;
+    currentUploadedImages = [];
 
-            if (width > height) {
-                if (width > MAX_WIDTH) {
-                    height *= MAX_WIDTH / width;
-                    width = MAX_WIDTH;
-                }
-            } else {
-                if (height > MAX_HEIGHT) {
-                    width *= MAX_HEIGHT / height;
-                    height = MAX_HEIGHT;
-                }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            ctx.drawImage(img, 0, 0, width, height);
-
-            // Compress to JPEG with 0.75 quality
-            const compressedBase64 = canvas.toDataURL('image/jpeg', 0.75);
-            
-            // Set value in the URL field
-            document.getElementById('prodImg').value = compressedBase64;
-            
-            // Show preview
-            previewImg.src = compressedBase64;
-            statusText.textContent = '✓ Imagen lista';
-            statusText.style.color = '#2ed573';
-        };
-        img.src = event.target.result;
-    };
-    reader.readAsDataURL(file);
+    for(let file of files) {
+        const base64 = await compressImageFile(file);
+        currentUploadedImages.push(base64);
+        
+        const imgEl = document.createElement('img');
+        imgEl.src = base64;
+        imgEl.style.cssText = "width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);";
+        previewContainer.appendChild(imgEl);
+    }
+    
+    statusText.textContent = `${files.length} imagen(es) listas`;
+    statusText.style.color = 'var(--accent-color)';
+    document.getElementById('prodImg').value = currentUploadedImages[0]; // Set primary to the first
 });
+
+function compressImageFile(file) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                const MAX_HEIGHT = 800;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > height) {
+                    if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                } else {
+                    if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+
+                const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+                resolve(dataUrl);
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
 
 // Update preview live if typing a URL
 document.getElementById('prodImg').addEventListener('input', function(e) {

@@ -21,9 +21,12 @@ module.exports = async (req, res) => {
     }
 
     try {
-        const cart = req.body;
+        const { cart, orderId } = req.body;
         if (!cart || cart.length === 0) {
             return res.status(400).json({ message: 'El carrito está vacío' });
+        }
+        if (!orderId) {
+            return res.status(400).json({ message: 'Falta el ID del pedido' });
         }
 
         // Convertir formato del carrito frontend a formato Mercado Pago
@@ -43,8 +46,9 @@ module.exports = async (req, res) => {
         const result = await preference.create({
             body: {
                 items: items,
+                external_reference: orderId,
                 back_urls: {
-                    success: `${hostUrl}/index.html?pago=exito`,
+                    success: `${hostUrl}/gracias.html`,
                     failure: `${hostUrl}/index.html?pago=error`,
                     pending: `${hostUrl}/index.html?pago=pendiente`
                 },

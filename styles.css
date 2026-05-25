@@ -239,8 +239,15 @@ body{cursor:auto}
 .scroll-indicator{display:none}
 }
 @media(max-width:480px){
-.split-title{font-size:2.3rem}
-.product-grid{grid-template-columns:1fr}
+.hero-content{text-align:center}
+.split-title{font-size:2rem;text-align:center;display:block}
+.product-grid{grid-template-columns:repeat(2,1fr);gap:1rem;padding:0 .5rem}
+.product-card{border-radius:12px}
+.product-card h3{font-size:.9rem}
+.product-card .price{font-size:.95rem}
+.product-card img{height:120px;object-fit:contain}
+.product-info{padding:.8rem}
+.add-to-cart{padding:.5rem;font-size:.8rem}
 .carousel-card{width:240px;height:430px;margin-left:-120px}
 .carousel-3d{width:240px;height:430px}
 }
@@ -433,4 +440,143 @@ body{cursor:auto}
 .checkout-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 10px 20px rgba(0, 240, 255, 0.3);
+}
+
+/* ─── SEARCH BAR ─────────────────────────────────────────── */
+.search-container{position:relative;z-index:1001;display:flex;align-items:center}
+.search-toggle{background:none;border:none;color:#fff;cursor:pointer;padding:8px;display:flex;align-items:center;transition:color .3s}
+.search-toggle:hover{color:var(--primary)}
+.search-toggle svg{stroke:currentColor}
+.search-dropdown{position:absolute;top:calc(100% + 12px);right:0;width:360px;background:rgba(10,12,18,0.97);border:1px solid var(--surface-border);border-radius:16px;padding:0;opacity:0;visibility:hidden;transform:translateY(-10px);transition:all .3s cubic-bezier(.4,0,.2,1);backdrop-filter:blur(20px);box-shadow:0 20px 60px rgba(0,0,0,.5);overflow:hidden}
+.search-dropdown.active{opacity:1;visibility:visible;transform:translateY(0)}
+.search-input{width:100%;padding:1rem 1.2rem;background:transparent;border:none;border-bottom:1px solid var(--surface-border);color:#fff;font-size:1rem;font-family:'Outfit',sans-serif;outline:none}
+.search-input::placeholder{color:rgba(255,255,255,.35)}
+.search-results{max-height:320px;overflow-y:auto;padding:.5rem}
+.search-results::-webkit-scrollbar{width:4px}
+.search-results::-webkit-scrollbar-thumb{background:var(--primary);border-radius:4px}
+.search-result-item{display:flex;align-items:center;gap:.8rem;padding:.7rem .8rem;border-radius:10px;cursor:pointer;transition:background .2s}
+.search-result-item:hover{background:rgba(255,255,255,.06)}
+.search-result-item img{width:48px;height:48px;object-fit:cover;border-radius:8px;border:1px solid var(--surface-border)}
+.search-result-info h4{font-size:.9rem;color:#fff;margin:0 0 .15rem 0;font-weight:600}
+.search-result-info p{font-size:.8rem;color:var(--primary);margin:0;font-weight:600}
+.search-no-results{padding:1.5rem;text-align:center;color:var(--text-secondary);font-size:.9rem}
+@media(max-width:768px){
+.search-dropdown{width:calc(100vw - 2rem);right:-50px}
+}
+
+/* ─── TOAST NOTIFICATIONS ────────────────────────────────── */
+.toast-container{position:fixed;bottom:2rem;right:2rem;z-index:10000;display:flex;flex-direction:column-reverse;gap:.8rem;pointer-events:none}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:.8rem;padding:1rem 1.5rem;border-radius:14px;background:rgba(10,12,18,0.95);border:1px solid var(--surface-border);backdrop-filter:blur(20px);color:#fff;font-family:'Outfit',sans-serif;font-size:.95rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(120%);animation:toastIn .4s cubic-bezier(.4,0,.2,1) forwards;max-width:380px}
+.toast.removing{animation:toastOut .3s cubic-bezier(.4,0,.2,1) forwards}
+.toast-icon{font-size:1.3rem;flex-shrink:0}
+.toast-text{flex:1}
+.toast-close{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:1.2rem;padding:0 0 0 .5rem;transition:color .2s;line-height:1}
+.toast-close:hover{color:#fff}
+.toast.toast-success{border-color:rgba(46,213,115,.3)}
+.toast.toast-success .toast-icon{color:#2ed573}
+.toast.toast-error{border-color:rgba(255,71,87,.3)}
+.toast.toast-error .toast-icon{color:#ff4757}
+.toast.toast-info{border-color:rgba(0,168,255,.3)}
+.toast.toast-info .toast-icon{color:#00a8ff}
+.toast.toast-warning{border-color:rgba(255,165,0,.3)}
+.toast.toast-warning .toast-icon{color:#ffa500}
+@keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+@media(max-width:768px){
+.toast-container{bottom:1rem;right:1rem;left:1rem}
+.toast{max-width:100%}
+}
+
+/* ─── CHECKOUT FORM MODAL ────────────────────────────────── */
+.checkout-modal-content {
+    max-width: 650px !important;
+    width: 90% !important;
+    padding: 2.5rem !important;
+}
+.checkout-form-container h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: var(--gradient-glow);
+    -webkit-background-clip: text;
+    color: transparent;
+}
+.checkout-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 1.8rem;
+    line-height: 1.4;
+}
+.form-row {
+    display: flex;
+    gap: 1.2rem;
+    margin-bottom: 1.2rem;
+}
+.form-group {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.form-group label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+.form-group input {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 0.8rem 1rem;
+    color: #fff;
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+.form-group input:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 10px rgba(0, 240, 255, 0.15);
+}
+.checkout-submit-btn {
+    width: 100%;
+    margin-top: 1.5rem;
+    padding: 1rem;
+    border: none;
+    border-radius: 30px;
+    background: var(--gradient-glow);
+    color: var(--bg);
+    font-weight: 700;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    font-family: var(--font-primary);
+}
+.checkout-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(0, 240, 255, 0.3);
+}
+.checkout-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+@media(max-width: 600px) {
+    .form-row {
+        flex-direction: column;
+        gap: 1.2rem;
+        margin-bottom: 0px;
+    }
+    .form-group {
+        margin-bottom: 1.2rem;
+    }
+    .checkout-modal-content {
+        padding: 1.5rem !important;
+        overflow-y: auto;
+        max-height: 90vh;
+    }
+    .checkout-form-container h2 {
+        font-size: 1.4rem;
+    }
 }
