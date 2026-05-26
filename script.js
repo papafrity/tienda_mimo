@@ -197,9 +197,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.addToCart(p.id);
             });
             
-            // Attach modal to the card itself
+            // Attach modal to the card itself (only if active)
             card.addEventListener('click', function(e) {
-                if(!e.target.closest('.add-to-cart')) window.openProductModal(p.id);
+                if(!e.target.closest('.add-to-cart')) {
+                    if (card.classList.contains('active')) {
+                        window.openProductModal(p.id);
+                    }
+                }
             });
             
             carousel.appendChild(card);
@@ -369,27 +373,38 @@ document.addEventListener('DOMContentLoaded', () => {
         
         dotsC.innerHTML = '';
         let ci = 0; const tc = cards.length;
-        const bt = new Array(tc).fill('');
 
-        cards.forEach((_, i) => {
+        cards.forEach((card, i) => {
             const d = document.createElement('div'); d.classList.add('carousel-dot');
             if (i === 0) d.classList.add('active');
             d.addEventListener('click', () => { ci = i; upC(); });
             dotsC.appendChild(d);
+
+            // Center the card when clicked if it is not currently active
+            card.addEventListener('click', (e) => {
+                if (ci !== i && !e.target.closest('.add-to-cart')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    ci = i;
+                    upC();
+                }
+            });
         });
 
         function upC() {
+            if (cards.length === 0) return;
             const dots = dotsC.querySelectorAll('.carousel-dot');
+            const cardWidth = cards[0].offsetWidth || 300;
+            const style = window.getComputedStyle(carousel);
+            const gap = parseFloat(style.gap) || 32;
+
+            // Slide track to center active card
+            carousel.style.transform = `translateX(-${ci * (cardWidth + gap)}px)`;
+
             cards.forEach((c, i) => {
-                let o = i - ci;
-                if (o > Math.floor(tc / 2)) o -= tc;
-                if (o < -Math.floor(tc / 2)) o += tc;
-                const a = Math.abs(o);
-                const tz = -a * 150, tx = o * 300, ry2 = o * -30;
-                const s = Math.max(1 - a * .15, .6), op = a > 2 ? 0 : Math.max(1 - a * .3, 0);
-                const t = `translateX(${tx}px) translateZ(${tz}px) rotateY(${ry2}deg) scale(${s})`;
-                bt[i] = t; c.style.transform = t; c.style.opacity = op;
-                c.style.zIndex = tc - a; c.style.pointerEvents = 'auto';
+                const isActive = (i === ci);
+                c.classList.toggle('active', isActive);
+                c.style.zIndex = isActive ? 5 : 1;
             });
             dots.forEach((d, i) => d.classList.toggle('active', i === ci));
         }
@@ -400,29 +415,19 @@ document.addEventListener('DOMContentLoaded', () => {
         nextBtn.addEventListener('click', nS);
         prevBtn.addEventListener('click', pS);
 
-        let ap = setInterval(nS, 4000);
+        let ap = setInterval(nS, 5000);
         const cw = document.querySelector('.carousel-wrapper');
-        cw.addEventListener('mouseenter', () => clearInterval(ap));
-        cw.addEventListener('mouseleave', () => { ap = setInterval(nS, 4000); });
-        
-        let tsx = 0;
-        cw.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; clearInterval(ap); }, { passive: true });
-        cw.addEventListener('touchend', e => { const d = tsx - e.changedTouches[0].screenX; if (Math.abs(d) > 50) { d > 0 ? nS() : pS(); } ap = setInterval(nS, 4000); }, { passive: true });
+        if (cw) {
+            cw.addEventListener('mouseenter', () => clearInterval(ap));
+            cw.addEventListener('mouseleave', () => { ap = setInterval(nS, 5000); });
+            
+            let tsx = 0;
+            cw.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; clearInterval(ap); }, { passive: true });
+            cw.addEventListener('touchend', e => { const d = tsx - e.changedTouches[0].screenX; if (Math.abs(d) > 50) { d > 0 ? nS() : pS(); } ap = setInterval(nS, 5000); }, { passive: true });
+        }
 
         upC();
-
-        // Carousel parallax (clamped)
-        const MT = 6;
-        cw.addEventListener('mousemove', e => {
-            if (e.target.closest('.add-to-cart') || e.target.closest('.carousel-btn')) return; // Allow clicks without recalculating transforms
-            const r = cw.getBoundingClientRect();
-            const x = (e.clientX - r.left) / r.width - .5;
-            const y = (e.clientY - r.top) / r.height - .5;
-            const tx2 = Math.max(-MT, Math.min(MT, -y * MT * 2));
-            const ty2 = Math.max(-MT, Math.min(MT, x * MT * 2));
-            cards.forEach((c, i) => { if (bt[i]) c.style.transform = bt[i] + ` rotateX(${tx2}deg) rotateY(${ty2}deg)`; });
-        });
-        cw.addEventListener('mouseleave', () => { cards.forEach((c, i) => { if (bt[i]) c.style.transform = bt[i]; }); });
+        window.addEventListener('resize', upC);
 
         // ─── CHECKOUT LOGIC ──────────────────────────────────────
         const checkoutBtn = document.getElementById('checkoutBtn');
