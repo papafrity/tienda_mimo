@@ -64,3 +64,153 @@ body, body * { cursor: auto !important; }
 .form-actions button { padding: 0.8rem 2rem; border-radius: 10px; cursor: pointer; border: none; font-weight: bold; }
 .form-actions #cancelBtn { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); }
 .form-actions #saveBtn { background: var(--primary); color: #000; }
+
+/* ─── COST CALCULATOR ────────────────────────────────────── */
+.calculator-card {
+    background: var(--surface);
+    border: 1px solid var(--surface-border);
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    overflow: hidden;
+}
+.calculator-header {
+    background: rgba(255, 255, 255, 0.02);
+    padding: 1.2rem 1.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.3s;
+}
+.calculator-header:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+.calculator-header h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+.calc-arrow {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+    color: var(--text-secondary);
+}
+.calculator-header.active .calc-arrow {
+    transform: rotate(180deg);
+}
+.calculator-body {
+    padding: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    transition: all 0.3s ease-out;
+}
+.calculator-body.hidden {
+    display: none !important;
+}
+.calc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+}
+.calc-input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+.calc-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+.calc-form-group label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+.calc-input {
+    padding: 0.7rem;
+    border-radius: 8px;
+    border: 1px solid var(--surface-border);
+    background: rgba(255, 255, 255, 0.05);
+    color: #fff;
+    font-family: var(--font-primary);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.3s;
+}
+.calc-input:focus {
+    border-color: var(--primary);
+}
+.usd-rate-wrapper {
+    display: flex;
+    gap: 0.5rem;
+}
+.usd-rate-wrapper input {
+    flex: 1;
+}
+.fetch-btn {
+    background: var(--surface-border);
+    border: 1px solid var(--surface-border);
+    color: #fff;
+    padding: 0.7rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: bold;
+    transition: background 0.3s, border-color 0.3s;
+}
+.fetch-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+.rate-source-info {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.calc-result-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: center;
+}
+.result-box {
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--surface-border);
+    border-radius: 10px;
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.result-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+.result-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+.result-box.highlighted {
+    border-color: var(--primary);
+    background: rgba(0, 240, 255, 0.02);
+}
+.result-box.highlighted .result-value {
+    color: var(--primary);
+    font-size: 1.3rem;
+}
+.result-box.success-box {
+    border-color: rgba(46, 213, 115, 0.3);
+    background: rgba(46, 213, 115, 0.02);
+}
+.result-box.success-box .result-value {
+    color: #2ed573;
+    font-size: 1.3rem;
+}
+
+@media (max-width: 768px) {
+    .calc-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+}

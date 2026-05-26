@@ -30,6 +30,66 @@
             </div>
         </header>
 
+        <!-- Cost Calculator Section -->
+        <div class="calculator-card">
+            <div class="calculator-header" id="toggleCalcBtn">
+                <h3>🧮 Calculadora de Costos e Importación (Dropshipping)</h3>
+                <span class="calc-arrow" id="calcArrow">▼</span>
+            </div>
+            <div class="calculator-body hidden" id="calculatorBody">
+                <div class="calc-grid">
+                    <div class="calc-input-section">
+                        <div class="calc-form-group">
+                            <label for="calcCurrency">Moneda del Proveedor</label>
+                            <select id="calcCurrency" class="calc-input">
+                                <option value="USD">Dólares (USD)</option>
+                                <option value="ARS">Pesos (ARS)</option>
+                            </select>
+                        </div>
+                        <div class="calc-form-group">
+                            <label for="calcCost">Costo del Proveedor</label>
+                            <input type="number" id="calcCost" class="calc-input" value="10" step="0.01">
+                        </div>
+                        <div class="calc-form-group" id="usdRateGroup">
+                            <label for="calcUsdRate">Tipo de Cambio (USD ➔ ARS)</label>
+                            <div class="usd-rate-wrapper">
+                                <input type="number" id="calcUsdRate" class="calc-input" value="1000" step="1">
+                                <button type="button" id="fetchRateBtn" class="fetch-btn">🔄 API</button>
+                            </div>
+                            <small id="rateSource" class="rate-source-info">Cargando cotización...</small>
+                        </div>
+                        <div class="calc-form-group">
+                            <label for="calcShipping">Costo de Envío del Proveedor (ARS)</label>
+                            <input type="number" id="calcShipping" class="calc-input" value="4000" step="100">
+                        </div>
+                        <div class="calc-form-group">
+                            <label for="calcProfit">Margen de Ganancia Deseado (%)</label>
+                            <input type="number" id="calcProfit" class="calc-input" value="30" step="1">
+                        </div>
+                    </div>
+                    
+                    <div class="calc-result-section">
+                        <div class="result-box">
+                            <span class="result-label">Costo Neto Proveedor + Envío</span>
+                            <span class="result-value" id="resNetCost">$0.00 ARS</span>
+                        </div>
+                        <div class="result-box">
+                            <span class="result-label">Comisión Mercado Pago (6.5%)</span>
+                            <span class="result-value" id="resMpFee">$0.00 ARS</span>
+                        </div>
+                        <div class="result-box highlighted">
+                            <span class="result-label">Precio Sugerido de Venta en la Web</span>
+                            <span class="result-value" id="resSellPrice">$0.00 ARS</span>
+                        </div>
+                        <div class="result-box success-box">
+                            <span class="result-label">Tu Ganancia Neta Estimada</span>
+                            <span class="result-value" id="resNetProfit">$0.00 ARS</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <main class="admin-main">
             <div class="toolbar">
                 <h3>Tus Productos Activos</h3>

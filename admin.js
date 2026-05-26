@@ -43,6 +43,7 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 
 // Products Logic
 let adminProducts = [];
+let currentUploadedImages = [];
 const tbody = document.getElementById('adminProductList');
 
 async function loadProducts() {
@@ -139,7 +140,7 @@ function openModal(id = null) {
                     imgEl.style.cssText = "width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);";
                     previewContainer.appendChild(imgEl);
                 });
-                if (statusText) statusText.textContent = \`\${imgsToLoad.length} imagen(es)\`;
+                if (statusText) statusText.textContent = `${imgsToLoad.length} imagen(es)`;
                 previewContainer.style.display = 'flex';
             }
         }
@@ -362,3 +363,101 @@ document.getElementById('prodImg').addEventListener('input', function(e) {
         previewContainer.style.display = 'none';
     }
 });
+
+// ─── COST CALCULATOR LOGIC ─────────────────────────────────
+const toggleCalcBtn = document.getElementById('toggleCalcBtn');
+const calculatorBody = document.getElementById('calculatorBody');
+const calcCurrency = document.getElementById('calcCurrency');
+const calcCost = document.getElementById('calcCost');
+const calcUsdRate = document.getElementById('calcUsdRate');
+const fetchRateBtn = document.getElementById('fetchRateBtn');
+const calcShipping = document.getElementById('calcShipping');
+const calcProfit = document.getElementById('calcProfit');
+const usdRateGroup = document.getElementById('usdRateGroup');
+
+const resNetCost = document.getElementById('resNetCost');
+const resMpFee = document.getElementById('resMpFee');
+const resSellPrice = document.getElementById('resSellPrice');
+const resNetProfit = document.getElementById('resNetProfit');
+const rateSource = document.getElementById('rateSource');
+
+if (toggleCalcBtn && calculatorBody) {
+    // Expand/Collapse
+    toggleCalcBtn.addEventListener('click', () => {
+        toggleCalcBtn.classList.toggle('active');
+        calculatorBody.classList.toggle('hidden');
+    });
+
+    // Toggle USD rate field based on currency selection
+    calcCurrency.addEventListener('change', () => {
+        if (calcCurrency.value === 'USD') {
+            usdRateGroup.style.display = 'flex';
+        } else {
+            usdRateGroup.style.display = 'none';
+        }
+        calculateCosts();
+    });
+
+    // Event listeners for recalculation
+    [calcCost, calcUsdRate, calcShipping, calcProfit].forEach(input => {
+        input.addEventListener('input', calculateCosts);
+    });
+
+    // API button
+    if (fetchRateBtn) {
+        fetchRateBtn.addEventListener('click', fetchUsdRate);
+    }
+
+    async function fetchUsdRate() {
+        if (fetchRateBtn) fetchRateBtn.textContent = '⏳';
+        try {
+            const res = await fetch('https://dolarapi.com/v1/dolares/blue');
+            if (!res.ok) throw new Error('API Error');
+            const data = await res.json();
+            if (data && data.venta) {
+                calcUsdRate.value = Math.round(data.venta);
+                if (rateSource) {
+                    const date = new Date(data.fechaActualizacion);
+                    rateSource.textContent = `Dólar Blue: $${data.venta} (Act: ${date.toLocaleTimeString()})`;
+                    rateSource.style.color = '#2ed573';
+                }
+                calculateCosts();
+            }
+        } catch (e) {
+            console.error('Error fetching exchange rate:', e);
+            if (rateSource) {
+                rateSource.textContent = 'Error al consultar. Ingresa manual.';
+                rateSource.style.color = '#ff4757';
+            }
+        } finally {
+            if (fetchRateBtn) fetchRateBtn.textContent = '🔄 API';
+        }
+    }
+
+    function calculateCosts() {
+        const cost = parseFloat(calcCost.value) || 0;
+        const rate = parseFloat(calcUsdRate.value) || 1;
+        const shipping = parseFloat(calcShipping.value) || 0;
+        const margin = parseFloat(calcProfit.value) || 0;
+
+        // Convert cost to ARS if USD is selected
+        const costInArs = calcCurrency.value === 'USD' ? cost * rate : cost;
+        const netCost = costInArs + shipping;
+
+        // Calculate Sell Price: NetCost * (1 + Margin%) / (1 - MercadoPagoFee%)
+        const mpFeeRate = 0.065;
+        const sellPrice = netCost * (1 + margin / 100) / (1 - mpFeeRate);
+        const mpFee = sellPrice * mpFeeRate;
+        const netProfit = sellPrice - mpFee - netCost;
+
+        // Update UI
+        resNetCost.textContent = `$${netCost.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS`;
+        resMpFee.textContent = `$${mpFee.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS`;
+        resSellPrice.textContent = `$${sellPrice.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS`;
+        resNetProfit.textContent = `$${netProfit.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ARS`;
+    }
+
+    // Initial load
+    fetchUsdRate();
+    calculateCosts();
+}

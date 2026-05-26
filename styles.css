@@ -108,8 +108,8 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 
 /* Outline Text */
 .outline-text-section{position:relative;z-index:1;padding:4rem 5%;text-align:center;overflow:hidden}
-.outline-text{display:block;font-size:clamp(4rem,12vw,10rem);font-weight:800;text-transform:uppercase;letter-spacing:.05em;-webkit-text-stroke:1.5px rgba(255,255,255,.1);color:transparent;line-height:1.1;transition:transform .1s;user-select:none}
-.outline-text.filled{-webkit-text-stroke:0;background:var(--gradient-glow);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.15;background-size:200% 200%;animation:gradientShift 4s ease infinite}
+.outline-text{display:block;font-size:clamp(2rem,9vw,9rem);font-weight:800;text-transform:uppercase;letter-spacing:.05em;-webkit-text-stroke:1.5px rgba(255,255,255,.3);color:transparent;line-height:1.1;transition:transform .1s;user-select:none;white-space:nowrap}
+.outline-text.filled{-webkit-text-stroke:0;background:var(--gradient-glow);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.7;background-size:200% 200%;animation:gradientShift 4s ease infinite}
 @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
 /* CAROUSEL */
