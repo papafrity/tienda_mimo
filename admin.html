@@ -4,7 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mimo! - Panel de Administración</title>
-    <link rel="stylesheet" href="styles.css"> 
+    <meta name="description" content="Panel de administración de Mimo! Tienda de Tecnología.">
+    <meta name="robots" content="noindex, nofollow"> 
+    <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
 </head>
@@ -25,10 +27,36 @@
         <header class="admin-header">
             <h2>Panel de Control</h2>
             <div class="header-actions">
-                <button id="migrateBtn" class="magnetic-btn outline">Cargar Catálogo Inicial</button>
+                <button id="migrateBtn" class="magnetic-btn outline" style="display: none;">Cargar Catálogo Inicial</button>
                 <button id="logoutBtn" class="magnetic-btn">Cerrar Sesión</button>
             </div>
         </header>
+
+        <!-- Stats Section -->
+        <div class="stats-card" style="background:var(--surface-color);border:1px solid var(--surface-border);border-radius:15px;padding:1.5rem;margin-bottom:1.5rem">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+                <h3 style="margin:0">📊 Estadísticas de Ventas</h3>
+                <button id="refreshStatsBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Actualizar</button>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-top:1rem">
+                <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
+                    <div style="font-size:1.8rem;font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Space Grotesk',sans-serif" id="statTotalRevenue">$0</div>
+                    <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Total Facturado</div>
+                </div>
+                <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
+                    <div style="font-size:1.8rem;font-weight:800;color:var(--accent-color);font-family:'Space Grotesk',sans-serif" id="statTotalOrders">0</div>
+                    <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Totales</div>
+                </div>
+                <div style="background:rgba(46,213,115,.05);border-radius:10px;padding:1rem;text-align:center">
+                    <div style="font-size:1.8rem;font-weight:800;color:#2ed573;font-family:'Space Grotesk',sans-serif" id="statPaidOrders">0</div>
+                    <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Pagados</div>
+                </div>
+            </div>
+            <div style="margin-top:1.5rem">
+                <h4 style="color:var(--text-secondary);font-size:.9rem;margin-bottom:.8rem">🏆 Top 10 Más Vendidos</h4>
+                <div id="topProductsList" style="display:flex;flex-direction:column;gap:.4rem"></div>
+            </div>
+        </div>
 
         <!-- Cost Calculator Section -->
         <div class="calculator-card">
@@ -93,7 +121,10 @@
         <main class="admin-main">
             <div class="toolbar">
                 <h3>Tus Productos Activos</h3>
-                <button id="addProductBtn" class="magnetic-btn">+ Nuevo Producto</button>
+                <div style="display: flex; gap: 0.8rem;">
+                    <button id="reloadBtn" class="magnetic-btn" style="background: transparent; border: 1px solid var(--surface-border); color: var(--text-secondary);">🔄 Recargar Lista</button>
+                    <button id="addProductBtn" class="magnetic-btn">+ Nuevo Producto</button>
+                </div>
             </div>
 
             <div class="table-container">
@@ -105,6 +136,8 @@
                             <th>Categoría</th>
                             <th>Precio</th>
                             <th>Oferta</th>
+                            <th>Stock</th>
+                            <th>Peso</th>
                             <th>Acciones</th>
                         </tr>
                     </thead>
@@ -114,6 +147,78 @@
                 </table>
             </div>
         </main>
+    </div>
+
+    <!-- Shipping Rates -->
+    <div class="admin-main" style="margin-top:0;padding-top:0">
+        <div class="toolbar" style="margin-top:2rem">
+            <h3>🚚 Tarifas de Envío por Provincia</h3>
+        </div>
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Provincia</th>
+                        <th>Costo Base ($)</th>
+                        <th>Costo por kg ($)</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="shippingRatesBody"></tbody>
+            </table>
+        </div>
+        <div style="display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap">
+            <input type="text" id="newRateProvince" placeholder="Nueva provincia" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;flex:1;min-width:150px">
+            <input type="number" id="newRateBase" placeholder="Costo base $" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:130px" step="100">
+            <input type="number" id="newRatePerKg" placeholder="$ por kg" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:120px" step="50">
+            <button id="addRateBtn" class="magnetic-btn" style="padding:.6rem 1.5rem">Agregar</button>
+        </div>
+        <p style="color:var(--text-secondary);font-size:.85rem;margin-top:.5rem">Las tarifas se usan en el checkout para calcular el envío según la provincia y el peso total del pedido.</p>
+    </div>
+
+    <!-- Orders Management -->
+    <div class="admin-main" style="margin-top:0;padding-top:0">
+        <div class="toolbar" style="margin-top:2rem">
+            <h3>📦 Gestión de Pedidos</h3>
+            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                <button id="reloadOrdersBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Recargar</button>
+                <select id="orderStatusFilter" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
+                    <option value="all">Todos los estados</option>
+                    <option value="pending">🟡 Pendientes</option>
+                    <option value="paid">🟢 Pagados</option>
+                    <option value="shipped">🔵 Enviados</option>
+                    <option value="delivered">✅ Entregados</option>
+                    <option value="cancelled">🔴 Cancelados</option>
+                </select>
+            </div>
+        </div>
+        <div class="table-container">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Total</th>
+                        <th>Productos</th>
+                        <th>Provincia</th>
+                        <th>Fecha</th>
+                        <th>Estado</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="ordersList"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="admin-modal-content">
+            <h3 style="margin-bottom:1rem">📋 Detalle del Pedido</h3>
+            <div id="orderDetailContent"></div>
+            <div class="form-actions" style="margin-top:1.5rem">
+                <button type="button" id="closeOrderModalBtn" class="magnetic-btn outline">Cerrar</button>
+            </div>
+        </div>
     </div>
 
     <!-- Product Modal -->
@@ -137,16 +242,24 @@
                         <option value="heladeras">Heladeras</option>
                     </select>
                 </div>
-                <div class="form-group-row">
-                    <div class="form-group">
-                        <label>Precio Regular ($)</label>
-                        <input type="number" id="prodPrice" step="0.01" required>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Precio Regular ($)</label>
+                            <input type="number" id="prodPrice" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Oferta ($) (Opcional)</label>
+                            <input type="number" id="prodOffer" step="0.01">
+                        </div>
+                        <div class="form-group" style="min-width:100px">
+                            <label>Stock</label>
+                            <input type="number" id="prodStock" min="0" step="1" value="0">
+                        </div>
+                        <div class="form-group" style="min-width:100px">
+                            <label>Peso (kg)</label>
+                            <input type="number" id="prodWeight" min="0" step="0.1" value="0.5">
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Precio Oferta ($) (Opcional)</label>
-                        <input type="number" id="prodOffer" step="0.01">
-                    </div>
-                </div>
                 <div class="form-group">
                     <label>Etiqueta (Ej: -30%, Más Vendido)</label>
                     <input type="text" id="prodBadge">
@@ -185,6 +298,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>

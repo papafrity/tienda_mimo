@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>¡Gracias por tu compra! | Mimo!</title>
     <meta name="description" content="Tu pago fue procesado exitosamente. Gracias por comprar en Mimo!">
+    <meta property="og:title" content="¡Gracias por tu compra! - Mimo!">
+    <meta property="og:description" content="Tu pago fue procesado exitosamente. Nos pondremos en contacto para coordinar el envío.">
+    <meta property="og:image" content="https://tienda-mimo.vercel.app/img/og-image.jpg">
+    <meta property="og:url" content="https://tienda-mimo.vercel.app/gracias.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
@@ -234,7 +240,7 @@
         <div class="order-card">
             <h3>¿Qué sigue?</h3>
             <p>Nos pondremos en contacto contigo por <span class="highlight">WhatsApp</span> o <span class="highlight">email</span> para coordinar el envío de tus productos.</p>
-            <p style="margin-top: .8rem;">Si tenés alguna duda, escribinos a <span class="highlight">sebastian.bustos4994@gmail.com</span></p>
+            <p style="margin-top: .8rem;">Si tenés alguna duda, escribinos a <span class="highlight">mimo.la.tienda@gmail.com</span></p>
         </div>
 
         <div class="actions">
@@ -245,19 +251,9 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyCilME1Fv3Sjb6YBIBSZT3zZshCedEL9LM",
-          authDomain: "tienda-mimo.firebaseapp.com",
-          projectId: "tienda-mimo",
-          storageBucket: "tienda-mimo.firebasestorage.app",
-          messagingSenderId: "451218117227",
-          appId: "1:451218117227:web:96a87214151a03db63172e",
-          measurementId: "G-DQWL3HL2VG"
-        };
-        const app = firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-
         // Confetti effect
         function launchConfetti() {
             const colors = ['#a855f7', '#06b6d4', '#2ed573', '#f97316', '#ff4757', '#ffd32a'];
@@ -321,6 +317,8 @@
 
                     // Clear cart since payment is approved and processed
                     localStorage.removeItem('mimo_cart');
+                    
+                    gtag('event', 'purchase', { transaction_id: paymentId, value: orderData.total, currency: 'ARS', items: (orderData.cart||[]).map(i => ({ item_id: i.id, item_name: i.name, price: i.price, quantity: i.qty })) });
                     
                     // Trigger animations and hide loading screen
                     launchConfetti();

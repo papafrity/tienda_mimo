@@ -1,16 +1,3 @@
-const firebaseConfig = {
-  apiKey: "AIzaSyCilME1Fv3Sjb6YBIBSZT3zZshCedEL9LM",
-  authDomain: "tienda-mimo.firebaseapp.com",
-  projectId: "tienda-mimo",
-  storageBucket: "tienda-mimo.firebasestorage.app",
-  messagingSenderId: "451218117227",
-  appId: "1:451218117227:web:96a87214151a03db63172e",
-  measurementId: "G-DQWL3HL2VG"
-};
-
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 // Simple Auth
 const PIN = "1234"; // Default PIN
 const loginScreen = document.getElementById('loginScreen');
@@ -49,7 +36,7 @@ const tbody = document.getElementById('adminProductList');
 async function loadProducts() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
     try {
-        const querySnapshot = await db.collection("products").get({ source: 'server' });
+        const querySnapshot = await db.collection("products").get();
         adminProducts = [];
         querySnapshot.forEach((doc) => {
             adminProducts.push({ id: doc.id, ...doc.data() });
@@ -62,10 +49,13 @@ async function loadProducts() {
 
 function renderAdminProducts() {
     tbody.innerHTML = '';
+    const migrateBtn = document.getElementById('migrateBtn');
     if (adminProducts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">No hay productos. Usa "Cargar Catálogo Inicial" para iniciar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem;">No hay productos. Usa "Cargar Catálogo Inicial" para iniciar.</td></tr>';
+        if (migrateBtn) migrateBtn.style.display = '';
         return;
     }
+    if (migrateBtn) migrateBtn.style.display = 'none';
     
     adminProducts.forEach(p => {
         const tr = document.createElement('tr');
@@ -75,6 +65,8 @@ function renderAdminProducts() {
             <td style="text-transform: capitalize;">${p.category}</td>
             <td>$${parseFloat(p.price).toFixed(2)}</td>
             <td>${p.offerPrice ? '$' + parseFloat(p.offerPrice).toFixed(2) : '-'}</td>
+            <td style="text-align:center">${p.stock !== undefined ? p.stock : '-'}</td>
+            <td style="text-align:center">${p.peso ? p.peso + 'kg' : '-'}</td>
             <td>
                 <button class="action-btn edit-btn" data-id="${p.id}" title="Editar">✏️</button>
                 <button class="action-btn del del-btn" data-id="${p.id}" title="Borrar">🗑️</button>
@@ -96,6 +88,7 @@ const modal = document.getElementById('adminModal');
 const form = document.getElementById('productForm');
 
 document.getElementById('addProductBtn').addEventListener('click', () => openModal());
+document.getElementById('reloadBtn').addEventListener('click', loadProducts);
 document.getElementById('cancelBtn').addEventListener('click', () => modal.classList.remove('active'));
 
 function openModal(id = null) {
@@ -123,6 +116,8 @@ function openModal(id = null) {
             document.getElementById('prodDesc').value = p.description || '';
             document.getElementById('prodImg').value = p.image || '';
             document.getElementById('prodFeatured').checked = p.isFeatured || false;
+            document.getElementById('prodStock').value = p.stock ?? 0;
+            document.getElementById('prodWeight').value = p.peso ?? 0.5;
             
             let imgsToLoad = [];
             if (p.fullImages) {
@@ -172,7 +167,9 @@ form.addEventListener('submit', async (e) => {
         description: document.getElementById('prodDesc').value,
         image: mainImgUrl,
         fullImages: JSON.stringify(finalImages),
-        isFeatured: document.getElementById('prodFeatured').checked
+        isFeatured: document.getElementById('prodFeatured').checked,
+        stock: parseInt(document.getElementById('prodStock').value) || 0,
+        peso: parseFloat(document.getElementById('prodWeight').value) || 0.5
     };
 
     const saveBtn = document.getElementById('saveBtn');
@@ -461,3 +458,213 @@ if (toggleCalcBtn && calculatorBody) {
     fetchUsdRate();
     calculateCosts();
 }
+
+// ─── SHIPPING RATES ──────────────────────────────────────────
+const ratesBody = document.getElementById('shippingRatesBody');
+
+async function loadShippingRates() {
+    try {
+        const doc = await db.collection('config').doc('shipping').get();
+        const rates = doc.exists ? doc.data().rates || {} : {};
+        ratesBody.innerHTML = '';
+        Object.entries(rates).forEach(([prov, rate]) => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `<td><strong>${prov}</strong></td>
+                <td>$${rate.base}</td>
+                <td>$${rate.perKg}</td>
+                <td><button class="action-btn del del-rate-btn" data-prov="${prov}" title="Eliminar">🗑️</button></td>`;
+            ratesBody.appendChild(tr);
+        });
+        if (Object.keys(rates).length === 0) {
+            ratesBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--text-secondary)">No hay tarifas configuradas. Agregá una abajo.</td></tr>';
+        }
+        // Attach delete handlers
+        document.querySelectorAll('.del-rate-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const prov = btn.dataset.prov;
+                if (!confirm(`¿Eliminar tarifa para ${prov}?`)) return;
+                const doc = await db.collection('config').doc('shipping').get();
+                const rates = doc.exists ? doc.data().rates || {} : {};
+                delete rates[prov];
+                await db.collection('config').doc('shipping').set({ rates });
+                loadShippingRates();
+            });
+        });
+    } catch (e) {
+        console.error('Error loading rates:', e);
+    }
+}
+
+document.getElementById('addRateBtn').addEventListener('click', async () => {
+    const prov = document.getElementById('newRateProvince').value.trim();
+    const base = parseFloat(document.getElementById('newRateBase').value);
+    const perKg = parseFloat(document.getElementById('newRatePerKg').value);
+    if (!prov || isNaN(base) || isNaN(perKg)) { alert('Completá todos los campos.'); return; }
+    try {
+        const doc = await db.collection('config').doc('shipping').get();
+        const rates = doc.exists ? doc.data().rates || {} : {};
+        rates[prov] = { base, perKg };
+        await db.collection('config').doc('shipping').set({ rates });
+        document.getElementById('newRateProvince').value = '';
+        document.getElementById('newRateBase').value = '';
+        document.getElementById('newRatePerKg').value = '';
+        loadShippingRates();
+    } catch (e) {
+        console.error('Error adding rate:', e);
+    }
+});
+
+// Load rates on init
+loadShippingRates();
+
+// ─── STATISTICS ──────────────────────────────────────────────
+async function loadStats() {
+    try {
+        const snapshot = await db.collection('orders').get();
+        let totalRevenue = 0, paidCount = 0, totalCount = 0;
+        const productCount = {};
+
+        snapshot.forEach(doc => {
+            const o = doc.data();
+            totalCount++;
+            if (o.status === 'paid') {
+                paidCount++;
+                totalRevenue += o.total || 0;
+                (o.cart || []).forEach(item => {
+                    const key = item.name || item.id;
+                    productCount[key] = (productCount[key] || 0) + item.qty;
+                });
+            }
+        });
+
+        document.getElementById('statTotalRevenue').textContent = '$' + totalRevenue.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+        document.getElementById('statTotalOrders').textContent = totalCount;
+        document.getElementById('statPaidOrders').textContent = paidCount;
+
+        const sorted = Object.entries(productCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
+        const list = document.getElementById('topProductsList');
+        list.innerHTML = sorted.length === 0
+            ? '<div style="color:var(--text-secondary);font-size:.85rem;padding:.5rem 0">Sin ventas aún</div>'
+            : sorted.map(([name, qty], i) => `
+                <div style="display:flex;align-items:center;gap:.8rem;padding:.3rem 0">
+                    <span style="color:var(--text-secondary);font-size:.8rem;min-width:20px;font-weight:700">${i + 1}.</span>
+                    <div style="flex:1;height:6px;background:rgba(0,240,255,.1);border-radius:3px;overflow:hidden">
+                        <div style="height:100%;width:${(qty / sorted[0][1]) * 100}%;background:var(--gradient-glow);border-radius:3px;transition:width .5s"></div>
+                    </div>
+                    <span style="font-size:.85rem;min-width:0;flex:2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${name}</span>
+                    <span style="color:var(--accent-color);font-weight:700;font-size:.85rem;min-width:30px;text-align:right">${qty}</span>
+                </div>
+            `).join('');
+    } catch (e) {
+        console.error('Error loading stats:', e);
+    }
+}
+
+document.getElementById('refreshStatsBtn').addEventListener('click', loadStats);
+loadStats();
+
+// ─── ORDER MANAGEMENT ─────────────────────────────────────
+const statusLabels = { pending:'🟡 Pendiente', paid:'🟢 Pagado', shipped:'🔵 Enviado', delivered:'✅ Entregado', cancelled:'🔴 Cancelado' };
+const statusFlow = { pending:['paid','cancelled'], paid:['shipped','cancelled'], shipped:['delivered','cancelled'], delivered:[], cancelled:[] };
+
+async function loadOrders(filter = 'all') {
+    const tbody = document.getElementById('ordersList');
+    if (!tbody) return;
+    try {
+        let query = db.collection('orders').orderBy('createdAt', 'desc');
+        if (filter !== 'all') query = query.where('status', '==', filter);
+        const snapshot = await query.get();
+        tbody.innerHTML = '';
+        if (snapshot.empty) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-secondary)">No hay pedidos' + (filter !== 'all' ? ` con estado ${statusLabels[filter]}` : '') + '.</td></tr>';
+            return;
+        }
+        snapshot.forEach(doc => {
+            const o = doc.data();
+            const id = doc.id;
+            const date = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt)).toLocaleDateString('es-AR') : '-';
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${o.customer?.name || '—'}</strong></td>
+                <td>$${(o.total || 0).toFixed(2)}${o.shippingCost ? '<br><small style="color:var(--text-secondary)">+ envío $' + o.shippingCost.toFixed(2) + '</small>' : ''}</td>
+                <td>${(o.cart || []).reduce((s, i) => s + i.qty, 0)} items</td>
+                <td>${o.customer?.province || o.shippingProvince || '—'}</td>
+                <td style="font-size:.85rem;white-space:nowrap">${date}</td>
+                <td><span style="display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.8rem;background:${o.status === 'paid' ? 'rgba(46,213,115,.15)' : o.status === 'shipped' ? 'rgba(0,240,255,.15)' : o.status === 'delivered' ? 'rgba(46,213,115,.1)' : o.status === 'cancelled' ? 'rgba(255,71,87,.15)' : 'rgba(255,193,7,.15)'};color:${o.status === 'paid' ? '#2ed573' : o.status === 'shipped' ? '#00f0ff' : o.status === 'delivered' ? '#2ed573' : o.status === 'cancelled' ? '#ff4757' : '#ffc107'}">${statusLabels[o.status] || o.status}</span></td>
+                <td>
+                    <button class="action-btn view-order-btn" data-id="${id}" title="Ver detalle">👁️</button>
+                    ${(statusFlow[o.status] || []).map(next => `<button class="action-btn status-btn" data-id="${id}" data-next="${next}" title="Marcar como ${statusLabels[next]}">${next === 'cancelled' ? '❌' : next === 'paid' ? '💳' : next === 'shipped' ? '📦' : '✅'}</button>`).join('')}
+                </td>`;
+            tbody.appendChild(tr);
+        });
+
+        document.querySelectorAll('.view-order-btn').forEach(btn => {
+            btn.addEventListener('click', () => viewOrder(btn.dataset.id));
+        });
+        document.querySelectorAll('.status-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const id = btn.dataset.id;
+                const next = btn.dataset.next;
+                if (!confirm(`¿Cambiar estado a "${statusLabels[next]}"?`)) return;
+                try {
+                    await db.collection('orders').doc(id).update({ status: next, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
+                    loadOrders(document.getElementById('orderStatusFilter').value);
+                } catch (e) { console.error('Error updating order:', e); }
+            });
+        });
+    } catch (e) {
+        console.error('Error loading orders:', e);
+    }
+}
+
+async function viewOrder(id) {
+    try {
+        const doc = await db.collection('orders').doc(id).get();
+        if (!doc.exists) return;
+        const o = doc.data();
+        const date = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt)).toLocaleString('es-AR') : '-';
+        const content = document.getElementById('orderDetailContent');
+        content.innerHTML = `
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;background:var(--surface-color);padding:1rem;border-radius:10px">
+                <div><strong>Cliente:</strong> ${o.customer?.name || '—'}</div>
+                <div><strong>Email:</strong> ${o.customer?.email || '—'}</div>
+                <div><strong>Teléfono:</strong> ${o.customer?.phone || '—'}</div>
+                <div><strong>DNI:</strong> ${o.customer?.dni || '—'}</div>
+                <div><strong>Dirección:</strong> ${o.customer?.address || '—'}, ${o.customer?.city || '—'}, ${o.customer?.province || o.shippingProvince || '—'}</div>
+                <div><strong>CP:</strong> ${o.customer?.zip || '—'}</div>
+                <div><strong>Fecha:</strong> ${date}</div>
+                <div><strong>Estado:</strong> ${statusLabels[o.status] || o.status}</div>
+                ${o.shippingCost ? `<div><strong>Envío:</strong> $${o.shippingCost.toFixed(2)}</div>` : ''}
+                ${o.paymentId ? `<div><strong>MP ID:</strong> ${o.paymentId}</div>` : ''}
+            </div>
+            <table class="admin-table" style="font-size:.85rem">
+                <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
+                <tbody>${(o.cart || []).map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>$${(i.price || 0).toFixed(2)}</td><td>$${((i.price || 0) * i.qty).toFixed(2)}</td></tr>`).join('')}</tbody>
+            </table>
+            <div style="text-align:right;margin-top:1rem;font-size:1.2rem;font-weight:800;color:var(--accent-color)">Total: $${(o.total || 0).toFixed(2)}</div>
+        `;
+        document.getElementById('orderModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    } catch (e) {
+        console.error('Error viewing order:', e);
+    }
+}
+
+document.getElementById('closeOrderModalBtn').addEventListener('click', () => {
+    document.getElementById('orderModal').classList.remove('active');
+    document.body.style.overflow = '';
+});
+document.getElementById('orderModal').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('orderModal')) {
+        document.getElementById('orderModal').classList.remove('active');
+        document.body.style.overflow = '';
+    }
+});
+
+document.getElementById('orderStatusFilter').addEventListener('change', function() {
+    loadOrders(this.value);
+});
+document.getElementById('reloadOrdersBtn').addEventListener('click', () => {
+    loadOrders(document.getElementById('orderStatusFilter').value);
+});
+loadOrders();

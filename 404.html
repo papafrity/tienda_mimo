@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>404 - Página no encontrada | Mimo!</title>
+    <meta name="description" content="La página que buscas no existe. Volvé al inicio de Mimo!">
+    <meta property="og:title" content="404 - Página no encontrada | Mimo!">
+    <meta property="og:description" content="La página que buscas no existe. Volvé al inicio de Mimo!">
+    <meta property="og:image" content="https://tienda-mimo.vercel.app/img/og-image.jpg">
+    <meta property="og:url" content="https://tienda-mimo.vercel.app/404.html">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="robots" content="noindex">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .error-section{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:2rem;position:relative;z-index:1}
+        .error-code{font-size:clamp(6rem,20vw,12rem);font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;line-height:1;margin-bottom:.5rem;font-family:'Space Grotesk',sans-serif}
+        .error-title{font-size:clamp(1.2rem,4vw,2rem);color:var(--text-secondary);margin-bottom:1rem;font-weight:400}
+        .error-text{color:var(--text-secondary);font-size:1rem;max-width:400px;margin-bottom:2.5rem;opacity:.7}
+        .error-btn{display:inline-flex;align-items:center;gap:.6rem;padding:.9rem 2rem;background:var(--gradient-glow);border:none;border-radius:50px;color:#000;font-weight:600;font-size:1rem;cursor:pointer;text-decoration:none;transition:transform .3s,box-shadow .3s;font-family:'Outfit',sans-serif}
+        .error-btn:hover{transform:translateY(-3px);box-shadow:0 10px 30px rgba(0,240,255,.3)}
+        .error-section .navbar{position:fixed;top:0;left:0;width:100%;z-index:1000;padding:1.2rem 5%;display:flex;align-items:center;justify-content:space-between;background:rgba(5,5,5,0.7);backdrop-filter:blur(14px);border-bottom:1px solid var(--surface-border)}
+    </style>
+</head>
+<body>
+    <div class="noise-overlay"></div>
+    <div class="hex-grid"></div>
+    <canvas id="bgCanvas"></canvas>
+
+    <nav class="navbar" style="position:fixed;top:0;left:0;width:100%;z-index:1000;padding:1.2rem 5%;display:flex;align-items:center;background:rgba(5,5,5,0.7);backdrop-filter:blur(14px);border-bottom:1px solid var(--surface-border)">
+        <div class="logo" style="font-size:2rem;font-weight:800;letter-spacing:1px">Mimo<span class="accent">!</span></div>
+    </nav>
+
+    <section class="error-section">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Página no encontrada</h1>
+        <p class="error-text">La página que estás buscando no existe o fue movida. Volvé al inicio para seguir explorando.</p>
+        <a href="/" class="error-btn">⟵ Volver al inicio</a>
+    </section>
+
+    <canvas id="bgCanvas"></canvas>
+    <script>
+        const canvas = document.getElementById('bgCanvas');
+        const ctx = canvas.getContext('2d');
+        let W, H, mouseX = -999, mouseY = -999;
+        function resize() { W = canvas.width = innerWidth; H = canvas.height = innerHeight; }
+        window.addEventListener('resize', resize);
+        resize();
+        document.addEventListener('mousemove', e => { mouseX = e.clientX; mouseY = e.clientY; });
+        document.addEventListener('touchmove', e => { mouseX = e.touches[0].clientX; mouseY = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchend', () => { mouseX = -999; mouseY = -999; });
+        const hexSize = 36, gap = 4, effective = hexSize + gap;
+        function draw() {
+            ctx.clearRect(0, 0, W, H);
+            const cols = Math.ceil(W / (effective * 1.5)) + 1, rows = Math.ceil(H / (effective * 1.5)) + 1;
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    const x = c * effective * 1.5 + (r % 2) * effective * 0.75, y = r * effective * 1.5;
+                    const dist = Math.hypot(mouseX - x, mouseY - y);
+                    const glow = Math.max(0, 1 - dist / (window.innerWidth < 768 ? 100 : 180));
+                    ctx.beginPath();
+                    for (let i = 0; i < 6; i++) {
+                        const a = Math.PI / 3 * i - Math.PI / 6, px = x + hexSize * Math.cos(a), py = y + hexSize * Math.sin(a);
+                        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+                    }
+                    ctx.closePath();
+                    ctx.strokeStyle = glow > 0 ? `rgba(0,240,255,${.08 + glow * .2})` : 'rgba(0,240,255,.04)';
+                    ctx.lineWidth = 1.2;
+                    ctx.stroke();
+                }
+            }
+            requestAnimationFrame(draw);
+        }
+        draw();
+    </script>
+</body>
+</html>

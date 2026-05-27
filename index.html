@@ -4,7 +4,14 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mimo! | Tu Tienda de Tecnología Premium</title>
-    <meta name="description" content="Descubre la mejor tecnología en Mimo! Auriculares, parlantes, televisores, cocinas y mucho más.">
+    <meta name="description" content="Descubre la mejor tecnología en Mimo! Auriculares, parlantes, televisores, cocinas y mucho más. Envíos a todo el país.">
+    <meta property="og:title" content="Mimo! - Tu Tienda de Tecnología Premium">
+    <meta property="og:description" content="Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con Mimo!">
+    <meta property="og:image" content="https://tienda-mimo.vercel.app/img/og-image.jpg">
+    <meta property="og:url" content="https://tienda-mimo.vercel.app">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="keywords" content="tecnología, auriculares, parlantes, televisores, cocinas, heladeras, tienda online, argentina">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
@@ -146,6 +153,7 @@
     <section id="products" class="products-section">
         <h2 class="section-title reveal-text">Todos los Productos</h2>
 
+        <div class="breadcrumbs" id="breadcrumbs"><span>Inicio</span></div>
         <div class="filter-tabs" id="filterTabs">
             <button class="filter-tab active magnetic-btn" data-filter="all">Todos</button>
             <button class="filter-tab magnetic-btn" data-filter="auriculares">Auriculares</button>
@@ -161,19 +169,7 @@
         </div>
     </section>
 
-    <!-- Big CTA Section (Lusion-inspired) -->
-    <section class="big-cta-section">
-        <div class="big-cta-content reveal-text">
-            <h2 class="big-cta-title" style="font-size:3rem;text-align:center;line-height:1.2;margin-bottom:1.5rem;">¿Listo para <span style="background:var(--gradient-glow);-webkit-background-clip:text;color:transparent;">elevar</span> tu<br>experiencia?</h2>
-            <p style="text-align:center;color:var(--text-secondary);margin-bottom:2rem;">Descubre tecnología que transforma tu día a día.</p>
-            <div style="text-align:center;">
-                <a href="#products" class="cta-button magnetic-btn">
-                    <span>Explorar Mimo! →</span>
-                    <div class="btn-ripple"></div>
-                </a>
-            </div>
-        </div>
-    </section>
+
 
     <!-- Footer -->
     <footer id="contact">
@@ -189,7 +185,7 @@
             </div>
             <div class="footer-links">
                 <h4>Contacto</h4>
-                <a href="mailto:sebastian.bustos4994@gmail.com">sebastian.bustos4994@gmail.com</a>
+                <a href="mailto:mimo.la.tienda@gmail.com">mimo.la.tienda@gmail.com</a>
                 <a href="https://wa.me/542634478522" target="_blank">+54 2634 478522</a>
             </div>
         </div>
@@ -278,6 +274,10 @@
                             <input type="text" id="checkoutCity" required placeholder="Mar del Plata">
                         </div>
                     </div>
+                    <div id="shippingEstimate" style="display:none;padding:.6rem 1rem;background:rgba(0,240,255,.05);border:1px solid rgba(0,240,255,.15);border-radius:10px;margin-bottom:1rem;font-size:.9rem;color:var(--text-secondary)">
+                        <span>🚚 Envío estimado: </span><strong id="shippingCostDisplay" style="color:var(--accent-color)">$0</strong>
+                        <span style="font-size:.8rem;opacity:.7"> (según provincia y peso del pedido)</span>
+                    </div>
                     <div class="form-row">
                         <div class="form-group" style="flex: 2;">
                             <label for="checkoutAddress">Dirección Completa (Calle, Número, Piso/Depto) *</label>
@@ -288,6 +288,12 @@
                             <input type="text" id="checkoutZip" required placeholder="7600">
                         </div>
                     </div>
+                    <div class="shipping-warning">
+                        <span class="shipping-warning-icon">⚠️</span>
+                        <div class="shipping-warning-text">
+                            <strong>Importante:</strong> Los envíos al interior del país se realizan a través de empresas de cargo. El cliente deberá abonar el flete correspondiente al momento de retirar el producto en la sucursal de la empresa elegida.
+                        </div>
+                    </div>
                     <button type="submit" class="checkout-submit-btn magnetic-btn" id="confirmPaymentBtn">Confirmar y Continuar al Pago</button>
                 </form>
             </div>
@@ -296,6 +302,8 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

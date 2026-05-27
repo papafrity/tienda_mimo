@@ -1,16 +1,3 @@
-const firebaseConfig = {
-  apiKey: "AIzaSyCilME1Fv3Sjb6YBIBSZT3zZshCedEL9LM",
-  authDomain: "tienda-mimo.firebaseapp.com",
-  projectId: "tienda-mimo",
-  storageBucket: "tienda-mimo.firebasestorage.app",
-  messagingSenderId: "451218117227",
-  appId: "1:451218117227:web:96a87214151a03db63172e",
-  measurementId: "G-DQWL3HL2VG"
-};
-
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-
 // ─── TOAST NOTIFICATION SYSTEM ──────────────────────────────
 function showToast(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toastContainer');
@@ -65,11 +52,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const title = document.getElementById('heroTitle');
     if (title) {
         const text = title.textContent;
+        const manosIdx = text.indexOf('Manos');
         title.innerHTML = '';
         text.split('').forEach((ch, i) => {
+            if (i === manosIdx && manosIdx !== -1) {
+                title.appendChild(document.createElement('br'));
+            }
             const span = document.createElement('span');
             span.classList.add('char');
-            span.textContent = ch === ' ' ? '\u00A0' : ch;
+            span.textContent = ch === ' ' ? '\u00A0\u200B' : ch;
             span.style.animationDelay = `${0.3 + i * 0.04}s`;
             title.appendChild(span);
         });
@@ -180,6 +171,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
             const card = document.createElement('div');
             card.className = 'carousel-card';
+            card.dataset.productId = p.id;
             card.innerHTML = `
                 <img src="${p.image}" alt="${p.name}">
                 <div class="carousel-card-info">
@@ -189,21 +181,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <button class="add-to-cart magnetic-btn" data-product-id="${p.id}" style="margin-top: 10px; width: 100%; border-radius: 20px; font-size: 0.85rem;">Agregar al Carrito</button>
                 </div>`;
             
-            // Attach click directly to button element
             const btn = card.querySelector('.add-to-cart');
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
                 window.addToCart(p.id);
-            });
-            
-            // Attach modal to the card itself (only if active)
-            card.addEventListener('click', function(e) {
-                if(!e.target.closest('.add-to-cart')) {
-                    if (card.classList.contains('active')) {
-                        window.openProductModal(p.id);
-                    }
-                }
             });
             
             carousel.appendChild(card);
@@ -269,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cart.push({ ...product, qty: 1 });
         }
         saveCart();
+        gtag('event', 'add_to_cart', { currency: 'ARS', value: product.offerPrice || product.price, items: [{ item_id: product.id, item_name: product.name, price: product.offerPrice || product.price, quantity: 1 }] });
         showToast(`${product.name} agregado al carrito`, 'success');
         
         // Bump animation
@@ -363,178 +346,254 @@ document.addEventListener('DOMContentLoaded', () => {
     renderCart();
 
     function initCarouselLogic() {
-        const carousel = document.getElementById('carousel3d');
-        const cards = carousel.querySelectorAll('.carousel-card');
+        const track = document.getElementById('carousel3d');
+        const wrapper = track.parentElement;
+        const cards = [...track.querySelectorAll('.carousel-card')];
         const prevBtn = document.getElementById('prevBtn');
         const nextBtn = document.getElementById('nextBtn');
         const dotsC = document.getElementById('carouselDots');
-        
-        if(cards.length === 0) return; // No featured products
-        
+        if (cards.length === 0) return;
+
+        const realCount = cards.length;
+        let ci = 0;
+        let animating = false;
+
         dotsC.innerHTML = '';
-        let ci = 0; const tc = cards.length;
+        for (let i = 0; i < realCount; i++) {
+            const d = document.createElement('div');
+            d.classList.add('carousel-dot');
+            if (i === 0) d.classList.add('active');
+            d.addEventListener('click', () => goTo(i));
+            dotsC.appendChild(d);
+        }
+
+        function updateCards(smooth = true) {
+            cards.forEach((card, i) => {
+                let diff = i - ci;
+                if (diff > realCount / 2) diff -= realCount;
+                else if (diff < -realCount / 2) diff += realCount;
+
+                const abs = Math.abs(diff);
+                const dir = diff > 0 ? 1 : -1;
+
+                let transform, opacity, zIndex;
+
+                if (abs === 0) {
+                    transform = 'translateX(0) scale(1)';
+                    opacity = 1;
+                    zIndex = 10;
+                } else if (abs === 1) {
+                    transform = `translateX(${dir * 320}px) scale(0.85) rotateY(${dir * 15}deg)`;
+                    opacity = 0.65;
+                    zIndex = 5;
+                } else if (abs === 2) {
+                    transform = `translateX(${dir * 640}px) scale(0.7) rotateY(${dir * 30}deg)`;
+                    opacity = 0.3;
+                    zIndex = 2;
+                } else {
+                    transform = `translateX(${dir * 960}px) scale(0.55)`;
+                    opacity = 0;
+                    zIndex = 0;
+                }
+
+                card.style.transition = smooth ? 'transform .6s cubic-bezier(.25,1,.5,1), opacity .6s ease' : 'none';
+                card.style.transform = transform;
+                card.style.opacity = opacity;
+                card.style.zIndex = zIndex;
+                card.style.pointerEvents = abs <= 2 ? 'auto' : 'none';
+                card.classList.toggle('active', abs === 0);
+            });
+
+            dotsC.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === ci));
+        }
+
+        function goTo(index) {
+            if (animating || index === ci) return;
+            animating = true;
+            ci = index;
+            updateCards(true);
+            function onEnd(e) {
+                track.removeEventListener('transitionend', onEnd);
+                animating = false;
+            }
+            track.addEventListener('transitionend', onEnd, { once: true });
+        }
+
+        function next() { goTo((ci + 1) % realCount); }
+        function prev() { goTo((ci - 1 + realCount) % realCount); }
 
         cards.forEach((card, i) => {
-            const d = document.createElement('div'); d.classList.add('carousel-dot');
-            if (i === 0) d.classList.add('active');
-            d.addEventListener('click', () => { ci = i; upC(); });
-            dotsC.appendChild(d);
-
-            // Center the card when clicked if it is not currently active
             card.addEventListener('click', (e) => {
-                if (ci !== i && !e.target.closest('.add-to-cart')) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    ci = i;
-                    upC();
-                }
+                if (e.target.closest('.add-to-cart')) return;
+                if (i !== ci) { goTo(i); return; }
+                const btn = card.querySelector('.add-to-cart');
+                if (btn) window.openProductModal(btn.dataset.productId);
             });
         });
 
-        function upC() {
-            if (cards.length === 0) return;
-            const dots = dotsC.querySelectorAll('.carousel-dot');
-            const cardWidth = cards[0].offsetWidth || 300;
-            const style = window.getComputedStyle(carousel);
-            const gap = parseFloat(style.gap) || 32;
+        nextBtn.addEventListener('click', next);
+        prevBtn.addEventListener('click', prev);
 
-            // Slide track to center active card
-            carousel.style.transform = `translateX(-${ci * (cardWidth + gap)}px)`;
+        updateCards(false);
 
-            cards.forEach((c, i) => {
-                const isActive = (i === ci);
-                c.classList.toggle('active', isActive);
-                c.style.zIndex = isActive ? 5 : 1;
-            });
-            dots.forEach((d, i) => d.classList.toggle('active', i === ci));
+        let ap = setInterval(next, 4000);
+        wrapper.addEventListener('mouseenter', () => clearInterval(ap));
+        wrapper.addEventListener('mouseleave', () => { ap = setInterval(next, 4000); });
+
+        let tsx = 0;
+        wrapper.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; clearInterval(ap); }, { passive: true });
+        wrapper.addEventListener('touchend', e => {
+            const dx = e.changedTouches[0].screenX - tsx;
+            if (Math.abs(dx) > 50) { dx > 0 ? prev() : next(); }
+            wrapper.addEventListener('mouseleave', () => { ap = setInterval(next, 4000); }, { once: true });
+        }, { passive: true });
+    }
+
+    // ─── CHECKOUT LOGIC ──────────────────────────────────────
+    const checkoutBtn = document.getElementById('checkoutBtn');
+    const checkoutModal = document.getElementById('checkoutModal');
+    const checkoutModalClose = document.getElementById('checkoutModalClose');
+    const checkoutForm = document.getElementById('checkoutForm');
+    const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
+
+    if (checkoutBtn && checkoutModal && checkoutModalClose && checkoutForm) {
+        let shippingRates = {};
+        async function loadRates() {
+            try { const d = await db.collection('config').doc('shipping').get(); if (d.exists) shippingRates = d.data().rates || {}; } catch(e) {}
         }
 
-        function nS() { ci = (ci + 1) % tc; upC(); }
-        function pS() { ci = (ci - 1 + tc) % tc; upC(); }
-        
-        nextBtn.addEventListener('click', nS);
-        prevBtn.addEventListener('click', pS);
-
-        let ap = setInterval(nS, 5000);
-        const cw = document.querySelector('.carousel-wrapper');
-        if (cw) {
-            cw.addEventListener('mouseenter', () => clearInterval(ap));
-            cw.addEventListener('mouseleave', () => { ap = setInterval(nS, 5000); });
+        checkoutBtn.addEventListener('click', () => {
+            if (cart.length === 0) {
+                showToast('Tu carrito está vacío', 'warning');
+                return;
+            }
+            // Close cart sidebar and overlay
+            document.getElementById('cartSidebar').classList.remove('active');
+            document.getElementById('cartOverlay').classList.remove('active');
             
-            let tsx = 0;
-            cw.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; clearInterval(ap); }, { passive: true });
-            cw.addEventListener('touchend', e => { const d = tsx - e.changedTouches[0].screenX; if (Math.abs(d) > 50) { d > 0 ? nS() : pS(); } ap = setInterval(nS, 5000); }, { passive: true });
-        }
+            // Open checkout modal
+            checkoutModal.classList.add('active');
+            gtag('event', 'begin_checkout', { currency: 'ARS', value: cart.reduce((s,i) => s + (Number(i.offerPrice||i.price) * i.qty), 0), items: cart.map(i => ({ item_id: i.id, item_name: i.name, price: Number(i.offerPrice||i.price), quantity: i.qty })) });
+            loadRates();
+        });
 
-        upC();
-        window.addEventListener('resize', upC);
+        checkoutModalClose.addEventListener('click', () => {
+            checkoutModal.classList.remove('active');
+        });
 
-        // ─── CHECKOUT LOGIC ──────────────────────────────────────
-        const checkoutBtn = document.getElementById('checkoutBtn');
-        const checkoutModal = document.getElementById('checkoutModal');
-        const checkoutModalClose = document.getElementById('checkoutModalClose');
-        const checkoutForm = document.getElementById('checkoutForm');
-        const confirmPaymentBtn = document.getElementById('confirmPaymentBtn');
-
-        if (checkoutBtn && checkoutModal && checkoutModalClose && checkoutForm) {
-            checkoutBtn.addEventListener('click', () => {
-                if (cart.length === 0) {
-                    showToast('Tu carrito está vacío', 'warning');
-                    return;
-                }
-                // Close cart sidebar and overlay
-                document.getElementById('cartSidebar').classList.remove('active');
-                document.getElementById('cartOverlay').classList.remove('active');
-                
-                // Open checkout modal
-                checkoutModal.classList.add('active');
-            });
-
-            checkoutModalClose.addEventListener('click', () => {
+        // Close modal on clicking outside content
+        checkoutModal.addEventListener('click', (e) => {
+            if (e.target === checkoutModal) {
                 checkoutModal.classList.remove('active');
-            });
+            }
+        });
 
-            // Close modal on clicking outside content
-            checkoutModal.addEventListener('click', (e) => {
-                if (e.target === checkoutModal) {
-                    checkoutModal.classList.remove('active');
-                }
-            });
+        document.getElementById('checkoutProvince').addEventListener('input', function() {
+            const prov = this.value.trim().toLowerCase();
+            const display = document.getElementById('shippingEstimate');
+            const costEl = document.getElementById('shippingCostDisplay');
+            const rate = shippingRates[prov.charAt(0).toUpperCase() + prov.slice(1)];
+            if (rate) {
+                const totalKg = cart.reduce((s, i) => {
+                    const p = products.find(x => x.id === i.id);
+                    return s + ((p && p.peso) || 0.5) * i.qty;
+                }, 0);
+                const cost = rate.base + rate.perKg * totalKg;
+                costEl.textContent = '$' + cost.toLocaleString('es-AR', { minimumFractionDigits: 2 });
+                display.style.display = 'block';
+            } else {
+                display.style.display = 'none';
+            }
+        });
 
-            checkoutForm.addEventListener('submit', async (e) => {
-                e.preventDefault();
-                
-                if (cart.length === 0) {
-                    showToast('Tu carrito está vacío', 'warning');
+        checkoutForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            if (cart.length === 0) {
+                showToast('Tu carrito está vacío', 'warning');
+                return;
+            }
+
+            confirmPaymentBtn.textContent = 'Procesando...';
+            confirmPaymentBtn.disabled = true;
+
+            try {
+                // Extract client shipping info
+                const customer = {
+                    name: document.getElementById('checkoutName').value.trim(),
+                    dni: document.getElementById('checkoutDni').value.trim(),
+                    phone: document.getElementById('checkoutPhone').value.trim(),
+                    email: document.getElementById('checkoutEmail').value.trim(),
+                    province: document.getElementById('checkoutProvince').value.trim(),
+                    city: document.getElementById('checkoutCity').value.trim(),
+                    address: document.getElementById('checkoutAddress').value.trim(),
+                    zip: document.getElementById('checkoutZip').value.trim()
+                };
+
+                // Check if running on GitHub Pages
+                if (window.location.hostname.includes('github.io')) {
+                    showToast('El servidor de pagos funciona a través de Vercel.', 'warning');
+                    confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
+                    confirmPaymentBtn.disabled = false;
                     return;
                 }
 
-                confirmPaymentBtn.textContent = 'Procesando...';
-                confirmPaymentBtn.disabled = true;
+                // Calculate shipping if rate available
+                const provField = document.getElementById('checkoutProvince').value.trim();
+                const provName = provField.charAt(0).toUpperCase() + provField.slice(1).toLowerCase();
+                const rate = shippingRates[provName];
+                let shippingCost = 0;
+                if (rate) {
+                    const totalKg = cart.reduce((s, i) => {
+                        const p = products.find(x => x.id === i.id);
+                        return s + ((p && p.peso) || 0.5) * i.qty;
+                    }, 0);
+                    shippingCost = rate.base + rate.perKg * totalKg;
+                }
 
-                try {
-                    // Extract client shipping info
-                    const customer = {
-                        name: document.getElementById('checkoutName').value.trim(),
-                        dni: document.getElementById('checkoutDni').value.trim(),
-                        phone: document.getElementById('checkoutPhone').value.trim(),
-                        email: document.getElementById('checkoutEmail').value.trim(),
-                        province: document.getElementById('checkoutProvince').value.trim(),
-                        city: document.getElementById('checkoutCity').value.trim(),
-                        address: document.getElementById('checkoutAddress').value.trim(),
-                        zip: document.getElementById('checkoutZip').value.trim()
-                    };
+                // Save pending order to Firestore
+                const orderRef = await db.collection('orders').add({
+                    customer: customer,
+                    cart: cart.map(item => ({
+                        id: item.id,
+                        name: item.name,
+                        price: Number(item.offerPrice || item.price),
+                        qty: item.qty
+                    })),
+                    status: 'pending',
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                    total: cart.reduce((sum, item) => sum + (Number(item.offerPrice || item.price) * item.qty), 0),
+                    shippingCost: shippingCost,
+                    shippingProvince: provName
+                });
 
-                    // Check if running on GitHub Pages
-                    if (window.location.hostname.includes('github.io')) {
-                        showToast('El servidor de pagos funciona a través de Vercel.', 'warning');
-                        confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
-                        confirmPaymentBtn.disabled = false;
-                        return;
-                    }
+                const orderId = orderRef.id;
 
-                    // Save pending order to Firestore
-                    const orderRef = await db.collection('orders').add({
-                        customer: customer,
-                        cart: cart.map(item => ({
-                            id: item.id,
-                            name: item.name,
-                            price: Number(item.offerPrice || item.price),
-                            qty: item.qty
-                        })),
-                        status: 'pending',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        total: cart.reduce((sum, item) => sum + (Number(item.offerPrice || item.price) * item.qty), 0)
-                    });
+                // Send orderId and cart to Vercel checkout API
+                const response = await fetch('/api/checkout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ cart, orderId })
+                });
 
-                    const orderId = orderRef.id;
+                const data = await response.json();
 
-                    // Send orderId and cart to Vercel checkout API
-                    const response = await fetch('/api/checkout', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ cart, orderId })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok && data.init_point) {
-                        // Redirect to Mercado Pago checkout
-                        window.location.href = data.init_point;
-                    } else {
-                        console.error('Error de Mercado Pago:', data);
-                        showToast('No se pudo procesar el pago: ' + (data.message || 'Error desconocido'), 'error', 5000);
-                        confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
-                        confirmPaymentBtn.disabled = false;
-                    }
-                } catch (error) {
-                    console.error('Error de red/db:', error);
-                    showToast('Error al registrar el pedido o conectar con el servidor de pagos.', 'error', 5000);
+                if (response.ok && data.init_point) {
+                    // Redirect to Mercado Pago checkout
+                    window.location.href = data.init_point;
+                } else {
+                    console.error('Error de Mercado Pago:', data);
+                    showToast('No se pudo procesar el pago: ' + (data.message || 'Error desconocido'), 'error', 5000);
                     confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
                     confirmPaymentBtn.disabled = false;
                 }
-            });
-        }
+            } catch (error) {
+                console.error('Error de red/db:', error);
+                showToast('Error al registrar el pedido o conectar con el servidor de pagos.', 'error', 5000);
+                confirmPaymentBtn.textContent = 'Confirmar y Continuar al Pago';
+                confirmPaymentBtn.disabled = false;
+            }
+        });
     }
 
     // ─── FILTER TABS & MODALS (Dynamic Initialization) ────────
@@ -549,6 +608,16 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const freshTabs = document.querySelectorAll('.filter-tab');
 
+        function updateBreadcrumbs(filter, productName) {
+            const bc = document.getElementById('breadcrumbs');
+            if (!bc) return;
+            const labels = { all:'Todos', auriculares:'Auriculares', parlantes:'Parlantes', tvbox:'TV Box', televisores:'Televisores', cocinas:'Cocinas', heladeras:'Heladeras' };
+            let html = '<span>Inicio</span>';
+            if (filter && filter !== 'all') html += `<span class="sep">›</span><span>${labels[filter]||filter}</span>`;
+            if (productName) html += `<span class="sep">›</span><span class="current">${productName}</span>`;
+            bc.innerHTML = html;
+        }
+
         freshTabs.forEach(tab => tab.addEventListener('click', () => {
             freshTabs.forEach(btn => btn.classList.remove('active'));
             tab.classList.add('active');
@@ -557,6 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (f === 'all' || c.dataset.category === f) { c.classList.remove('hidden'); c.style.animation = 'fadeInUp .5s ease forwards'; }
                 else c.classList.add('hidden');
             });
+            updateBreadcrumbs(f);
         }));
 
         // ─── SCROLL REVEAL PRODUCTS ─────────────────────────────
@@ -611,6 +681,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             liveModal.classList.add('active'); document.body.style.overflow = 'hidden';
+            updateBreadcrumbs(p.category, p.name);
+            gtag('event', 'view_item', { currency: 'ARS', value: p.offerPrice || p.price, items: [{ item_id: p.id, item_name: p.name, price: p.offerPrice || p.price }] });
             
             // Re-bind the "Añadir al Carrito" inside modal
             const addBtn = liveModal.querySelector('.modal-add-cart');
