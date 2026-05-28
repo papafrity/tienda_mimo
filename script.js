@@ -608,16 +608,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         const freshTabs = document.querySelectorAll('.filter-tab');
 
-        function updateBreadcrumbs(filter, productName) {
-            const bc = document.getElementById('breadcrumbs');
-            if (!bc) return;
-            const labels = { all:'Todos', auriculares:'Auriculares', parlantes:'Parlantes', tvbox:'TV Box', televisores:'Televisores', cocinas:'Cocinas', heladeras:'Heladeras' };
-            let html = '<span>Inicio</span>';
-            if (filter && filter !== 'all') html += `<span class="sep">›</span><span>${labels[filter]||filter}</span>`;
-            if (productName) html += `<span class="sep">›</span><span class="current">${productName}</span>`;
-            bc.innerHTML = html;
-        }
-
         freshTabs.forEach(tab => tab.addEventListener('click', () => {
             freshTabs.forEach(btn => btn.classList.remove('active'));
             tab.classList.add('active');
@@ -626,7 +616,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (f === 'all' || c.dataset.category === f) { c.classList.remove('hidden'); c.style.animation = 'fadeInUp .5s ease forwards'; }
                 else c.classList.add('hidden');
             });
-            updateBreadcrumbs(f);
         }));
 
         // ─── SCROLL REVEAL PRODUCTS ─────────────────────────────
@@ -658,6 +647,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const mTit = document.getElementById('modalTitle');
             const mPr = document.getElementById('modalPrice');
             const mDesc = document.getElementById('modalDescription');
+            const prevBtn = document.getElementById('modalPrev');
+            const nextBtn = document.getElementById('modalNext');
 
             mCat.textContent = p.category;
             mTit.textContent = p.name;
@@ -681,8 +672,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             liveModal.classList.add('active'); document.body.style.overflow = 'hidden';
-            updateBreadcrumbs(p.category, p.name);
-            gtag('event', 'view_item', { currency: 'ARS', value: p.offerPrice || p.price, items: [{ item_id: p.id, item_name: p.name, price: p.offerPrice || p.price }] });
+            try { gtag('event', 'view_item', { currency: 'ARS', value: p.offerPrice || p.price, items: [{ item_id: p.id, item_name: p.name, price: p.offerPrice || p.price }] }); } catch(e) {}
             
             // Re-bind the "Añadir al Carrito" inside modal
             const addBtn = liveModal.querySelector('.modal-add-cart');
@@ -693,6 +683,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 window.addToCart(p.id);
                 closeM();
             });
+
+            // Navigation between visible products
+            const activeFilter = document.querySelector('.filter-tab.active')?.dataset?.filter || 'all';
+            const visibleProducts = activeFilter === 'all'
+                ? products
+                : products.filter(x => x.category === activeFilter);
+            const currentIdx = visibleProducts.findIndex(x => x.id === prodId);
+
+            if (visibleProducts.length <= 1) {
+                prevBtn.classList.add('hidden');
+                nextBtn.classList.add('hidden');
+            } else {
+                prevBtn.classList.remove('hidden');
+                nextBtn.classList.remove('hidden');
+                const prevId = visibleProducts[(currentIdx - 1 + visibleProducts.length) % visibleProducts.length].id;
+                const nextId = visibleProducts[(currentIdx + 1) % visibleProducts.length].id;
+                prevBtn.onclick = (e) => { e.stopPropagation(); window.openProductModal(prevId); };
+                nextBtn.onclick = (e) => { e.stopPropagation(); window.openProductModal(nextId); };
+            }
         };
 
         function closeM() { document.getElementById('productModal').classList.remove('active'); document.body.style.overflow = ''; }
@@ -705,10 +714,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     document.addEventListener('keydown', e => { 
+        const m = document.getElementById('productModal'); 
+        if (!m || !m.classList.contains('active')) return;
         if (e.key === 'Escape') { 
-            const m = document.getElementById('productModal'); 
-            if(m && m.classList.contains('active')) { m.classList.remove('active'); document.body.style.overflow = ''; }
-        } 
+            m.classList.remove('active'); document.body.style.overflow = '';
+        } else if (e.key === 'ArrowLeft') {
+            const prev = document.getElementById('modalPrev');
+            if (prev && !prev.classList.contains('hidden')) prev.click();
+        } else if (e.key === 'ArrowRight') {
+            const next = document.getElementById('modalNext');
+            if (next && !next.classList.contains('hidden')) next.click();
+        }
     });
 
     function initDynamicEvents() {

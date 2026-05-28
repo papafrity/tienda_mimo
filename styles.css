@@ -142,11 +142,7 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 
 /* PRODUCTS */
 .products-section{padding:6rem 8%;position:relative;z-index:1}
-.products-section .section-title,.products-section .filter-tabs,.breadcrumbs{max-width:1200px;margin-left:auto;margin-right:auto}
-.breadcrumbs{display:flex;align-items:center;gap:.6rem;margin-bottom:1.2rem;font-size:.85rem;color:var(--text-secondary);flex-wrap:wrap}
-.breadcrumbs span{opacity:.7}
-.breadcrumbs .sep{opacity:.35;font-size:.7rem}
-.breadcrumbs .current{color:var(--accent-color);opacity:1;font-weight:600}
+.products-section .section-title,.products-section .filter-tabs{max-width:1200px;margin-left:auto;margin-right:auto}
 .filter-tabs{display:flex;justify-content:center;flex-wrap:wrap;gap:.8rem;margin-bottom:3rem}
 .filter-tab{padding:.7rem 1.5rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:50px;color:var(--text-secondary);font-size:.95rem;font-weight:600;cursor:none;transition:all var(--transition-base);font-family:'Outfit',sans-serif}
 .filter-tab:hover,.filter-tab.active{background:var(--gradient-glow);color:#000;border-color:transparent}
@@ -192,6 +188,11 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .modal-price{font-size:1.8rem;font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .modal-description{font-size:1rem;color:var(--text-secondary);line-height:1.7;margin:.5rem 0 1rem}
 .modal-add-cart{padding:1rem 2rem;background:var(--gradient-glow);border:none;border-radius:14px;color:#000;font-size:1.1rem;font-weight:700;cursor:none;transition:transform var(--transition-base),box-shadow var(--transition-base);font-family:'Outfit',sans-serif;align-self:flex-start}
+.modal-nav{position:absolute;top:50%;transform:translateY(-50%);z-index:2110;background:rgba(10,12,18,.85);border:1px solid var(--surface-border);color:#fff;font-size:2.2rem;width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);transition:all .3s ease;opacity:.7;line-height:1}
+.modal-nav:hover{opacity:1;background:rgba(0,240,255,.12);border-color:var(--accent-color);box-shadow:0 0 20px rgba(0,240,255,.3);color:var(--accent-color)}
+.modal-prev{left:max(4px,calc((100% - min(92vw,900px)) / 2 - 54px))}
+.modal-next{right:max(4px,calc((100% - min(92vw,900px)) / 2 - 54px))}
+.modal-nav.hidden{display:none}
 .modal-add-cart:hover{transform:translateY(-3px);box-shadow:0 10px 25px rgba(0,240,255,.35)}
 
 /* BIG CTA SECTION REMOVED */
@@ -470,11 +471,11 @@ body{cursor:auto}
 }
 
 /* ─── TOAST NOTIFICATIONS ────────────────────────────────── */
-.toast-container{position:fixed;bottom:2rem;right:2rem;z-index:10000;display:flex;flex-direction:column-reverse;gap:.8rem;pointer-events:none}
-.toast{pointer-events:auto;display:flex;align-items:center;gap:.8rem;padding:1rem 1.5rem;border-radius:14px;background:rgba(10,12,18,0.95);border:1px solid var(--surface-border);backdrop-filter:blur(20px);color:#fff;font-family:'Outfit',sans-serif;font-size:.95rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateX(120%);animation:toastIn .4s cubic-bezier(.4,0,.2,1) forwards;max-width:380px}
+.toast-container{position:fixed;top:1rem;left:50%;transform:translateX(-50%);z-index:10000;display:flex;flex-direction:column;gap:.8rem;pointer-events:none;align-items:center}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:.8rem;padding:1rem 1.5rem;border-radius:14px;background:rgba(10,12,18,0.95);border:1px solid var(--surface-border);backdrop-filter:blur(20px);color:#fff;font-family:'Outfit',sans-serif;font-size:.95rem;box-shadow:0 8px 32px rgba(0,0,0,.4);transform:translateY(-120%);animation:toastIn .4s cubic-bezier(.4,0,.2,1) forwards;max-width:380px;width:max-content}
 .toast.removing{animation:toastOut .3s cubic-bezier(.4,0,.2,1) forwards}
 .toast-icon{font-size:1.3rem;flex-shrink:0}
-.toast-text{flex:1}
+.toast-text{flex:1;white-space:nowrap}
 .toast-close{background:none;border:none;color:rgba(255,255,255,.5);cursor:pointer;font-size:1.2rem;padding:0 0 0 .5rem;transition:color .2s;line-height:1}
 .toast-close:hover{color:#fff}
 .toast.toast-success{border-color:rgba(46,213,115,.3)}
@@ -485,11 +486,12 @@ body{cursor:auto}
 .toast.toast-info .toast-icon{color:#00a8ff}
 .toast.toast-warning{border-color:rgba(255,165,0,.3)}
 .toast.toast-warning .toast-icon{color:#ffa500}
-@keyframes toastIn{from{transform:translateX(120%);opacity:0}to{transform:translateX(0);opacity:1}}
-@keyframes toastOut{from{transform:translateX(0);opacity:1}to{transform:translateX(120%);opacity:0}}
+@keyframes toastIn{from{transform:translateY(-120%);opacity:0}to{transform:translateY(0);opacity:1}}
+@keyframes toastOut{from{transform:translateY(0);opacity:1}to{transform:translateY(-120%);opacity:0}}
 @media(max-width:768px){
-.toast-container{bottom:1rem;right:1rem;left:1rem}
-.toast{max-width:100%}
+.toast-container{top:.5rem;left:.5rem;right:.5rem;transform:none}
+.toast{width:100%;max-width:100%}
+.toast-text{white-space:normal}
 }
 
 /* ─── CHECKOUT FORM MODAL ────────────────────────────────── */
