@@ -58,6 +58,9 @@ body, body * { cursor: auto !important; }
     padding: 0.8rem; border-radius: 8px; border: 1px solid var(--surface-border);
     background: rgba(255, 255, 255, 0.05); color: #fff; font-family: var(--font-primary);
 }
+.form-group select option { background: #fff; color: #000; }
+select option { background: #fff; color: #000; }
+}
 .checkbox-group { flex-direction: row; align-items: center; justify-content: flex-start; gap: 1rem; }
 .checkbox-group input { width: 20px; height: 20px; accent-color: var(--primary); }
 .form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }

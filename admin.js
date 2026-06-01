@@ -32,6 +32,8 @@ document.getElementById('logoutBtn').addEventListener('click', () => {
 let adminProducts = [];
 let currentUploadedImages = [];
 const tbody = document.getElementById('adminProductList');
+const adminSearchInput = document.getElementById('adminSearchInput');
+const adminCategoryFilter = document.getElementById('adminCategoryFilter');
 
 async function loadProducts() {
     tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
@@ -56,8 +58,28 @@ function renderAdminProducts() {
         return;
     }
     if (migrateBtn) migrateBtn.style.display = 'none';
+
+    // Populate category filter
+    const prevCat = adminCategoryFilter.value;
+    const cats = [...new Set(adminProducts.map(p => p.category).filter(Boolean))].sort();
+    adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+    adminCategoryFilter.value = prevCat;
+
+    // Apply filters
+    const searchTerm = (adminSearchInput.value || '').toLowerCase().trim();
+    const catFilter = adminCategoryFilter.value;
+    const filtered = adminProducts.filter(p => {
+        const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm);
+        const matchCat = catFilter === 'all' || p.category === catFilter;
+        return matchSearch && matchCat;
+    });
     
-    adminProducts.forEach(p => {
+    if (filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No se encontraron productos con ese filtro.</td></tr>';
+        return;
+    }
+
+    filtered.forEach(p => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
             <td><img src="${p.image}" alt="img"></td>
@@ -90,6 +112,9 @@ const form = document.getElementById('productForm');
 document.getElementById('addProductBtn').addEventListener('click', () => openModal());
 document.getElementById('reloadBtn').addEventListener('click', loadProducts);
 document.getElementById('cancelBtn').addEventListener('click', () => modal.classList.remove('active'));
+
+adminSearchInput.addEventListener('input', renderAdminProducts);
+adminCategoryFilter.addEventListener('change', renderAdminProducts);
 
 function openModal(id = null) {
     form.reset();
@@ -668,3 +693,159 @@ document.getElementById('reloadOrdersBtn').addEventListener('click', () => {
     loadOrders(document.getElementById('orderStatusFilter').value);
 });
 loadOrders();
+
+// ─── GOOGLE IMAGES SEARCH (OPCIÓN 2B) ─────────────────────────
+const searchGoogleImagesBtn = document.getElementById('searchGoogleImagesBtn');
+
+searchGoogleImagesBtn.addEventListener('click', () => {
+    const name = document.getElementById('prodName').value.trim();
+    const query = name 
+        ? encodeURIComponent(name.replace(/[""']/g, '').substring(0, 150))
+        : '';
+    if (!query) {
+        alert('Primero escribí el nombre del producto para buscar.');
+        return;
+    }
+    window.open(`https://www.google.com/search?tbm=isch&q=${query}`, '_blank');
+});
+
+// ─── GOOGLE CSE SEARCH (OPCIÓN 2A) ────────────────────────────
+const toggleGoogleCseBtn = document.getElementById('toggleGoogleCseBtn');
+const googleCsePanel = document.getElementById('googleCsePanel');
+const googleCseQuery = document.getElementById('googleCseQuery');
+const executeGoogleCseSearch = document.getElementById('executeGoogleCseSearch');
+const googleCseResults = document.getElementById('googleCseResults');
+const googleCseStatus = document.getElementById('googleCseStatus');
+
+let googleApiKey = localStorage.getItem('mimo_google_api_key') || '';
+let googleCseId = localStorage.getItem('mimo_google_cse_id') || '';
+
+toggleGoogleCseBtn.addEventListener('click', () => {
+    const isVisible = googleCsePanel.style.display !== 'none';
+    googleCsePanel.style.display = isVisible ? 'none' : 'block';
+    if (!isVisible) {
+        // Pre-fill query with product name
+        const name = document.getElementById('prodName').value.trim();
+        if (name) googleCseQuery.value = name;
+        googleCseQuery.focus();
+        checkGoogleCreds();
+    }
+});
+
+function checkGoogleCreds() {
+    if (!googleApiKey || !googleCseId) {
+        googleCseStatus.innerHTML = `⚠️ Google API no configurada. <a href="#" id="openGoogleSetupLink" style="color: var(--accent-color); text-decoration: underline;">Configurar ahora</a>`;
+        const link = document.getElementById('openGoogleSetupLink');
+        if (link) link.addEventListener('click', (e) => {
+            e.preventDefault();
+            document.getElementById('googleSettingsModal').classList.add('active');
+        });
+    } else {
+        googleCseStatus.textContent = '✅ Google API configurada';
+    }
+}
+
+executeGoogleCseSearch.addEventListener('click', () => searchGoogleCse());
+googleCseQuery.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') searchGoogleCse();
+});
+
+async function searchGoogleCse() {
+    const query = googleCseQuery.value.trim();
+    if (!query) return;
+
+    if (!googleApiKey || !googleCseId) {
+        document.getElementById('googleSettingsModal').classList.add('active');
+        return;
+    }
+
+    googleCseResults.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--text-secondary)">Buscando...</div>';
+    googleCseStatus.textContent = '';
+
+    try {
+        const url = `https://www.googleapis.com/customsearch/v1?key=${googleApiKey}&cx=${googleCseId}&q=${encodeURIComponent(query)}&searchType=image&num=10`;
+        const res = await fetch(url);
+        if (!res.ok) {
+            const err = await res.json();
+            throw new Error(err.error?.message || `Error ${res.status}`);
+        }
+        const data = await res.json();
+        const items = data.items || [];
+
+        googleCseResults.innerHTML = '';
+
+        if (items.length === 0) {
+            googleCseResults.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--text-secondary)">Sin resultados. Probá con otra búsqueda.</div>';
+            return;
+        }
+
+        items.forEach(item => {
+            const imgUrl = item.link;
+            const thumb = item.image?.thumbnailLink || imgUrl;
+            const card = document.createElement('div');
+            card.style.cssText = 'cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent;transition:all .2s;position:relative;aspect-ratio:1';
+            card.innerHTML = `<img src="${thumb}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;display:block">`;
+            card.addEventListener('click', () => selectGoogleImage(imgUrl, item.title));
+            card.addEventListener('mouseenter', () => { card.style.borderColor = 'var(--accent-color)'; });
+            card.addEventListener('mouseleave', () => { card.style.borderColor = 'transparent'; });
+
+            // Load checker: validate the full URL
+            const img = new Image();
+            img.onload = () => {
+                if (img.naturalWidth < 100 || img.naturalHeight < 100) {
+                    card.style.display = 'none';
+                }
+            };
+            img.src = imgUrl;
+
+            googleCseResults.appendChild(card);
+        });
+
+        googleCseStatus.textContent = `${items.length} resultados para "${query}"`;
+    } catch (e) {
+        googleCseResults.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:1rem;color:#ff4757">Error: ${e.message}</div>`;
+        googleCseStatus.innerHTML = '';
+        console.error('Google CSE error:', e);
+    }
+}
+
+function selectGoogleImage(url, title) {
+    document.getElementById('prodImg').value = url;
+    document.getElementById('prodImg').dispatchEvent(new Event('input'));
+    googleCseStatus.textContent = `✅ Imagen seleccionada`;
+    googleCsePanel.style.display = 'none';
+}
+
+// ─── GOOGLE API SETTINGS MODAL ──────────────────────────────
+const googleSettingsModal = document.getElementById('googleSettingsModal');
+const googleSettingsBtn = document.getElementById('googleSettingsBtn');
+const closeGoogleSettingsBtn = document.getElementById('closeGoogleSettingsBtn');
+const saveGoogleSettingsBtn = document.getElementById('saveGoogleSettingsBtn');
+const googleApiKeyInput = document.getElementById('googleApiKey');
+const googleCseIdInput = document.getElementById('googleCseId');
+
+googleSettingsBtn.addEventListener('click', () => {
+    googleApiKeyInput.value = googleApiKey;
+    googleCseIdInput.value = googleCseId;
+    googleSettingsModal.classList.add('active');
+});
+
+closeGoogleSettingsBtn.addEventListener('click', () => {
+    googleSettingsModal.classList.remove('active');
+});
+
+googleSettingsModal.addEventListener('click', (e) => {
+    if (e.target === googleSettingsModal) googleSettingsModal.classList.remove('active');
+});
+
+saveGoogleSettingsBtn.addEventListener('click', () => {
+    googleApiKey = googleApiKeyInput.value.trim();
+    googleCseId = googleCseIdInput.value.trim();
+    localStorage.setItem('mimo_google_api_key', googleApiKey);
+    localStorage.setItem('mimo_google_cse_id', googleCseId);
+    googleSettingsModal.classList.remove('active');
+    checkGoogleCreds();
+    if (googleApiKey && googleCseId) {
+        googleCseStatus.textContent = '✅ Google API configurada correctamente';
+    }
+});
