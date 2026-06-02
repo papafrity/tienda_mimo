@@ -52,6 +52,9 @@ module.exports = async (req, res) => {
                     failure: `${hostUrl}/index.html?pago=error`,
                     pending: `${hostUrl}/index.html?pago=pendiente`
                 },
+                payment_methods: {
+                    installments: 12
+                },
                 auto_return: 'approved'
             }
         });
