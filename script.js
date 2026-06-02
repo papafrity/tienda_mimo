@@ -137,8 +137,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderProducts() {
         const grid = document.getElementById('productGrid');
         if (!grid) return;
+        const activeFilter = document.querySelector('.filter-tab.active')?.dataset?.filter || 'all';
+        const filtered = activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter);
+        filteredProducts = filtered;
+        productPage = 1;
+        renderPage();
+    }
+
+    let productPage = 1;
+    const productsPerPage = 12;
+    let filteredProducts = [];
+
+    function renderPage() {
+        const grid = document.getElementById('productGrid');
+        const loadMoreBtn = document.getElementById('loadMoreBtn');
+        const loadMoreContainer = document.getElementById('loadMoreContainer');
+        if (!grid) return;
+
+        const end = productPage * productsPerPage;
+        const pageProducts = filteredProducts.slice(0, end);
+
         grid.innerHTML = '';
-        products.forEach(p => {
+        pageProducts.forEach(p => {
             const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
             let priceHtml = hasDiscount 
                 ? `<p class="price"><span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${p.price.toFixed(2)}</span><span class="accent">$${p.offerPrice.toFixed(2)}</span></p>`
@@ -156,6 +176,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>`;
         });
+
+        if (loadMoreContainer) {
+            loadMoreContainer.style.display = end >= filteredProducts.length ? 'none' : '';
+        }
+
+        initDynamicEvents();
     }
 
     function renderCarousel() {
@@ -598,7 +624,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── FILTER TABS & MODALS (Dynamic Initialization) ────────
     function initProductFiltersAndModals() {
-        const pCards = document.querySelectorAll('.product-card');
         const tabs = document.querySelectorAll('.filter-tab');
         
         // Remove old active states
@@ -611,22 +636,8 @@ document.addEventListener('DOMContentLoaded', () => {
         freshTabs.forEach(tab => tab.addEventListener('click', () => {
             freshTabs.forEach(btn => btn.classList.remove('active'));
             tab.classList.add('active');
-            const f = tab.dataset.filter;
-            pCards.forEach(c => {
-                if (f === 'all' || c.dataset.category === f) { c.classList.remove('hidden'); c.style.animation = 'fadeInUp .5s ease forwards'; }
-                else c.classList.add('hidden');
-            });
+            renderProducts();
         }));
-
-        // ─── SCROLL REVEAL PRODUCTS ─────────────────────────────
-        const sObs = new IntersectionObserver(es => {
-            es.forEach(e => { if (e.isIntersecting) { e.target.style.opacity = '1'; e.target.style.transform = 'translateY(0)'; sObs.unobserve(e.target); } });
-        }, { threshold: .1, rootMargin: '0px 0px -40px 0px' });
-        pCards.forEach((el, i) => {
-            el.style.opacity = '0'; el.style.transform = 'translateY(40px)';
-            el.style.transition = `opacity .5s ease ${(i % 6) * .08}s, transform .5s ease ${(i % 6) * .08}s`;
-            sObs.observe(el);
-        });
 
         // ─── PRODUCT MODAL BINDINGS ─────────────────────────────
         const modal = document.getElementById('productModal');
@@ -725,6 +736,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const next = document.getElementById('modalNext');
             if (next && !next.classList.contains('hidden')) next.click();
         }
+    });
+
+    document.getElementById('loadMoreBtn')?.addEventListener('click', () => {
+        productPage++;
+        renderPage();
     });
 
     function initDynamicEvents() {

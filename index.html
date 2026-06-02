@@ -184,6 +184,9 @@
         <div class="product-grid" id="productGrid">
             <!-- Dynamically rendered via JS -->
         </div>
+        <div id="loadMoreContainer" style="text-align:center;margin-top:2rem">
+            <button id="loadMoreBtn" class="magnetic-btn" style="padding:.8rem 2.5rem;font-size:.95rem">Cargar más productos</button>
+        </div>
     </section>
 
 
@@ -208,14 +211,14 @@
             </div>
             <div class="footer-links">
                 <h4>Medios de pago</h4>
-                <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem">
-                    <span style="background:rgba(255,255,255,.08);padding:.3rem .7rem;border-radius:6px;font-size:.8rem">Visa</span>
-                    <span style="background:rgba(255,255,255,.08);padding:.3rem .7rem;border-radius:6px;font-size:.8rem">Mastercard</span>
-                    <span style="background:rgba(255,255,255,.08);padding:.3rem .7rem;border-radius:6px;font-size:.8rem">AMEX</span>
-                    <span style="background:rgba(255,255,255,.08);padding:.3rem .7rem;border-radius:6px;font-size:.8rem">Cabal</span>
-                    <span style="background:rgba(255,255,255,.08);padding:.3rem .7rem;border-radius:6px;font-size:.8rem">Naranja</span>
-                    <span style="background:rgba(255,255,255,.08);padding:.3rem .7rem;border-radius:6px;font-size:.8rem">Débito</span>
-                    <span style="background:rgba(255,255,255,.08);padding:.3rem .7rem;border-radius:6px;font-size:.8rem">Mercado Pago</span>
+                <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem;max-width:220px">
+                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#1a1f71"/><text x="8" y="26" font-family="Arial,sans-serif" font-weight="700" font-size="14" fill="white">VISA</text></svg>
+                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#eb001b"/><ellipse cx="30" cy="19" rx="11" ry="11" fill="#f79e1b" opacity=".85"/><ellipse cx="30" cy="19" rx="11" ry="11" fill="#eb001b" opacity=".4" transform="translate(4,0)"/></svg>
+                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#2e77bc"/><text x="6" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="11" fill="white">AMEX</text></svg>
+                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#0d4a8a"/><text x="6" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="10" fill="white">CABAL</text></svg>
+                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#ee7b2b"/><text x="4" y="24" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="white">NARANJA</text></svg>
+                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#444"/><text x="4" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="9" fill="white">DÉBITO</text></svg>
+                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#00b5e2"/><text x="4" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="9" fill="white">MP</text></svg>
                 </div>
             </div>
         </div>
