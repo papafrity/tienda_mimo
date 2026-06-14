@@ -7,15 +7,51 @@
     <meta name="description" content="Descubre la mejor tecnología en Mimo! Auriculares, parlantes, televisores, cocinas y mucho más. Envíos a todo el país.">
     <meta property="og:title" content="Mimo! - Tu Tienda de Tecnología Premium">
     <meta property="og:description" content="Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con Mimo!">
-    <meta property="og:image" content="https://tienda-mimo.vercel.app/img/og-image.jpg">
+    <meta property="og:image" content="https://tienda-mimo.vercel.app/img/og-image.svg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
     <meta property="og:url" content="https://tienda-mimo.vercel.app">
     <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_AR">
+    <meta property="og:site_name" content="Mimo!">
     <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mimo! - Tu Tienda de Tecnología Premium">
+    <meta name="twitter:description" content="Descubre la mejor tecnología en Mimo! Auriculares, parlantes, televisores, cocinas y mucho más. Envíos a todo el país.">
+    <meta name="twitter:image" content="https://tienda-mimo.vercel.app/img/og-image.svg">
     <meta name="keywords" content="tecnología, auriculares, parlantes, televisores, cocinas, heladeras, tienda online, argentina">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <meta name="theme-color" content="#0a0a1a">
+    <link rel="canonical" href="https://tienda-mimo.vercel.app/">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Mimo!",
+      "url": "https://tienda-mimo.vercel.app/",
+      "description": "Tu Tienda de Tecnología Premium",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://tienda-mimo.vercel.app/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Mimo!",
+      "url": "https://tienda-mimo.vercel.app/",
+      "logo": "https://tienda-mimo.vercel.app/img/og-image.svg",
+      "description": "Tu Tienda de Tecnología Premium"
+    }
+    </script>
 </head>
 <body>
     <!-- Preloader -->
@@ -56,19 +92,11 @@
                 <div class="search-results" id="searchResults"></div>
             </div>
         </div>
-        <div class="nav-right">
-            <div class="cart-btn magnetic-btn" id="cartBtn">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-                <span class="cart-count" id="cartCount">0</span>
-            </div>
-            <button class="hamburger" id="hamburger" aria-label="Abrir menú">
-                <span class="bar"></span>
-                <span class="bar"></span>
-                <span class="bar"></span>
-            </button>
-        </div>
+        <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
     </nav>
 
     <!-- Hero Section -->
@@ -153,32 +181,49 @@
     <section id="products" class="products-section">
         <h2 class="section-title reveal-text">Todos los Productos</h2>
 
-        <div class="filter-tabs" id="filterTabs">
-            <button class="filter-tab active magnetic-btn" data-filter="all">Todos</button>
-            <button class="filter-tab magnetic-btn" data-filter="televisores">Televisores</button>
-            <button class="filter-tab magnetic-btn" data-filter="celulares">Celulares</button>
-            <button class="filter-tab magnetic-btn" data-filter="tvbox">TV Box</button>
-            <button class="filter-tab magnetic-btn" data-filter="proyectores">Proyectores</button>
-            <button class="filter-tab magnetic-btn" data-filter="parlantes">Parlantes</button>
-            <button class="filter-tab magnetic-btn" data-filter="auriculares">Auriculares</button>
-            <button class="filter-tab magnetic-btn" data-filter="gaming">Gaming</button>
-            <button class="filter-tab magnetic-btn" data-filter="cocinas">Cocinas</button>
-            <button class="filter-tab magnetic-btn" data-filter="calefaccion">Calefacción</button>
-            <button class="filter-tab magnetic-btn" data-filter="climatizacion">Climatización</button>
-            <button class="filter-tab magnetic-btn" data-filter="ventilacion">Ventilación</button>
-            <button class="filter-tab magnetic-btn" data-filter="herramientas">Herramientas</button>
-            <button class="filter-tab magnetic-btn" data-filter="belleza">Belleza</button>
-            <button class="filter-tab magnetic-btn" data-filter="bicicletas">Bicicletas</button>
-            <button class="filter-tab magnetic-btn" data-filter="movilidad">Movilidad</button>
-            <button class="filter-tab magnetic-btn" data-filter="hogar-muebles">Hogar</button>
-            <button class="filter-tab magnetic-btn" data-filter="bano">Baño</button>
-            <button class="filter-tab magnetic-btn" data-filter="decoracion">Decoración</button>
-            <button class="filter-tab magnetic-btn" data-filter="iluminacion-gadgets">Iluminación</button>
-            <button class="filter-tab magnetic-btn" data-filter="exteriores">Exteriores</button>
-            <button class="filter-tab magnetic-btn" data-filter="limpieza">Limpieza</button>
-            <button class="filter-tab magnetic-btn" data-filter="gadgets">Gadgets</button>
-            <button class="filter-tab magnetic-btn" data-filter="cargadores-accesorios">Cargadores</button>
-            <button class="filter-tab magnetic-btn" data-filter="relojes-fundas">Relojes</button>
+        <div class="product-toolbar">
+            <div class="filter-tabs" id="filterTabs">
+                <button class="filter-tab active magnetic-btn" data-filter="all">Todos</button>
+                <button class="filter-tab magnetic-btn" data-filter="televisores">Televisores</button>
+                <button class="filter-tab magnetic-btn" data-filter="celulares">Celulares</button>
+                <button class="filter-tab magnetic-btn" data-filter="tvbox">TV Box</button>
+                <button class="filter-tab magnetic-btn" data-filter="proyectores">Proyectores</button>
+                <button class="filter-tab magnetic-btn" data-filter="parlantes">Parlantes</button>
+                <button class="filter-tab magnetic-btn" data-filter="auriculares">Auriculares</button>
+                <button class="filter-tab magnetic-btn" data-filter="gaming">Gaming</button>
+                <button class="filter-tab magnetic-btn" data-filter="cocinas">Cocinas</button>
+                <button class="filter-tab magnetic-btn" data-filter="calefaccion">Calefacción</button>
+                <button class="filter-tab magnetic-btn" data-filter="climatizacion">Climatización</button>
+                <button class="filter-tab magnetic-btn" data-filter="ventilacion">Ventilación</button>
+                <button class="filter-tab magnetic-btn" data-filter="herramientas">Herramientas</button>
+                <button class="filter-tab magnetic-btn" data-filter="belleza">Belleza</button>
+                <button class="filter-tab magnetic-btn" data-filter="bicicletas">Bicicletas</button>
+                <button class="filter-tab magnetic-btn" data-filter="movilidad">Movilidad</button>
+                <button class="filter-tab magnetic-btn" data-filter="hogar-muebles">Hogar</button>
+                <button class="filter-tab magnetic-btn" data-filter="bano">Baño</button>
+                <button class="filter-tab magnetic-btn" data-filter="decoracion">Decoración</button>
+                <button class="filter-tab magnetic-btn" data-filter="iluminacion-gadgets">Iluminación</button>
+                <button class="filter-tab magnetic-btn" data-filter="exteriores">Exteriores</button>
+                <button class="filter-tab magnetic-btn" data-filter="limpieza">Limpieza</button>
+                <button class="filter-tab magnetic-btn" data-filter="gadgets">Gadgets</button>
+                <button class="filter-tab magnetic-btn" data-filter="cargadores-accesorios">Cargadores</button>
+                <button class="filter-tab magnetic-btn" data-filter="relojes-fundas">Relojes</button>
+            </div>
+            <div class="filter-extra">
+                <div class="price-range">
+                    <input type="number" class="price-input" id="priceMin" placeholder="Min $" step="0.01" min="0">
+                    <span class="price-sep">—</span>
+                    <input type="number" class="price-input" id="priceMax" placeholder="Max $" step="0.01" min="0">
+                </div>
+                <select class="sort-select" id="sortSelect">
+                    <option value="default">Por defecto</option>
+                    <option value="price-asc">Menor precio</option>
+                    <option value="price-desc">Mayor precio</option>
+                    <option value="name-asc">A-Z</option>
+                    <option value="name-desc">Z-A</option>
+                    <option value="rating">Mejor calificados</option>
+                </select>
+            </div>
         </div>
 
         <div class="product-grid" id="productGrid">
@@ -200,9 +245,11 @@
             </div>
             <div class="footer-links">
                 <h4>Categorías</h4>
-                <a href="#">Televisores</a><a href="#">Celulares</a><a href="#">Parlantes</a>
-                <a href="#">Auriculares</a><a href="#">TV Box</a><a href="#">Cocinas</a>
-                <a href="#">Gaming</a><a href="#">Hogar</a>
+                <div style="display:flex;flex-wrap:wrap;column-gap:.8rem;row-gap:.4rem">
+                    <a href="#">Televisores</a><a href="#">Celulares</a><a href="#">Parlantes</a>
+                    <a href="#">Auriculares</a><a href="#">TV Box</a><a href="#">Cocinas</a>
+                    <a href="#">Gaming</a><a href="#">Hogar</a>
+                </div>
             </div>
             <div class="footer-links">
                 <h4>Contacto</h4>
@@ -211,20 +258,20 @@
             </div>
             <div class="footer-links">
                 <h4>Medios de pago</h4>
-                <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.3rem;max-width:220px">
-                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#1a1f71"/><text x="8" y="26" font-family="Arial,sans-serif" font-weight="700" font-size="14" fill="white">VISA</text></svg>
-                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#eb001b"/><ellipse cx="30" cy="19" rx="11" ry="11" fill="#f79e1b" opacity=".85"/><ellipse cx="30" cy="19" rx="11" ry="11" fill="#eb001b" opacity=".4" transform="translate(4,0)"/></svg>
-                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#2e77bc"/><text x="6" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="11" fill="white">AMEX</text></svg>
-                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#0d4a8a"/><text x="6" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="10" fill="white">CABAL</text></svg>
-                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#ee7b2b"/><text x="4" y="24" font-family="Arial,sans-serif" font-weight="700" font-size="10" fill="white">NARANJA</text></svg>
-                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#444"/><text x="4" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="9" fill="white">DÉBITO</text></svg>
-                    <svg viewBox="0 0 60 38" width="50" height="32" style="border-radius:5px"><rect width="60" height="38" rx="4" fill="#00b5e2"/><text x="4" y="24" font-family="Arial,sans-serif" font-weight="600" font-size="9" fill="white">MP</text></svg>
+                <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem;max-width:220px">
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#vG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="9" y="22" font-family="Arial,sans-serif" font-weight="800" font-size="11" fill="white" letter-spacing=".5">VISA</text><defs><linearGradient id="vG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1f71"/><stop offset="100%" stop-color="#2a3fa8"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="#eb001b"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><ellipse cx="26" cy="20" rx="10" ry="10" fill="#f79e1b" opacity=".85"/><ellipse cx="34" cy="20" rx="10" ry="10" fill="#eb001b" opacity=".45"/></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#aeG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="6" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="9" fill="white" letter-spacing=".3">AMEX</text><defs><linearGradient id="aeG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2e77bc"/><stop offset="100%" stop-color="#4a9ce0"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#cbG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="7" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="8.5" fill="white">CABAL</text><defs><linearGradient id="cbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d4a8a"/><stop offset="100%" stop-color="#1a6bb5"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#njG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="5" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="8.5" fill="white">NARANJA</text><defs><linearGradient id="njG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ee7b2b"/><stop offset="100%" stop-color="#f5a623"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#dbG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="6" y="22" font-family="Arial,sans-serif" font-weight="600" font-size="7.5" fill="white">DÉBITO</text><defs><linearGradient id="dbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#444"/><stop offset="100%" stop-color="#666"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#mpG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="6" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="9" fill="white">MP</text><defs><linearGradient id="mpG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00b5e2"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs></svg>
                 </div>
             </div>
         </div>
         <div class="footer-bottom">
             <p style="margin-bottom:.5rem">&copy; 2026 Mimo! Tienda de Tecnología. Todos los derechos reservados.</p>
-            <p style="font-size:.75rem;color:var(--text-secondary);line-height:1.6;max-width:600px;margin:0 auto">
+            <p style="font-size:.85rem;color:var(--text-secondary);line-height:1.6;max-width:700px;margin:0 auto">
                 🛡️ <strong>Botón de arrepentimiento:</strong> Tenés 10 días desde que recibís el producto para devolverlo. 
                 Contactanos por <a href="https://wa.me/542634478522" style="color:var(--accent-color)">WhatsApp</a> 
                 o email a <a href="mailto:mimo.la.tienda@gmail.com" style="color:var(--accent-color)">mimo.la.tienda@gmail.com</a> 

@@ -134,14 +134,43 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── PRODUCT DATABASE (Fase 3: Firebase) ────────
     let products = [];
 
+    function fmt(n) { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); }
+
+    function renderStarsHtml(rating) {
+        const r = Math.round((rating || 0) * 2) / 2;
+        let html = '';
+        for (let i = 1; i <= 5; i++) {
+            if (r >= i) html += '<span class="star">★</span>';
+            else if (r >= i - 0.5) html += '<span class="star half">★</span>';
+            else html += '<span class="star empty">★</span>';
+        }
+        return html;
+    }
+
     function renderProducts() {
+        try {
         const grid = document.getElementById('productGrid');
         if (!grid) return;
         const activeFilter = document.querySelector('.filter-tab.active')?.dataset?.filter || 'all';
-        const filtered = activeFilter === 'all' ? products : products.filter(p => p.category === activeFilter);
+        const sortBy = document.getElementById('sortSelect')?.value || 'default';
+        const priceMin = parseFloat(document.getElementById('priceMin')?.value) || 0;
+        const priceMax = parseFloat(document.getElementById('priceMax')?.value) || Infinity;
+        let filtered = activeFilter === 'all' ? [...products] : products.filter(p => p.category === activeFilter);
+        filtered = filtered.filter(p => {
+            const dp = p.offerPrice && p.offerPrice !== p.price ? p.offerPrice : p.price;
+            return dp >= priceMin && dp <= priceMax;
+        });
+        switch (sortBy) {
+            case 'price-asc': filtered.sort((a, b) => ((a.offerPrice||a.price)||0) - ((b.offerPrice||b.price)||0)); break;
+            case 'price-desc': filtered.sort((a, b) => ((b.offerPrice||b.price)||0) - ((a.offerPrice||a.price)||0)); break;
+            case 'name-asc': filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
+            case 'name-desc': filtered.sort((a, b) => b.name.localeCompare(a.name)); break;
+            case 'rating': filtered.sort((a, b) => (b.rating||0) - (a.rating||0) || (b.reviewCount||0) - (a.reviewCount||0)); break;
+        }
         filteredProducts = filtered;
         productPage = 1;
         renderPage();
+        } catch(e) { console.error('Error en renderProducts:', e); }
     }
 
     let productPage = 1;
@@ -161,18 +190,19 @@ document.addEventListener('DOMContentLoaded', () => {
         pageProducts.forEach(p => {
             const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
             let priceHtml = hasDiscount 
-                ? `<p class="price"><span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${p.price.toFixed(2)}</span><span class="accent">$${p.offerPrice.toFixed(2)}</span></p>`
-                : `<p class="price">$${(p.offerPrice || p.price).toFixed(2)}</p>`;
+                ? `<p class="price"><span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span></p>`
+                : `<p class="price">$${fmt(p.offerPrice || p.price)}</p>`;
                 
             grid.innerHTML += `
-            <div class="product-card tilt-card" data-category="${p.category}" onclick="if(!event.target.closest('.add-to-cart')) window.openProductModal('${p.id}')">
+            <div class="product-card tilt-card" data-category="${p.category}" data-id="${p.id}">
                 <div class="card-glow"></div>
                 <div class="product-image"><img src="${p.image}" alt="${p.name}"></div>
                 <div class="product-info">
                     <span class="category">${p.category}</span>
                     <h3>${p.name}</h3>
+                    <div class="stars">${renderStarsHtml(p.rating)}${p.reviewCount ? `<span class="review-count">(${p.reviewCount})</span>` : ''}</div>
                     ${priceHtml}
-                    <button class="add-to-cart magnetic-btn" onclick="event.stopPropagation(); window.addToCart('${p.id}')">Agregar al Carrito</button>
+                    <button class="add-to-cart magnetic-btn">Agregar al Carrito</button>
                 </div>
             </div>`;
         });
@@ -192,8 +222,8 @@ document.addEventListener('DOMContentLoaded', () => {
         featured.forEach(p => {
             const hasDiscount = p.oldPrice && p.offerPrice && p.oldPrice !== p.offerPrice;
             let priceHtml = hasDiscount 
-                ? `<p class="old-price">$${p.oldPrice.toFixed(2)}</p><p class="offer-price">$${p.offerPrice.toFixed(2)}</p>` 
-                : `<p class="offer-price">$${(p.offerPrice || p.price).toFixed(2)}</p>`;
+                ? `<p class="old-price">$${fmt(p.oldPrice)}</p><p class="offer-price">$${fmt(p.offerPrice)}</p>` 
+                : `<p class="offer-price">$${fmt(p.offerPrice || p.price)}</p>`;
                 
             const card = document.createElement('div');
             card.className = 'carousel-card';
@@ -342,7 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${item.image}" alt="${item.name}">
                     <div class="cart-item-info">
                         <h4>${item.name}</h4>
-                        <p>$${price.toFixed(2)}</p>
+                        <p>$${fmt(price)}</p>
                         <div class="cart-item-qty">
                             <button class="qty-btn" onclick="updateQty('${item.id}', -1)">-</button>
                             <span class="qty-val">${item.qty}</span>
@@ -355,7 +385,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
         
-        if (cartTotalValue) cartTotalValue.textContent = `$${total.toFixed(2)}`;
+        if (cartTotalValue) cartTotalValue.textContent = `$${fmt(total)}`;
         if (cartCount) cartCount.textContent = count;
     }
 
@@ -624,6 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── FILTER TABS & MODALS (Dynamic Initialization) ────────
     function initProductFiltersAndModals() {
+        try {
         const tabs = document.querySelectorAll('.filter-tab');
         
         // Remove old active states
@@ -639,6 +670,13 @@ document.addEventListener('DOMContentLoaded', () => {
             renderProducts();
         }));
 
+        // ─── SORT & PRICE FILTER EVENTS ──────────────────────────────
+        const sortSelect = document.getElementById('sortSelect');
+        const priceMin = document.getElementById('priceMin');
+        const priceMax = document.getElementById('priceMax');
+        [sortSelect].forEach(el => { if (el) el.addEventListener('change', renderProducts); });
+        [priceMin, priceMax].forEach(el => { if (el) el.addEventListener('input', renderProducts); });
+
         // ─── PRODUCT MODAL BINDINGS ─────────────────────────────
         const modal = document.getElementById('productModal');
         const mImg = document.getElementById('modalMainImg');
@@ -649,9 +687,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const mDesc = document.getElementById('modalDescription');
 
         window.openProductModal = function(prodId) {
+            try {
             const p = products.find(x => x.id === prodId);
             if (!p) return;
-            const liveModal = document.getElementById('productModal');
+            const modalEl = document.getElementById('productModal');
             const mImg = document.getElementById('modalMainImg');
             const mTh = document.getElementById('modalThumbs');
             const mCat = document.getElementById('modalCategory');
@@ -665,12 +704,13 @@ document.addEventListener('DOMContentLoaded', () => {
             mTit.textContent = p.name;
             const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
             mPr.innerHTML = hasDiscount 
-                ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${p.price.toFixed(2)}</span><span class="accent">$${p.offerPrice.toFixed(2)}</span>`
-                : `$${(p.offerPrice || p.price).toFixed(2)}`;
+                ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span>`
+                : `$${fmt(p.offerPrice || p.price)}`;
             mDesc.textContent = p.description || '';
             
-            let imgs = p.fullImages ? JSON.parse(p.fullImages) : [p.image];
-            if (imgs.length === 0) imgs = [p.image];
+            let imgs;
+            try { imgs = p.fullImages ? JSON.parse(p.fullImages) : null; } catch(e) { imgs = null; }
+            if (!imgs || !imgs.length) imgs = [p.image];
             
             mImg.src = imgs[0];
             mTh.innerHTML = '';
@@ -682,11 +722,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     mTh.appendChild(t);
                 });
             }
-            liveModal.classList.add('active'); document.body.style.overflow = 'hidden';
+            modalEl.classList.add('active'); document.body.style.overflow = 'hidden';
             try { gtag('event', 'view_item', { currency: 'ARS', value: p.offerPrice || p.price, items: [{ item_id: p.id, item_name: p.name, price: p.offerPrice || p.price }] }); } catch(e) {}
             
             // Re-bind the "Añadir al Carrito" inside modal
-            const addBtn = liveModal.querySelector('.modal-add-cart');
+            const addBtn = modalEl.querySelector('.modal-add-cart');
             const newAddBtn = addBtn.cloneNode(true);
             addBtn.parentNode.replaceChild(newAddBtn, addBtn);
             
@@ -713,6 +753,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 prevBtn.onclick = (e) => { e.stopPropagation(); window.openProductModal(prevId); };
                 nextBtn.onclick = (e) => { e.stopPropagation(); window.openProductModal(nextId); };
             }
+            } catch(e) { console.error('Error en openProductModal:', e); }
         };
 
         function closeM() { document.getElementById('productModal').classList.remove('active'); document.body.style.overflow = ''; }
@@ -722,6 +763,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const newModal = liveModal.cloneNode(true);
         liveModal.parentNode.replaceChild(newModal, liveModal);
         newModal.addEventListener('click', e => { if (e.target === newModal || e.target.closest('#modalClose')) { closeM(); } });
+        } catch(e) { console.error('Error en initProductFiltersAndModals:', e); }
     }
     
     document.addEventListener('keydown', e => { 
@@ -742,6 +784,24 @@ document.addEventListener('DOMContentLoaded', () => {
         productPage++;
         renderPage();
     });
+
+    // Event delegation for product grid (card click and add-to-cart)
+    const productGrid = document.getElementById('productGrid');
+    if (productGrid) {
+        productGrid.addEventListener('click', function(e) {
+            try {
+            const card = e.target.closest('.product-card');
+            if (!card) return;
+            const id = card.dataset.id;
+            if (!id) return;
+            if (e.target.closest('.add-to-cart')) {
+                if (typeof window.addToCart === 'function') window.addToCart(id); else console.warn('addToCart no disponible');
+                return;
+            }
+            if (typeof window.openProductModal === 'function') window.openProductModal(id); else console.warn('openProductModal no disponible, esperá a que carguen los productos');
+            } catch(e) { console.error('Error al hacer clic en tarjeta:', e); }
+        });
+    }
 
     function initDynamicEvents() {
         document.querySelectorAll('.tilt-card').forEach(card => {
@@ -809,7 +869,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <img src="${p.image}" alt="${p.name}">
                     <div class="search-result-info">
                         <h4>${p.name}</h4>
-                        <p>$${displayPrice.toFixed(2)}</p>
+                        <p>$${fmt(displayPrice)}</p>
                     </div>
                 `;
                 item.addEventListener('click', () => {

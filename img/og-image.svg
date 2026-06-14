@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0a0a1a"/>
+      <stop offset="50%" stop-color="#0f0f2a"/>
+      <stop offset="100%" stop-color="#0a0a1a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f0ff"/>
+      <stop offset="100%" stop-color="#7b2ff7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="100" cy="100" r="200" fill="#00f0ff" opacity="0.04"/>
+  <circle cx="1100" cy="500" r="250" fill="#7b2ff7" opacity="0.04"/>
+  <circle cx="600" cy="315" r="300" fill="#00f0ff" opacity="0.02"/>
+  <line x1="0" y1="520" x2="1200" y2="520" stroke="#00f0ff" stroke-width="2" opacity="0.08"/>
+  <line x1="0" y1="524" x2="1200" y2="524" stroke="#7b2ff7" stroke-width="1" opacity="0.05"/>
+  <rect x="80" y="80" width="1040" height="470" rx="24" fill="none" stroke="#00f0ff" stroke-width="1" opacity="0.06"/>
+  <text x="600" y="240" font-family="Arial,Helvetica,sans-serif" font-size="96" font-weight="800" fill="url(#accent)" text-anchor="middle" letter-spacing="4">Mimo!</text>
+  <text x="600" y="330" font-family="Arial,Helvetica,sans-serif" font-size="40" font-weight="400" fill="#a0a0b0" text-anchor="middle" letter-spacing="2">Tu Tienda de</text>
+  <text x="600" y="390" font-family="Arial,Helvetica,sans-serif" font-size="48" font-weight="700" fill="#e0e0f0" text-anchor="middle" letter-spacing="3">Tecnología Premium</text>
+  <rect x="540" y="430" width="120" height="3" rx="1.5" fill="url(#accent)"/>
+</svg>

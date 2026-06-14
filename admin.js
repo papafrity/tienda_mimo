@@ -6,6 +6,78 @@ const adminPin = document.getElementById('adminPin');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('loginError');
 
+function fmt(n) { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); }
+
+function renderStarsHtml(rating) {
+    const r = Math.round((rating || 0) * 2) / 2;
+    let html = '';
+    for (let i = 1; i <= 5; i++) {
+        if (r >= i) html += '<span style="color:#ffd700">★</span>';
+        else if (r >= i - 0.5) html += '<span style="background:linear-gradient(90deg,#ffd700 50%,#555 50%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">★</span>';
+        else html += '<span style="color:#555">★</span>';
+    }
+    return html;
+}
+
+async function loadAdminReviews(prodId) {
+    const list = document.getElementById('adminReviewsList');
+    const empty = document.getElementById('adminReviewsEmpty');
+    const countEl = document.getElementById('adminReviewCount');
+    if (!list) return;
+    list.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:.85rem;padding:.5rem">Cargando...</div>';
+    if (empty) empty.style.display = 'none';
+    try {
+        const snap = await db.collection("products").doc(prodId).collection("reviews").orderBy("date", "desc").limit(50).get();
+        list.innerHTML = '';
+        if (snap.empty) {
+            if (empty) empty.style.display = '';
+            if (countEl) countEl.textContent = '(0)';
+            return;
+        }
+        if (countEl) countEl.textContent = `(${snap.size})`;
+        snap.forEach(doc => {
+            const r = doc.data();
+            const dateStr = r.date?.toDate?.() ? r.date.toDate().toLocaleDateString('es-AR', { day: 'numeric', month: 'short' }) : '';
+            const card = document.createElement('div');
+            card.style.cssText = 'background:rgba(255,255,255,.02);border:1px solid var(--surface-border);border-radius:8px;padding:.6rem .8rem;font-size:.82rem';
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
+                    <div>
+                        <strong style="color:var(--text-primary)">${r.userName || 'Anónimo'}</strong>
+                        <span style="color:var(--text-secondary);margin-left:.4rem">${dateStr}</span>
+                    </div>
+                    <button class="del-review-btn" data-id="${doc.id}" data-prod="${prodId}" style="background:none;border:none;color:#ff4757;cursor:pointer;font-size:1rem;padding:0 0 0 .5rem" title="Eliminar reseña">&times;</button>
+                </div>
+                <div>${renderStarsHtml(r.rating)}</div>
+                ${r.comment ? `<p style="color:var(--text-secondary);margin:.3rem 0 0 0;line-height:1.4">${r.comment}</p>` : ''}
+            `;
+            list.appendChild(card);
+        });
+        // Attach delete handlers
+        list.querySelectorAll('.del-review-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('¿Eliminar esta reseña?')) return;
+                try {
+                    await db.collection("products").doc(btn.dataset.prod).collection("reviews").doc(btn.dataset.id).delete();
+                    // Recalculate product rating
+                    const snap2 = await db.collection("products").doc(btn.dataset.prod).collection("reviews").get();
+                    let total = 0, count = 0;
+                    snap2.forEach(d => { total += d.data().rating || 0; count++; });
+                    const avg = count > 0 ? total / count : 0;
+                    await db.collection("products").doc(btn.dataset.prod).update({ rating: avg, reviewCount: count });
+                    loadAdminReviews(prodId);
+                } catch(e) {
+                    console.error(e);
+                    alert('Error al eliminar');
+                }
+            });
+        });
+    } catch(e) {
+        console.error(e);
+        list.innerHTML = '<div style="text-align:center;color:#ff4757;font-size:.85rem;padding:.5rem">Error al cargar reseñas</div>';
+    }
+}
+
 if (localStorage.getItem('mimo_admin_auth') === 'true') {
     loginScreen.classList.add('hidden');
     dashboard.classList.remove('hidden');
@@ -85,8 +157,8 @@ function renderAdminProducts() {
             <td><img src="${p.image}" alt="img"></td>
             <td><strong>${p.name}</strong></td>
             <td style="text-transform: capitalize;">${p.category}</td>
-            <td>$${parseFloat(p.price).toFixed(2)}</td>
-            <td>${p.offerPrice ? '$' + parseFloat(p.offerPrice).toFixed(2) : '-'}</td>
+            <td>$${fmt(p.price)}</td>
+            <td>${p.offerPrice ? '$' + fmt(p.offerPrice) : '-'}</td>
             <td style="text-align:center">${p.stock !== undefined ? p.stock : '-'}</td>
             <td style="text-align:center">${p.peso ? p.peso + 'kg' : '-'}</td>
             <td>
@@ -162,11 +234,14 @@ function openModal(id = null) {
                 });
                 if (statusText) statusText.textContent = `${imgsToLoad.length} imagen(es)`;
                 previewContainer.style.display = 'flex';
+                }
             }
+            
+            // Load reviews for this product
+            loadAdminReviews(id);
         }
+        modal.classList.add('active');
     }
-    modal.classList.add('active');
-}
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -611,7 +686,7 @@ async function loadOrders(filter = 'all') {
             const tr = document.createElement('tr');
             tr.innerHTML = `
                 <td><strong>${o.customer?.name || '—'}</strong></td>
-                <td>$${(o.total || 0).toFixed(2)}${o.shippingCost ? '<br><small style="color:var(--text-secondary)">+ envío $' + o.shippingCost.toFixed(2) + '</small>' : ''}</td>
+                <td>$${fmt(o.total || 0)}${o.shippingCost ? '<br><small style="color:var(--text-secondary)">+ envío $' + fmt(o.shippingCost) + '</small>' : ''}</td>
                 <td>${(o.cart || []).reduce((s, i) => s + i.qty, 0)} items</td>
                 <td>${o.customer?.province || o.shippingProvince || '—'}</td>
                 <td style="font-size:.85rem;white-space:nowrap">${date}</td>
@@ -659,14 +734,14 @@ async function viewOrder(id) {
                 <div><strong>CP:</strong> ${o.customer?.zip || '—'}</div>
                 <div><strong>Fecha:</strong> ${date}</div>
                 <div><strong>Estado:</strong> ${statusLabels[o.status] || o.status}</div>
-                ${o.shippingCost ? `<div><strong>Envío:</strong> $${o.shippingCost.toFixed(2)}</div>` : ''}
+                ${o.shippingCost ? `<div><strong>Envío:</strong> $${fmt(o.shippingCost)}</div>` : ''}
                 ${o.paymentId ? `<div><strong>MP ID:</strong> ${o.paymentId}</div>` : ''}
             </div>
             <table class="admin-table" style="font-size:.85rem">
                 <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Subtotal</th></tr></thead>
-                <tbody>${(o.cart || []).map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>$${(i.price || 0).toFixed(2)}</td><td>$${((i.price || 0) * i.qty).toFixed(2)}</td></tr>`).join('')}</tbody>
+                <tbody>${(o.cart || []).map(i => `<tr><td>${i.name}</td><td>${i.qty}</td><td>$${fmt(i.price || 0)}</td><td>$${fmt((i.price || 0) * i.qty)}</td></tr>`).join('')}</tbody>
             </table>
-            <div style="text-align:right;margin-top:1rem;font-size:1.2rem;font-weight:800;color:var(--accent-color)">Total: $${(o.total || 0).toFixed(2)}</div>
+            <div style="text-align:right;margin-top:1rem;font-size:1.2rem;font-weight:800;color:var(--accent-color)">Total: $${fmt(o.total || 0)}</div>
         `;
         document.getElementById('orderModal').classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -731,6 +806,18 @@ toggleGoogleCseBtn.addEventListener('click', () => {
         checkGoogleCreds();
     }
 });
+
+// Admin Reviews Toggle
+const adminReviewsToggle = document.getElementById('adminReviewsToggle');
+const adminReviewsPanel = document.getElementById('adminReviewsPanel');
+const adminReviewsArrow = document.getElementById('adminReviewsArrow');
+if (adminReviewsToggle) {
+    adminReviewsToggle.addEventListener('click', () => {
+        const isOpen = adminReviewsPanel.style.display !== 'none';
+        adminReviewsPanel.style.display = isOpen ? 'none' : 'block';
+        if (adminReviewsArrow) adminReviewsArrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+    });
+}
 
 function checkGoogleCreds() {
     if (!googleApiKey || !googleCseId) {

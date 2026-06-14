@@ -6,6 +6,10 @@
     <title>Mimo! - Panel de Administración</title>
     <meta name="description" content="Panel de administración de Mimo! Tienda de Tecnología.">
     <meta name="robots" content="noindex, nofollow"> 
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <meta name="theme-color" content="#0a0a1a">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="admin.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
@@ -357,6 +361,16 @@
                             <div id="googleCseResults" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; max-height: 350px; overflow-y: auto; padding: 0.3rem;"></div>
                             <div id="googleCseStatus" style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem;"></div>
                         </div>
+                    </div>
+                </div>
+                <div class="form-group" style="border-top:1px solid var(--surface-border);padding-top:1rem;margin-top:.5rem">
+                    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="adminReviewsToggle">
+                        <label style="cursor:pointer;font-weight:600">⭐ Reseñas <span id="adminReviewCount" style="color:var(--text-secondary);font-weight:400">(0)</span></label>
+                        <span id="adminReviewsArrow" style="color:var(--text-secondary);transition:transform .3s">▶</span>
+                    </div>
+                    <div id="adminReviewsPanel" style="display:none;margin-top:.8rem">
+                        <div id="adminReviewsList" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;padding:.3rem"></div>
+                        <div id="adminReviewsEmpty" style="text-align:center;color:var(--text-secondary);font-size:.85rem;padding:1rem;display:none">Sin reseñas</div>
                     </div>
                 </div>
                 <div class="form-group checkbox-group">

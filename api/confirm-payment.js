@@ -1,4 +1,5 @@
 const { MercadoPagoConfig, Payment } = require('mercadopago');
+const fmt = n => { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); };
 
 const client = new MercadoPagoConfig({ 
     accessToken: process.env.MP_ACCESS_TOKEN || 'TEST-TU-ACCESS-TOKEN-AQUI' 
@@ -50,7 +51,7 @@ module.exports = async (req, res) => {
         // Estructurar el detalle del pedido para el correo
         let itemsHtml = '';
         orderDetails.cart.forEach(item => {
-            itemsHtml += `<li><strong>${item.name}</strong> x${item.qty} - $${(item.price * item.qty).toFixed(2)}</li>`;
+            itemsHtml += `<li><strong>${item.name}</strong> x${item.qty} - $${fmt(item.price * item.qty)}</li>`;
         });
 
         // HTML para el email que recibe el administrador (Sebastian) para pasarle al proveedor
@@ -75,7 +76,7 @@ module.exports = async (req, res) => {
                 <ul style="padding-left: 20px; line-height: 1.6; color: #ffffff;">
                     ${itemsHtml}
                 </ul>
-                <h3 style="color: #2ed573;">Total Cobrado: $${Number(orderDetails.total).toFixed(2)}</h3>
+                <h3 style="color: #2ed573;">Total Cobrado: $${fmt(orderDetails.total)}</h3>
                 
                 <div style="margin-top: 30px; padding: 15px; background: rgba(46,213,115,0.1); border-left: 4px solid #2ed573; border-radius: 4px;">
                     <p style="margin: 0; font-weight: bold; color: #2ed573;">Instrucciones para Dropshipping:</p>
