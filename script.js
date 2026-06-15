@@ -23,7 +23,7 @@ window.showToast = showToast;
 document.addEventListener('DOMContentLoaded', () => {
     // ─── PRELOADER ──────────────────────────────────────────
     const preloader = document.getElementById('preloader');
-    setTimeout(() => { preloader.classList.add('done'); }, 2200);
+    setTimeout(() => { if (preloader) preloader.classList.add('done'); }, 2200);
 
     // ─── CUSTOM CURSOR ──────────────────────────────────────
     const dot = document.getElementById('cursorDot');
@@ -33,6 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; });
 
     function animateCursor() {
+        if (!dot || !ring) return;
         rx += (cx - rx) * 0.15;
         ry += (cy - ry) * 0.15;
         dot.style.transform = `translate(${cx - 4}px, ${cy - 4}px)`;
@@ -122,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── HAMBURGER MENU ─────────────────────────────────────
     const hamburger = document.getElementById('hamburger');
     const navLinks = document.getElementById('navLinks');
+    if (hamburger && navLinks) {
     hamburger.addEventListener('click', () => {
         hamburger.classList.toggle('active');
         navLinks.classList.toggle('open');
@@ -130,11 +132,15 @@ document.addEventListener('DOMContentLoaded', () => {
     navLinks.querySelectorAll('a').forEach(l => l.addEventListener('click', () => {
         hamburger.classList.remove('active'); navLinks.classList.remove('open'); document.body.style.overflow = '';
     }));
+    }
 
     // ─── PRODUCT DATABASE (Fase 3: Firebase) ────────
     let products = [];
 
     function fmt(n) { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); }
+    // Safe offer-price getter: handles $0 correctly (unlike `offerVal(p)`)
+    function offerVal(p) { return p.offerPrice != null ? p.offerPrice : p.price; }
+    function hasOffer(p) { return p.offerPrice != null && p.offerPrice !== p.price; }
 
     function renderStarsHtml(rating) {
         const r = Math.round((rating || 0) * 2) / 2;
@@ -157,12 +163,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const priceMax = parseFloat(document.getElementById('priceMax')?.value) || Infinity;
         let filtered = activeFilter === 'all' ? [...products] : products.filter(p => p.category === activeFilter);
         filtered = filtered.filter(p => {
-            const dp = p.offerPrice && p.offerPrice !== p.price ? p.offerPrice : p.price;
+            const dp = hasOffer(p) ? p.offerPrice : p.price;
             return dp >= priceMin && dp <= priceMax;
         });
         switch (sortBy) {
-            case 'price-asc': filtered.sort((a, b) => ((a.offerPrice||a.price)||0) - ((b.offerPrice||b.price)||0)); break;
-            case 'price-desc': filtered.sort((a, b) => ((b.offerPrice||b.price)||0) - ((a.offerPrice||a.price)||0)); break;
+            case 'price-asc': filtered.sort((a, b) => (offerVal(a)||0) - (offerVal(b)||0)); break;
+            case 'price-desc': filtered.sort((a, b) => (offerVal(b)||0) - (offerVal(a)||0)); break;
             case 'name-asc': filtered.sort((a, b) => a.name.localeCompare(b.name)); break;
             case 'name-desc': filtered.sort((a, b) => b.name.localeCompare(a.name)); break;
             case 'rating': filtered.sort((a, b) => (b.rating||0) - (a.rating||0) || (b.reviewCount||0) - (a.reviewCount||0)); break;
@@ -188,10 +194,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         grid.innerHTML = '';
         pageProducts.forEach(p => {
-            const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
+            const hasDiscount = hasOffer(p);
             let priceHtml = hasDiscount 
                 ? `<p class="price"><span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span></p>`
-                : `<p class="price">$${fmt(p.offerPrice || p.price)}</p>`;
+                : `<p class="price">$${fmt(offerVal(p))}</p>`;
                 
             grid.innerHTML += `
             <div class="product-card tilt-card" data-category="${p.category}" data-id="${p.id}">
@@ -223,7 +229,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const hasDiscount = p.oldPrice && p.offerPrice && p.oldPrice !== p.offerPrice;
             let priceHtml = hasDiscount 
                 ? `<p class="old-price">$${fmt(p.oldPrice)}</p><p class="offer-price">$${fmt(p.offerPrice)}</p>` 
-                : `<p class="offer-price">$${fmt(p.offerPrice || p.price)}</p>`;
+                : `<p class="offer-price">$${fmt(offerVal(p))}</p>`;
                 
             const card = document.createElement('div');
             card.className = 'carousel-card';
@@ -307,7 +313,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cart.push({ ...product, qty: 1 });
         }
         saveCart();
-        gtag('event', 'add_to_cart', { currency: 'ARS', value: product.offerPrice || product.price, items: [{ item_id: product.id, item_name: product.name, price: product.offerPrice || product.price, quantity: 1 }] });
+        gtag('event', 'add_to_cart', { currency: 'ARS', value: offerVal(product), items: [{ item_id: product.id, item_name: product.name, price: offerVal(product), quantity: 1 }] });
         showToast(`${product.name} agregado al carrito`, 'success');
         
         // Bump animation
@@ -363,7 +369,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cartItems.innerHTML = '<div class="empty-cart">Tu carrito está vacío</div>';
         } else {
             cart.forEach(item => {
-                const price = item.offerPrice || item.price;
+                const price = offerVal(item);
                 total += price * item.qty;
                 count += item.qty;
                 
@@ -518,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try { const d = await db.collection('config').doc('shipping').get(); if (d.exists) shippingRates = d.data().rates || {}; } catch(e) {}
         }
 
-        checkoutBtn.addEventListener('click', () => {
+        checkoutBtn.addEventListener('click', async () => {
             if (cart.length === 0) {
                 showToast('Tu carrito está vacío', 'warning');
                 return;
@@ -529,8 +535,8 @@ document.addEventListener('DOMContentLoaded', () => {
             
             // Open checkout modal
             checkoutModal.classList.add('active');
-            gtag('event', 'begin_checkout', { currency: 'ARS', value: cart.reduce((s,i) => s + (Number(i.offerPrice||i.price) * i.qty), 0), items: cart.map(i => ({ item_id: i.id, item_name: i.name, price: Number(i.offerPrice||i.price), quantity: i.qty })) });
-            loadRates();
+            gtag('event', 'begin_checkout', { currency: 'ARS', value: cart.reduce((s,i) => s + (Number(offerVal(i)) * i.qty), 0), items: cart.map(i => ({ item_id: i.id, item_name: i.name, price: Number(offerVal(i)), quantity: i.qty })) });
+            await loadRates();
         });
 
         checkoutModalClose.addEventListener('click', () => {
@@ -613,12 +619,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     cart: cart.map(item => ({
                         id: item.id,
                         name: item.name,
-                        price: Number(item.offerPrice || item.price),
+                        price: Number(offerVal(item)),
                         qty: item.qty
                     })),
                     status: 'pending',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    total: cart.reduce((sum, item) => sum + (Number(item.offerPrice || item.price) * item.qty), 0),
+                    total: cart.reduce((sum, item) => sum + (Number(offerVal(item)) * item.qty), 0),
                     shippingCost: shippingCost,
                     shippingProvince: provName
                 });
@@ -702,10 +708,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             mCat.textContent = p.category;
             mTit.textContent = p.name;
-            const hasDiscount = p.offerPrice && p.offerPrice !== p.price;
+            const hasDiscount = hasOffer(p);
             mPr.innerHTML = hasDiscount 
                 ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span>`
-                : `$${fmt(p.offerPrice || p.price)}`;
+                : `$${fmt(offerVal(p))}`;
             mDesc.textContent = p.description || '';
             
             let imgs;
@@ -723,7 +729,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
             modalEl.classList.add('active'); document.body.style.overflow = 'hidden';
-            try { gtag('event', 'view_item', { currency: 'ARS', value: p.offerPrice || p.price, items: [{ item_id: p.id, item_name: p.name, price: p.offerPrice || p.price }] }); } catch(e) {}
+            try { gtag('event', 'view_item', { currency: 'ARS', value: offerVal(p), items: [{ item_id: p.id, item_name: p.name, price: offerVal(p) }] }); } catch(e) {}
             
             // Re-bind the "Añadir al Carrito" inside modal
             const addBtn = modalEl.querySelector('.modal-add-cart');
@@ -864,7 +870,7 @@ document.addEventListener('DOMContentLoaded', () => {
             matches.slice(0, 8).forEach(p => {
                 const item = document.createElement('div');
                 item.classList.add('search-result-item');
-                const displayPrice = (p.offerPrice && p.offerPrice !== p.price) ? p.offerPrice : p.price;
+                const displayPrice = (hasOffer(p)) ? p.offerPrice : p.price;
                 item.innerHTML = `
                     <img src="${p.image}" alt="${p.name}">
                     <div class="search-result-info">

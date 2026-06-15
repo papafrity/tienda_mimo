@@ -11,6 +11,11 @@
     --primary: var(--accent-color);
     --card-radius: 16px;
     --transition-base: 0.3s ease;
+    /* Aliases & font variables used across CSS */
+    --bg: var(--bg-color);
+    --surface: var(--surface-color);
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-primary: 'Outfit', sans-serif;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif}
 html{scroll-behavior:smooth}

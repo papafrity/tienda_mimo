@@ -1,5 +1,5 @@
 // Simple Auth
-const PIN = "1234"; // Default PIN
+const PIN = "Maspancho4994";
 const loginScreen = document.getElementById('loginScreen');
 const dashboard = document.getElementById('dashboard');
 const adminPin = document.getElementById('adminPin');
@@ -248,7 +248,7 @@ form.addEventListener('submit', async (e) => {
     const id = document.getElementById('prodId').value;
     
     let finalImages = currentUploadedImages;
-    let mainImgUrl = document.getElementById('prodImg').value;
+    let mainImgUrl = document.getElementById('prodImg').value.trim() || 'https://placehold.co/400x400/1a1a2e/00f0ff?text=Mimo!';
     
     // Si metió un link manual o modificó el input URL
     if (finalImages.length === 0) {
@@ -261,7 +261,7 @@ form.addEventListener('submit', async (e) => {
     const productData = {
         name: document.getElementById('prodName').value,
         category: document.getElementById('prodCategory').value,
-        price: parseFloat(document.getElementById('prodPrice').value),
+        price: parseFloat(document.getElementById('prodPrice').value) || 0,
         offerPrice: document.getElementById('prodOffer').value ? parseFloat(document.getElementById('prodOffer').value) : null,
         badge: document.getElementById('prodBadge').value,
         description: document.getElementById('prodDesc').value,

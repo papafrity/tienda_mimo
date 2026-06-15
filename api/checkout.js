@@ -33,7 +33,7 @@ module.exports = async (req, res) => {
         const items = cart.map(item => ({
             id: item.id,
             title: item.name,
-            unit_price: Number(item.offerPrice || item.price),
+            unit_price: Number(item.offerPrice != null ? item.offerPrice : item.price),
             quantity: Number(item.qty),
             currency_id: 'ARS',
         }));
