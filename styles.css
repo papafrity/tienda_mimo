@@ -113,7 +113,8 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 
 /* Outline Text */
 .outline-text-section{position:relative;z-index:1;padding:4rem 5%;text-align:center;overflow:hidden}
-.outline-text{display:block;font-size:clamp(2rem,9vw,9rem);font-weight:800;text-transform:uppercase;letter-spacing:.05em;-webkit-text-stroke:1.5px rgba(255,255,255,.3);color:transparent;line-height:1.1;transition:transform .1s;user-select:none;white-space:nowrap}
+.outline-text{display:block;font-size:clamp(2rem,9vw,9rem);font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.55);text-shadow:0 0 10px rgba(0,240,255,.15);line-height:1.1;transition:transform .1s;user-select:none;white-space:nowrap;animation:textGlow 3s ease-in-out infinite alternate}
+@keyframes textGlow{from{text-shadow:0 0 10px rgba(0,240,255,.1)}to{text-shadow:0 0 30px rgba(0,240,255,.4),0 0 60px rgba(0,240,255,.1)}}
 .outline-text.filled{-webkit-text-stroke:0;background:var(--gradient-glow);-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.7;background-size:200% 200%;animation:gradientShift 4s ease infinite}
 @keyframes gradientShift{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
 
@@ -275,7 +276,7 @@ body{cursor:auto}
  .offer-price{font-size:1.2rem}
  .carousel-card img{height:180px}
  .carousel-btn.prev{left:1%}.carousel-btn.next{right:1%}
-.marquee-track{font-size:.7rem;letter-spacing:2px}
+#enviosMarquee{font-size:.75rem;letter-spacing:2px}
 .filter-tabs{gap:.5rem}
 .filter-tab{padding:.5rem 1rem;font-size:.85rem}
 .footer-content{grid-template-columns:1fr;text-align:center}
