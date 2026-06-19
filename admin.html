@@ -44,6 +44,7 @@
             <button class="tab-btn active" data-tab="tab-products">📦 Productos</button>
             <button class="tab-btn" data-tab="tab-orders">📋 Pedidos y Estadísticas</button>
             <button class="tab-btn" data-tab="tab-shipping">🚚 Tarifas de Envío</button>
+            <button class="tab-btn" data-tab="tab-reviews">⭐ Reseñas</button>
         </div>
 
         <!-- TAB CONTENT: PRODUCTS -->
@@ -234,6 +235,23 @@
                     <button id="addRateBtn" class="magnetic-btn" style="padding:.6rem 1.5rem">Agregar</button>
                 </div>
                 <p style="color:var(--text-secondary);font-size:.85rem;margin-top:.5rem">Las tarifas se usan en el checkout. Tip: Podés agregar una provincia con el nombre "General" para que funcione como tarifa base para cualquier provincia que no hayas configurado individualmente.</p>
+            </div>
+        </div>
+        <!-- TAB CONTENT: REVIEWS -->
+        <div id="tab-reviews" class="tab-content hidden">
+            <div class="admin-main" style="margin-top:0;padding-top:0;padding-left:0;padding-right:0;">
+                <div class="toolbar">
+                    <h3>⭐ Reseñas de Clientes</h3>
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+                        <select id="adminReviewsProductSelect" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;min-width:250px">
+                            <option value="">Seleccioná un producto...</option>
+                        </select>
+                        <button id="adminReviewsRefreshBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;font-size:.85rem">🔄 Recargar</button>
+                    </div>
+                </div>
+                <div id="adminReviewsTabList" style="padding:0 1rem 1rem;display:flex;flex-direction:column;gap:.6rem">
+                    <p style="color:var(--text-secondary);text-align:center;padding:2rem">Seleccioná un producto para ver sus reseñas.</p>
+                </div>
             </div>
         </div>
     </div>

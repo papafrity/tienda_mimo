@@ -908,28 +908,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
             }
 
-            // Star picker interaction
-            document.querySelectorAll('#starPicker .pick-star').forEach(star => {
-                const newStar = star.cloneNode(true);
-                star.parentNode.replaceChild(newStar, star);
-
-                newStar.addEventListener('click', () => {
-                    selectedStars = parseInt(newStar.dataset.star);
-                    document.querySelectorAll('#starPicker .pick-star').forEach(s => {
-                        s.classList.toggle('active', parseInt(s.dataset.star) <= selectedStars);
-                    });
-                });
-                newStar.addEventListener('mouseenter', () => {
-                    const val = parseInt(newStar.dataset.star);
-                    document.querySelectorAll('#starPicker .pick-star').forEach(s => {
-                        s.classList.toggle('hover', parseInt(s.dataset.star) <= val);
-                    });
-                });
-                newStar.addEventListener('mouseleave', () => {
-                    document.querySelectorAll('#starPicker .pick-star').forEach(s => s.classList.remove('hover'));
-                });
-            });
-
             // Form submission
             if (form) {
                 const newForm = form.cloneNode(true);
@@ -973,46 +951,58 @@ document.addEventListener('DOMContentLoaded', () => {
                     submitBtn.textContent = 'Enviando...';
                     submitBtn.disabled = true;
 
-                    try {
-                        // Sign in anonymously for spam protection
-                        const auth = firebase.auth();
-                        let user = auth.currentUser;
-                        if (!user) {
-                            const cred = await auth.signInAnonymously();
-                            user = cred.user;
-                        }
+                    // Sign in anonymously (anti-spam)
+                    const auth = firebase.auth();
+                    let user = auth.currentUser;
+                    if (!user) {
+                        try { const cred = await auth.signInAnonymously(); user = cred.user; }
+                        catch(e) { console.error('Auth error:', e); showToast('Error de autenticación', 'error'); submitBtn.textContent = 'Enviar reseña'; submitBtn.disabled = false; return; }
+                    }
 
-                        await db.collection("products").doc(currentReviewProductId).collection("reviews").add({
+                    // Check if user already reviewed this product
+                    const existingDoc = await db.collection("products").doc(currentReviewProductId).collection("reviews").doc(user.uid).get();
+                    if (existingDoc.exists) {
+                        showToast('Ya opinaste sobre este producto.', 'warning');
+                        submitBtn.textContent = 'Enviar reseña';
+                        submitBtn.disabled = false;
+                        return;
+                    }
+
+                    // Create review using userId as doc ID (prevents duplicates at DB level)
+                    try {
+                        await db.collection("products").doc(currentReviewProductId).collection("reviews").doc(user.uid).set({
                             userId: user.uid,
                             userName: userName,
                             rating: selectedStars,
                             comment: comment,
                             date: firebase.firestore.FieldValue.serverTimestamp()
                         });
+                    } catch(err) {
+                        console.error('Error guardando reseña:', err);
+                        showToast('Hubo un error al enviar tu reseña. Intentá de nuevo.', 'error');
+                        submitBtn.textContent = 'Enviar reseña';
+                        submitBtn.disabled = false;
+                        return;
+                    }
 
-                        // Recalculate average
+                    // Show success immediately
+                    showToast('¡Gracias por tu opinión!', 'success');
+                    document.getElementById('reviewFormContainer').style.display = 'none';
+                    const togBtn = document.getElementById('toggleReviewForm');
+                    if (togBtn) togBtn.textContent = 'Dejar mi reseña';
+
+                    // Refresh reviews and recalculate (fire-and-forget, can't fail the UX)
+                    try {
+                        loadPublicReviews(currentReviewProductId);
                         const snap = await db.collection("products").doc(currentReviewProductId).collection("reviews").get();
                         let total = 0, count = 0;
                         snap.forEach(d => { total += d.data().rating || 0; count++; });
                         const avg = count > 0 ? total / count : 0;
-                        await db.collection("products").doc(currentReviewProductId).update({ rating: avg, reviewCount: count });
-
-                        // Update local product data
                         const localProd = products.find(x => x.id === currentReviewProductId);
                         if (localProd) { localProd.rating = avg; localProd.reviewCount = count; }
-
-                        // Re-render
-                        document.getElementById('reviewFormContainer').style.display = 'none';
-                        const togBtn = document.getElementById('toggleReviewForm');
-                        if (togBtn) togBtn.textContent = 'Dejar mi reseña';
-                        loadPublicReviews(currentReviewProductId);
                         renderProducts();
-
-                        showToast('¡Gracias por tu opinión!', 'success');
-                    } catch(err) {
-                        console.error('Error guardando reseña:', err);
-                        showToast('Hubo un error al enviar tu reseña. Intentá de nuevo.', 'error');
-                    }
+                        try { await db.collection("products").doc(currentReviewProductId).update({ rating: avg, reviewCount: count }); } catch(e) {}
+                    } catch(e) { console.error('Review post-processing error:', e); }
 
                     submitBtn.textContent = 'Enviar reseña';
                     submitBtn.disabled = false;

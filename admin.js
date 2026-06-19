@@ -328,6 +328,11 @@ function openModal(id = null) {
             
             // Load reviews for this product
             loadAdminReviews(id);
+            // Auto-open reviews panel
+            const panel = document.getElementById('adminReviewsPanel');
+            const arrow = document.getElementById('adminReviewsArrow');
+            if (panel) panel.style.display = '';
+            if (arrow) arrow.style.transform = 'rotate(90deg)';
         }
         modal.classList.add('active');
         // Disparar evento para que aparezca la cruz de borrar imagen
@@ -1014,5 +1019,132 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
         if (targetContent) {
             targetContent.classList.remove('hidden');
         }
+        // Refresh reviews tab when opened
+        if (targetId === 'tab-reviews') {
+            loadReviewsProductSelect();
+        }
     });
+});
+
+// ─── ADMIN REVIEWS TAB ───────────────────────────────────
+async function loadReviewsProductSelect() {
+    const select = document.getElementById('adminReviewsProductSelect');
+    if (!select) return;
+    const selectedVal = select.value;
+    select.innerHTML = '<option value="">Cargando productos...</option>';
+    try {
+        const snap = await db.collection("products").orderBy("name").get();
+        select.innerHTML = '<option value="">Seleccioná un producto...</option>';
+        snap.forEach(doc => {
+            const p = doc.data();
+            const opt = document.createElement('option');
+            opt.value = doc.id;
+            opt.textContent = `${p.name} (${p.reviewCount || 0}⭐)`;
+            select.appendChild(opt);
+        });
+        if (selectedVal) select.value = selectedVal;
+    } catch(e) {
+        console.error(e);
+        select.innerHTML = '<option value="">Error al cargar productos</option>';
+    }
+}
+
+function renderReviewsTab(prodId) {
+    const container = document.getElementById('adminReviewsTabList');
+    if (!container) return;
+    container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:.85rem;padding:2rem">Cargando reseñas...</div>';
+
+    db.collection("products").doc(prodId).collection("reviews").orderBy("date", "desc").limit(100).get()
+        .then(async snap => {
+            container.innerHTML = '';
+            if (snap.empty) {
+                container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:2rem;font-size:.9rem">Este producto no tiene reseñas todavía.</p>';
+                return;
+            }
+            const prodDoc = await db.collection("products").doc(prodId).get();
+            const prodName = prodDoc.exists ? prodDoc.data().name : 'Producto';
+            const header = document.createElement('div');
+            header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:.5rem 0';
+            header.innerHTML = `
+                <span style="color:var(--text-primary);font-weight:600;font-size:.95rem">${prodName} — <span style="color:var(--text-secondary);font-weight:400">${snap.size} reseña(s)</span></span>
+                <button class="recalc-rating-btn magnetic-btn" data-prod="${prodId}" style="background:transparent;border:1px solid var(--accent-color);color:var(--accent-color);padding:.4rem .8rem;border-radius:8px;font-size:.8rem;cursor:pointer">🔄 Recalcular rating</button>
+            `;
+            container.appendChild(header);
+
+            snap.forEach(doc => {
+                const r = doc.data();
+                const dateStr = r.date?.toDate?.() ? r.date.toDate().toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                const card = document.createElement('div');
+                card.style.cssText = 'background:rgba(255,255,255,.02);border:1px solid var(--surface-border);border-radius:10px;padding:.8rem 1rem';
+                card.innerHTML = `
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                        <div style="flex:1">
+                            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">
+                                <strong style="color:var(--text-primary);font-size:.9rem">${r.userName || 'Anónimo'}</strong>
+                                <span style="color:var(--text-secondary);font-size:.75rem">${dateStr}</span>
+                                <span style="font-size:.75rem;color:var(--text-secondary)">(ID: ${doc.id.slice(0,8)}...)</span>
+                            </div>
+                            <div style="margin-bottom:.3rem">${renderStarsHtml(r.rating || 0)}</div>
+                            ${r.comment ? `<p style="color:var(--text-secondary);font-size:.85rem;line-height:1.4;margin:0">${r.comment}</p>` : ''}
+                        </div>
+                        <button class="del-review-tab-btn" data-id="${doc.id}" data-prod="${prodId}" style="background:none;border:none;color:#ff4757;cursor:pointer;font-size:1.2rem;padding:.2rem .4rem;flex-shrink:0" title="Eliminar reseña">&times;</button>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Delete handlers
+            container.querySelectorAll('.del-review-tab-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!confirm('¿Eliminar esta reseña definitivamente?')) return;
+                    try {
+                        await db.collection("products").doc(btn.dataset.prod).collection("reviews").doc(btn.dataset.id).delete();
+                        renderReviewsTab(prodId);
+                        showToast('Reseña eliminada', 'success');
+                    } catch(e) {
+                        console.error(e);
+                        showToast('Error al eliminar reseña', 'error');
+                    }
+                });
+            });
+
+            // Recalculate handler
+            const recalcBtn = container.querySelector('.recalc-rating-btn');
+            if (recalcBtn) {
+                recalcBtn.addEventListener('click', async () => {
+                    try {
+                        const snap2 = await db.collection("products").doc(prodId).collection("reviews").get();
+                        let total = 0, count = 0;
+                        snap2.forEach(d => { total += d.data().rating || 0; count++; });
+                        const avg = count > 0 ? total / count : 0;
+                        await db.collection("products").doc(prodId).update({ rating: avg, reviewCount: count });
+                        showToast(`Rating recalculado: ${avg.toFixed(1)}⭐ (${count} reseñas)`, 'success');
+                    } catch(e) {
+                        console.error(e);
+                        showToast('Error al recalcular', 'error');
+                    }
+                });
+            }
+        })
+        .catch(e => {
+            console.error(e);
+            container.innerHTML = '<p style="text-align:center;color:#ff4757;padding:2rem">Error al cargar reseñas</p>';
+        });
+}
+
+document.getElementById('adminReviewsProductSelect')?.addEventListener('change', function() {
+    const prodId = this.value;
+    const container = document.getElementById('adminReviewsTabList');
+    if (!prodId) {
+        container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:2rem">Seleccioná un producto para ver sus reseñas.</p>';
+        return;
+    }
+    renderReviewsTab(prodId);
+});
+
+document.getElementById('adminReviewsRefreshBtn')?.addEventListener('click', () => {
+    const select = document.getElementById('adminReviewsProductSelect');
+    const prodId = select?.value;
+    loadReviewsProductSelect();
+    if (prodId) renderReviewsTab(prodId);
 });
