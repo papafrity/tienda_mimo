@@ -275,6 +275,7 @@ body{cursor:auto}
  .offer-price{font-size:1.2rem}
  .carousel-card img{height:180px}
  .carousel-btn.prev{left:1%}.carousel-btn.next{right:1%}
+.marquee-track{font-size:.7rem;letter-spacing:2px}
 .filter-tabs{gap:.5rem}
 .filter-tab{padding:.5rem 1rem;font-size:.85rem}
 .footer-content{grid-template-columns:1fr;text-align:center}
