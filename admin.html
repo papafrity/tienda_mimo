@@ -19,9 +19,11 @@
     <div id="loginScreen" class="admin-login">
         <div class="login-card tilt-card">
             <h2 class="reveal-text">Mimo<span class="accent">!</span> Admin</h2>
-            <input type="password" id="adminPin" placeholder="Escribe el PIN aquí" autocomplete="new-password" />
-            <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: -1rem; margin-bottom: 1.5rem;">PIN de prueba: 1234</p>
-            <button id="loginBtn" class="magnetic-btn">Entrar al Panel</button>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Iniciá sesión con tu cuenta de Google autorizada para acceder al panel de administración.</p>
+            <button id="loginBtn" class="magnetic-btn" style="display: flex; align-items: center; justify-content: center; gap: 0.7rem; width: 100%; padding: 1rem;">
+                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Iniciar sesión con Google
+            </button>
             <p id="loginError" class="error-msg"></p>
         </div>
     </div>
@@ -37,218 +39,206 @@
             </div>
         </header>
 
-        <!-- Stats Section -->
-        <div class="stats-card" style="background:var(--surface-color);border:1px solid var(--surface-border);border-radius:15px;padding:1.5rem;margin-bottom:1.5rem">
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
-                <h3 style="margin:0">📊 Estadísticas de Ventas</h3>
-                <button id="refreshStatsBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Actualizar</button>
-            </div>
-            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-top:1rem">
-                <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
-                    <div style="font-size:1.8rem;font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Space Grotesk',sans-serif" id="statTotalRevenue">$0</div>
-                    <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Total Facturado</div>
-                </div>
-                <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
-                    <div style="font-size:1.8rem;font-weight:800;color:var(--accent-color);font-family:'Space Grotesk',sans-serif" id="statTotalOrders">0</div>
-                    <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Totales</div>
-                </div>
-                <div style="background:rgba(46,213,115,.05);border-radius:10px;padding:1rem;text-align:center">
-                    <div style="font-size:1.8rem;font-weight:800;color:#2ed573;font-family:'Space Grotesk',sans-serif" id="statPaidOrders">0</div>
-                    <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Pagados</div>
-                </div>
-            </div>
-            <div style="margin-top:1.5rem">
-                <h4 style="color:var(--text-secondary);font-size:.9rem;margin-bottom:.8rem">🏆 Top 10 Más Vendidos</h4>
-                <div id="topProductsList" style="display:flex;flex-direction:column;gap:.4rem"></div>
-            </div>
+        <!-- Navigation Tabs -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="tab-products">📦 Productos</button>
+            <button class="tab-btn" data-tab="tab-orders">📋 Pedidos y Estadísticas</button>
+            <button class="tab-btn" data-tab="tab-shipping">🚚 Tarifas de Envío</button>
         </div>
 
-        <!-- Cost Calculator Section -->
-        <div class="calculator-card">
-            <div class="calculator-header" id="toggleCalcBtn">
-                <h3>🧮 Calculadora de Costos e Importación (Dropshipping)</h3>
-                <span class="calc-arrow" id="calcArrow">▼</span>
-            </div>
-            <div class="calculator-body hidden" id="calculatorBody">
-                <div class="calc-grid">
-                    <div class="calc-input-section">
-                        <div class="calc-form-group">
-                            <label for="calcCurrency">Moneda del Proveedor</label>
-                            <select id="calcCurrency" class="calc-input">
-                                <option value="USD">Dólares (USD)</option>
-                                <option value="ARS">Pesos (ARS)</option>
-                            </select>
-                        </div>
-                        <div class="calc-form-group">
-                            <label for="calcCost">Costo del Proveedor</label>
-                            <input type="number" id="calcCost" class="calc-input" value="10" step="0.01">
-                        </div>
-                        <div class="calc-form-group" id="usdRateGroup">
-                            <label for="calcUsdRate">Tipo de Cambio (USD ➔ ARS)</label>
-                            <div class="usd-rate-wrapper">
-                                <input type="number" id="calcUsdRate" class="calc-input" value="1000" step="1">
-                                <button type="button" id="fetchRateBtn" class="fetch-btn">🔄 API</button>
+        <!-- TAB CONTENT: PRODUCTS -->
+        <div id="tab-products" class="tab-content">
+            <!-- Cost Calculator Section -->
+            <div class="calculator-card">
+                <div class="calculator-header" id="toggleCalcBtn">
+                    <h3>🧮 Calculadora de Costos e Importación (Dropshipping)</h3>
+                    <span class="calc-arrow" id="calcArrow">▼</span>
+                </div>
+                <div class="calculator-body hidden" id="calculatorBody">
+                    <div class="calc-grid">
+                        <div class="calc-input-section">
+                            <div class="calc-form-group">
+                                <label for="calcCurrency">Moneda del Proveedor</label>
+                                <select id="calcCurrency" class="calc-input">
+                                    <option value="USD">Dólares (USD)</option>
+                                    <option value="ARS">Pesos (ARS)</option>
+                                </select>
                             </div>
-                            <small id="rateSource" class="rate-source-info">Cargando cotización...</small>
+                            <div class="calc-form-group">
+                                <label for="calcCost">Costo del Proveedor</label>
+                                <input type="number" id="calcCost" class="calc-input" value="10" step="0.01">
+                            </div>
+                            <div class="calc-form-group" id="usdRateGroup">
+                                <label for="calcUsdRate">Tipo de Cambio (USD ➔ ARS)</label>
+                                <div class="usd-rate-wrapper">
+                                    <input type="number" id="calcUsdRate" class="calc-input" value="1000" step="1">
+                                    <button type="button" id="fetchRateBtn" class="fetch-btn">🔄 API</button>
+                                </div>
+                                <small id="rateSource" class="rate-source-info">Cargando cotización...</small>
+                            </div>
+                            <div class="calc-form-group">
+                                <label for="calcShipping">Costo de Envío del Proveedor (ARS)</label>
+                                <input type="number" id="calcShipping" class="calc-input" value="4000" step="100">
+                            </div>
+                            <div class="calc-form-group">
+                                <label for="calcProfit">Margen de Ganancia Deseado (%)</label>
+                                <input type="number" id="calcProfit" class="calc-input" value="30" step="1">
+                            </div>
                         </div>
-                        <div class="calc-form-group">
-                            <label for="calcShipping">Costo de Envío del Proveedor (ARS)</label>
-                            <input type="number" id="calcShipping" class="calc-input" value="4000" step="100">
-                        </div>
-                        <div class="calc-form-group">
-                            <label for="calcProfit">Margen de Ganancia Deseado (%)</label>
-                            <input type="number" id="calcProfit" class="calc-input" value="30" step="1">
-                        </div>
-                    </div>
-                    
-                    <div class="calc-result-section">
-                        <div class="result-box">
-                            <span class="result-label">Costo Neto Proveedor + Envío</span>
-                            <span class="result-value" id="resNetCost">$0.00 ARS</span>
-                        </div>
-                        <div class="result-box">
-                            <span class="result-label">Comisión Mercado Pago (6.5%)</span>
-                            <span class="result-value" id="resMpFee">$0.00 ARS</span>
-                        </div>
-                        <div class="result-box highlighted">
-                            <span class="result-label">Precio Sugerido de Venta en la Web</span>
-                            <span class="result-value" id="resSellPrice">$0.00 ARS</span>
-                        </div>
-                        <div class="result-box success-box">
-                            <span class="result-label">Tu Ganancia Neta Estimada</span>
-                            <span class="result-value" id="resNetProfit">$0.00 ARS</span>
+                        
+                        <div class="calc-result-section">
+                            <div class="result-box">
+                                <span class="result-label">Costo Neto Proveedor + Envío</span>
+                                <span class="result-value" id="resNetCost">$0.00 ARS</span>
+                            </div>
+                            <div class="result-box">
+                                <span class="result-label">Comisión Mercado Pago (6.5%)</span>
+                                <span class="result-value" id="resMpFee">$0.00 ARS</span>
+                            </div>
+                            <div class="result-box highlighted">
+                                <span class="result-label">Precio Sugerido de Venta en la Web</span>
+                                <span class="result-value" id="resSellPrice">$0.00 ARS</span>
+                            </div>
+                            <div class="result-box success-box">
+                                <span class="result-label">Tu Ganancia Neta Estimada</span>
+                                <span class="result-value" id="resNetProfit">$0.00 ARS</span>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
+
+            <!-- Active Products -->
+            <main class="admin-main" style="padding:0; margin:0;">
+                <div class="toolbar">
+                    <h3>Tus Productos Activos</h3>
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="adminSearchInput" placeholder="🔍 Buscar producto..." style="padding:.5rem .8rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;min-width:180px">
+                        <select id="adminCategoryFilter" style="padding:.5rem .8rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
+                            <option value="all">Todas</option>
+                        </select>
+                        <button id="reloadBtn" class="magnetic-btn" style="background: transparent; border: 1px solid var(--surface-border); color: var(--text-secondary); padding:.5rem 1rem;font-size:.85rem">🔄 Recargar</button>
+                        <button id="addProductBtn" class="magnetic-btn" style="padding:.5rem 1rem;font-size:.85rem">+ Nuevo</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Oferta</th>
+                                <th>Stock</th>
+                                <th>Peso</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductList">
+                            <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
         </div>
 
-        <main class="admin-main">
-            <div class="toolbar">
-                <h3>Tus Productos Activos</h3>
-                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
-                    <input type="text" id="adminSearchInput" placeholder="🔍 Buscar producto..." style="padding:.5rem .8rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;min-width:180px">
-                    <select id="adminCategoryFilter" style="padding:.5rem .8rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
-                        <option value="all">Todas</option>
-                    </select>
-                    <button id="reloadBtn" class="magnetic-btn" style="background: transparent; border: 1px solid var(--surface-border); color: var(--text-secondary); padding:.5rem 1rem;font-size:.85rem">🔄 Recargar</button>
-                    <button id="addProductBtn" class="magnetic-btn" style="padding:.5rem 1rem;font-size:.85rem">+ Nuevo</button>
+        <!-- TAB CONTENT: ORDERS -->
+        <div id="tab-orders" class="tab-content hidden">
+            <!-- Stats Section -->
+            <div class="stats-card" style="background:var(--surface-color);border:1px solid var(--surface-border);border-radius:15px;padding:1.5rem;margin-bottom:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+                    <h3 style="margin:0">📊 Estadísticas de Ventas</h3>
+                    <button id="refreshStatsBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Actualizar</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-top:1rem">
+                    <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
+                        <div style="font-size:1.8rem;font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Space Grotesk',sans-serif" id="statTotalRevenue">$0</div>
+                        <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Total Facturado</div>
+                    </div>
+                    <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
+                        <div style="font-size:1.8rem;font-weight:800;color:var(--accent-color);font-family:'Space Grotesk',sans-serif" id="statTotalOrders">0</div>
+                        <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Totales</div>
+                    </div>
+                    <div style="background:rgba(46,213,115,.05);border-radius:10px;padding:1rem;text-align:center">
+                        <div style="font-size:1.8rem;font-weight:800;color:#2ed573;font-family:'Space Grotesk',sans-serif" id="statPaidOrders">0</div>
+                        <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Pagados</div>
+                    </div>
+                </div>
+                <div style="margin-top:1.5rem">
+                    <h4 style="color:var(--text-secondary);font-size:.9rem;margin-bottom:.8rem">🏆 Top 10 Más Vendidos</h4>
+                    <div id="topProductsList" style="display:flex;flex-direction:column;gap:.4rem"></div>
                 </div>
             </div>
 
-            <div class="table-container">
-                <table class="admin-table">
-                    <thead>
-                        <tr>
-                            <th>Imagen</th>
-                            <th>Nombre</th>
-                            <th>Categoría</th>
-                            <th>Precio</th>
-                            <th>Oferta</th>
-                            <th>Stock</th>
-                            <th>Peso</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody id="adminProductList">
-                        <!-- Products will be loaded here -->
-                    </tbody>
-                </table>
-            </div>
-        </main>
-    </div>
-
-    <!-- Shipping Rates -->
-    <div class="admin-main" style="margin-top:0;padding-top:0">
-        <div class="toolbar" style="margin-top:2rem">
-            <h3>🚚 Tarifas de Envío por Provincia</h3>
-        </div>
-        <div class="table-container">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Provincia</th>
-                        <th>Costo Base ($)</th>
-                        <th>Costo por kg ($)</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="shippingRatesBody"></tbody>
-            </table>
-        </div>
-        <div style="display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap">
-            <input type="text" id="newRateProvince" placeholder="Nueva provincia" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;flex:1;min-width:150px">
-            <input type="number" id="newRateBase" placeholder="Costo base $" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:130px" step="100">
-            <input type="number" id="newRatePerKg" placeholder="$ por kg" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:120px" step="50">
-            <button id="addRateBtn" class="magnetic-btn" style="padding:.6rem 1.5rem">Agregar</button>
-        </div>
-        <p style="color:var(--text-secondary);font-size:.85rem;margin-top:.5rem">Las tarifas se usan en el checkout para calcular el envío según la provincia y el peso total del pedido.</p>
-    </div>
-
-    <!-- Orders Management -->
-    <div class="admin-main" style="margin-top:0;padding-top:0">
-        <div class="toolbar" style="margin-top:2rem">
-            <h3>📦 Gestión de Pedidos</h3>
-            <div style="display:flex;gap:.5rem;flex-wrap:wrap">
-                <button id="reloadOrdersBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Recargar</button>
-                <select id="orderStatusFilter" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
-                    <option value="all">Todos los estados</option>
-                    <option value="pending">🟡 Pendientes</option>
-                    <option value="paid">🟢 Pagados</option>
-                    <option value="shipped">🔵 Enviados</option>
-                    <option value="delivered">✅ Entregados</option>
-                    <option value="cancelled">🔴 Cancelados</option>
-                </select>
+            <!-- Orders Management -->
+            <div class="admin-main" style="margin-top:0;padding-top:0;padding-left:0;padding-right:0;">
+                <div class="toolbar">
+                    <h3>📦 Gestión de Pedidos</h3>
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                        <button id="reloadOrdersBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Recargar</button>
+                        <select id="orderStatusFilter" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
+                            <option value="all">Todos los estados</option>
+                            <option value="pending">🟡 Pendientes</option>
+                            <option value="paid">🟢 Pagados</option>
+                            <option value="shipped">🔵 Enviados</option>
+                            <option value="delivered">✅ Entregados</option>
+                            <option value="cancelled">🔴 Cancelados</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Productos</th>
+                                <th>Provincia</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersList"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="table-container">
-            <table class="admin-table">
-                <thead>
-                    <tr>
-                        <th>Cliente</th>
-                        <th>Total</th>
-                        <th>Productos</th>
-                        <th>Provincia</th>
-                        <th>Fecha</th>
-                        <th>Estado</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody id="ordersList"></tbody>
-            </table>
+
+        <!-- TAB CONTENT: SHIPPING -->
+        <div id="tab-shipping" class="tab-content hidden">
+            <!-- Shipping Rates -->
+            <div class="admin-main" style="margin-top:0;padding-top:0;padding-left:0;padding-right:0;">
+                <div class="toolbar">
+                    <h3>🚚 Tarifas de Envío por Provincia</h3>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Provincia</th>
+                                <th>Costo Base ($)</th>
+                                <th>Costo por kg ($)</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shippingRatesBody"></tbody>
+                    </table>
+                </div>
+                <div style="display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap">
+                    <input type="text" id="newRateProvince" placeholder="Nueva provincia" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;flex:1;min-width:150px">
+                    <input type="number" id="newRateBase" placeholder="Costo base $" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:130px" step="100">
+                    <input type="number" id="newRatePerKg" placeholder="$ por kg" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:120px" step="50">
+                    <button id="addRateBtn" class="magnetic-btn" style="padding:.6rem 1.5rem">Agregar</button>
+                </div>
+                <p style="color:var(--text-secondary);font-size:.85rem;margin-top:.5rem">Las tarifas se usan en el checkout. Tip: Podés agregar una provincia con el nombre "General" para que funcione como tarifa base para cualquier provincia que no hayas configurado individualmente.</p>
+            </div>
         </div>
     </div>
 
-    <!-- Google API Settings Modal -->
-    <div class="modal-overlay" id="googleSettingsModal">
-        <div class="admin-modal-content" style="max-width: 500px;">
-            <h3 style="margin-bottom:1rem">⚙️ Configurar Google Custom Search</h3>
-            <p style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1.5rem">
-                Para buscar imágenes desde el admin necesitás:
-            </p>
-            <ol style="color:var(--text-secondary);font-size:.85rem;margin-bottom:1.5rem;padding-left:1.2rem">
-                <li style="margin-bottom:.3rem">Ir a <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color:var(--accent-color)">Google Cloud Console</a> → Crear API Key</li>
-                <li style="margin-bottom:.3rem">Ir a <a href="https://cse.google.com/cse/all" target="_blank" style="color:var(--accent-color)">Google CSE</a> → Crear motor que busque en "Toda la web"</li>
-                <li style="margin-bottom:.3rem">Copiar el <strong>CSE ID</strong> (cx) y la <strong>API Key</strong></li>
-            </ol>
-            <div class="form-group">
-                <label>API Key</label>
-                <input type="text" id="googleApiKey" placeholder="AIzaSy..." style="width:100%">
-            </div>
-            <div class="form-group">
-                <label>Custom Search Engine ID (cx)</label>
-                <input type="text" id="googleCseId" placeholder="123456789..." style="width:100%">
-            </div>
-            <div style="color:var(--text-secondary);font-size:.8rem;margin-bottom:1rem">
-                💡 El CSE debe estar configurado para buscar en <strong>"toda la web"</strong> (no solo en un sitio).
-                Sin API Key, podés usar el botón "Buscar en Google Images" que abre una pestaña aparte.
-            </div>
-            <div class="form-actions">
-                <button type="button" id="closeGoogleSettingsBtn" class="magnetic-btn outline">Cancelar</button>
-                <button type="button" id="saveGoogleSettingsBtn" class="magnetic-btn">Guardar</button>
-            </div>
-        </div>
-    </div>
+    <!-- Removed Google API Settings Modal -->
 
     <!-- Order Detail Modal -->
     <div class="modal-overlay" id="orderModal">
@@ -302,7 +292,21 @@
                 </div>
                     <div class="form-group-row">
                         <div class="form-group">
-                            <label>Precio Regular ($)</label>
+                            <label>Costo Proveedor ($)</label>
+                            <input type="number" id="prodCost" step="0.01" value="0">
+                        </div>
+                        <div class="form-group">
+                            <label>Margen Ganancia (%)</label>
+                            <input type="number" id="prodMargin" step="1" value="30">
+                        </div>
+                    </div>
+                    <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:-0.5rem; margin-bottom:1rem;">
+                        El Precio Regular se calculará automáticamente. <strong style="color:#2ed573; margin-left:0.5rem;" id="prodProfitDisplay">Ganancia: $0.00</strong><br>
+                        <em>Nota: El costo de envío (de Gratis en CABA hasta $25.000) se cobra aparte.</em>
+                    </p>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Precio Regular Calculado ($)</label>
                             <input type="number" id="prodPrice" step="0.01" required>
                         </div>
                         <div class="form-group">
@@ -329,7 +333,10 @@
                 <div class="form-group">
                     <label>Imagen del Producto</label>
                     <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
-                        <input type="url" id="prodImg" placeholder="URL de la imagen (o sube una)" required style="flex: 1; min-width: 200px;">
+                        <div style="flex: 1; min-width: 200px; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="text" id="prodImg" placeholder="URL de la imagen (o sube una)" required style="width: 100%;">
+                            <button type="button" id="clearImgBtn" class="magnetic-btn" style="background: rgba(255,50,50,0.1); border: 1px solid #ff4757; color: #ff4757; border-radius: 8px; padding: 0.6rem 0.8rem; cursor: pointer; font-size: 1.2rem; line-height: 1; display: none;" title="Limpiar URL">&times;</button>
+                        </div>
                         <span style="color: var(--text-secondary); font-size: 0.9rem;">o</span>
                         <label for="prodImgFile" class="magnetic-btn" style="padding: 0.8rem 1.5rem; background: var(--surface-border); border: 1px solid var(--surface-border); color: #fff; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; text-align: center; white-space: nowrap; display: inline-block;">
                             Subir desde PC/Móvil
@@ -339,8 +346,7 @@
                     <small style="color: var(--text-secondary); margin-top: 0.25rem; font-size: 0.75rem;">Puedes ingresar un enlace directo o seleccionar archivos de tu dispositivo. Se permiten múltiples imágenes.</small>
                     <div id="imgPreviewContainer" style="margin-top: 10px; display: none; align-items: center; gap: 10px; flex-wrap: wrap;">
                         <span style="font-size: 0.85rem; margin-right: 5px;"></span>
-                        <img id="imgPreview" style="width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);">
-                        <span style="color: #2ed573; font-size: 0.8rem; font-weight: 500;">✓ Imagen lista</span>
+                        <!-- dynamic images will be inserted here -->
                     </div>
 
                     <!-- Image Search Section -->
@@ -349,17 +355,6 @@
                             <button type="button" id="searchGoogleImagesBtn" class="magnetic-btn" style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">
                                 🌐 Buscar en Google Images
                             </button>
-                            <button type="button" id="toggleGoogleCseBtn" class="magnetic-btn" style="background: transparent; border: 1px solid var(--surface-border); color: var(--text-secondary); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">
-                                🔍 Buscar desde el panel
-                            </button>
-                        </div>
-                        <div id="googleCsePanel" style="display: none; margin-top: 0.5rem;">
-                            <div style="display: flex; gap: 0.5rem;">
-                                <input type="text" id="googleCseQuery" placeholder="Buscar imágenes de este producto..." style="flex: 1; padding: 0.6rem 1rem; background: var(--surface-color); border: 1px solid var(--surface-border); border-radius: 8px; color: #fff; font-family: 'Outfit', sans-serif;">
-                                <button type="button" id="executeGoogleCseSearch" class="magnetic-btn" style="padding: 0.5rem 1rem;">Buscar</button>
-                            </div>
-                            <div id="googleCseResults" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 0.5rem; margin-top: 0.5rem; max-height: 350px; overflow-y: auto; padding: 0.3rem;"></div>
-                            <div id="googleCseStatus" style="color: var(--text-secondary); font-size: 0.8rem; margin-top: 0.5rem;"></div>
                         </div>
                     </div>
                 </div>
@@ -387,6 +382,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="admin.js"></script>
 </body>

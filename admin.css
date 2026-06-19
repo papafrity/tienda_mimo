@@ -47,24 +47,33 @@ body, body * { cursor: auto !important; }
 .admin-modal-content {
     background: var(--surface); border: 1px solid var(--surface-border); border-radius: 20px;
     padding: 2rem; width: 100%; max-width: 600px; max-height: 90vh; overflow-y: auto;
-    position: relative;
+    position: relative; box-sizing: border-box; overflow-x: hidden;
 }
 .admin-modal-content h3 { font-family: var(--font-display); font-size: 1.5rem; margin-bottom: 1.5rem; }
 .form-group { margin-bottom: 1.5rem; display: flex; flex-direction: column; gap: 0.5rem; }
-.form-group-row { display: flex; gap: 1rem; }
-.form-group-row .form-group { flex: 1; }
+.form-group-row { display: flex; gap: 1rem; flex-wrap: wrap; }
+.form-group-row .form-group { flex: 1; min-width: 120px; }
 .form-group label { color: var(--text-secondary); font-size: 0.9rem; }
 .form-group input, .form-group select, .form-group textarea {
     padding: 0.8rem; border-radius: 8px; border: 1px solid var(--surface-border);
     background: rgba(255, 255, 255, 0.05); color: #fff; font-family: var(--font-primary);
+    box-sizing: border-box; width: 100%;
 }
 .form-group select option { background: #fff; color: #000; }
 select option { background: #fff; color: #000; }
 .checkbox-group { flex-direction: row; align-items: center; justify-content: flex-start; gap: 1rem; }
 .checkbox-group input { width: 20px; height: 20px; accent-color: var(--primary); }
-.form-actions { display: flex; justify-content: flex-end; gap: 1rem; margin-top: 2rem; }
+.form-actions { 
+    display: flex; justify-content: flex-end; gap: 1rem; 
+    margin: 1rem -2rem -2rem -2rem; 
+    padding: 1.5rem 2rem; 
+    position: sticky; bottom: -2rem; 
+    background: #080a0f; 
+    border-top: 1px solid var(--surface-border); 
+    z-index: 10;
+}
 .form-actions button { padding: 0.8rem 2rem; border-radius: 10px; cursor: pointer; border: none; font-weight: bold; }
-.form-actions #cancelBtn { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); }
+.form-actions #cancelBtn, .form-actions .outline { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); }
 .form-actions #saveBtn { background: var(--primary); color: #000; }
 
 /* ─── COST CALCULATOR ────────────────────────────────────── */
@@ -215,4 +224,45 @@ select option { background: #fff; color: #000; }
         grid-template-columns: 1fr;
         gap: 1.5rem;
     }
+}
+
+/* ─── TABS STYLING ───────────────────────────────────────── */
+.admin-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--surface-border);
+    padding-bottom: 0px;
+    flex-wrap: wrap;
+}
+.tab-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.05rem;
+    font-family: var(--font-primary);
+    cursor: pointer;
+    padding: 0.8rem 1.5rem;
+    border-bottom: 2px solid transparent;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-weight: 600;
+    border-radius: 8px 8px 0 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.tab-btn:hover {
+    color: #fff;
+    background: rgba(255, 255, 255, 0.03);
+}
+.tab-btn.active {
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+    background: rgba(0, 240, 255, 0.05);
+}
+.tab-content {
+    transition: opacity 0.3s ease;
+}
+.tab-content.hidden {
+    display: none !important;
 }

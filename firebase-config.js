@@ -10,4 +10,13 @@ const firebaseConfig = {
 
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
-const analytics = firebase.analytics();
+
+// Evitar errores al inicializar Analytics en protocolo local file:// o bloqueadores de cookies
+let analytics;
+try {
+  if (location.protocol !== 'file:') {
+    analytics = firebase.analytics();
+  }
+} catch (e) {
+  console.warn("Analytics no pudo inicializarse:", e);
+}

@@ -550,11 +550,35 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        document.getElementById('checkoutProvince').addEventListener('input', function() {
-            const prov = this.value.trim().toLowerCase();
+        function findRateForProvince(provName) {
+            if (!provName) return null;
+            const normSearch = provName.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+            
+            // 1. Intentar coincidencia exacta normalizada (sin acentos, minúsculas)
+            for (const key of Object.keys(shippingRates)) {
+                const normKey = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+                if (normKey === normSearch) {
+                    return shippingRates[key];
+                }
+            }
+            
+            // 2. Intentar coincidencia con tarifa general o comodín configurado por el admin
+            for (const key of Object.keys(shippingRates)) {
+                const normKey = key.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+                if (normKey === 'general' || normKey === 'default' || normKey === 'resto del pais' || normKey === 'resto del país') {
+                    return shippingRates[key];
+                }
+            }
+            
+            // 3. Fallback seguro por defecto si no configuró nada en Firestore
+            return { base: 6500, perKg: 1200 };
+        }
+
+        document.getElementById('checkoutProvince').addEventListener('change', function() {
+            const prov = this.value;
             const display = document.getElementById('shippingEstimate');
             const costEl = document.getElementById('shippingCostDisplay');
-            const rate = shippingRates[prov.charAt(0).toUpperCase() + prov.slice(1)];
+            const rate = findRateForProvince(prov);
             if (rate) {
                 const totalKg = cart.reduce((s, i) => {
                     const p = products.find(x => x.id === i.id);
@@ -602,8 +626,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Calculate shipping if rate available
                 const provField = document.getElementById('checkoutProvince').value.trim();
-                const provName = provField.charAt(0).toUpperCase() + provField.slice(1).toLowerCase();
-                const rate = shippingRates[provName];
+                const rate = findRateForProvince(provField);
                 let shippingCost = 0;
                 if (rate) {
                     const totalKg = cart.reduce((s, i) => {

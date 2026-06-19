@@ -1,11 +1,90 @@
-// Simple Auth
-const PIN = "Maspancho4994";
+// ─── FIREBASE GOOGLE AUTH ─────────────────────────────────
+const auth = firebase.auth();
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+
 const loginScreen = document.getElementById('loginScreen');
 const dashboard = document.getElementById('dashboard');
-const adminPin = document.getElementById('adminPin');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('loginError');
 
+// Tu UID de administrador autorizado. Se configura automáticamente en el primer login.
+// Si necesitás cambiarlo, borrá el valor guardado en localStorage 'mimo_admin_uid'.
+let ADMIN_UID = localStorage.getItem('mimo_admin_uid') || '';
+
+function showDashboard() {
+    loginScreen.classList.add('hidden');
+    dashboard.classList.remove('hidden');
+    loadProducts();
+}
+
+function showLogin() {
+    loginScreen.classList.remove('hidden');
+    dashboard.classList.add('hidden');
+}
+
+// Escuchar cambios en el estado de autenticación
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        // Si no hay admin UID guardado, este es el primer login. Guardar el UID.
+        if (!ADMIN_UID) {
+            ADMIN_UID = user.uid;
+            localStorage.setItem('mimo_admin_uid', user.uid);
+            alert(
+                '✅ ¡Primera configuración exitosa!\n\n' +
+                'Tu UID de administrador es:\n' + user.uid + '\n\n' +
+                'Copialo y pegalo en las Reglas de Firestore donde dice TU_UID_AQUI.\n' +
+                'Este mensaje solo aparece una vez.'
+            );
+        }
+        
+        // Verificar que sea el admin autorizado
+        if (user.uid === ADMIN_UID) {
+            showDashboard();
+        } else {
+            loginError.textContent = '❌ Esta cuenta de Google no está autorizada como administrador.';
+            auth.signOut();
+        }
+    } else {
+        showLogin();
+    }
+});
+
+// Botón de login con Google
+loginBtn.addEventListener('click', async () => {
+    loginError.textContent = '';
+    loginBtn.disabled = true;
+    loginBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 48 48" style="animation: spin 1s linear infinite;"><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Conectando...`;
+    try {
+        await auth.signInWithPopup(googleProvider);
+    } catch (error) {
+        console.error('Error de login:', error);
+        if (error.code === 'auth/popup-closed-by-user') {
+            loginError.textContent = 'Cerraste la ventana de inicio de sesión. Intentá de nuevo.';
+        } else if (error.code === 'auth/popup-blocked') {
+            loginError.textContent = 'Tu navegador bloqueó la ventana emergente. Permitila e intentá de nuevo.';
+        } else {
+            loginError.textContent = 'Error: ' + error.message;
+        }
+    }
+    loginBtn.disabled = false;
+    loginBtn.innerHTML = `
+        <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Iniciar sesión con Google`;
+});
+
+// Botón de logout
+document.getElementById('logoutBtn').addEventListener('click', () => {
+    auth.signOut();
+});
+
+// Agregar animación de spin para el botón de carga
+const spinStyle = document.createElement('style');
+spinStyle.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
+document.head.appendChild(spinStyle);
+
+// ─── HELPER FUNCTIONS ─────────────────────────────────────
 function fmt(n) { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); }
 
 function renderStarsHtml(rating) {
@@ -17,6 +96,30 @@ function renderStarsHtml(rating) {
         else html += '<span style="color:#555">★</span>';
     }
     return html;
+}
+
+// Detect if a string is a local file path (file://, C:\, C:/, UNC paths, etc.), even with quotes
+function isLocalFilePath(url) {
+    if (!url) return false;
+    const cleanUrl = url.trim().replace(/^["']|["']$/g, '').trim();
+    if (/^file:\/\//i.test(cleanUrl) || /^file:\//i.test(cleanUrl)) return true;
+    if (/^[a-zA-Z]:[\\\/]/i.test(cleanUrl)) return true;
+    if (/^\\\\/i.test(cleanUrl)) return true;
+    return false;
+}
+
+function showFirebaseErrorAlert(action, error) {
+    let msg = `Hubo un error al ${action}:\n\n${error.message}`;
+    const errMsg = (error.message || '').toLowerCase();
+    if (error.code === 'permission-denied' || errMsg.includes('permission') || errMsg.includes('insufficient')) {
+        const currentUser = firebase.auth().currentUser;
+        if (currentUser) {
+            msg += `\n\n💡 TIP DE SEGURIDAD:\nTu cuenta actual de Google está autenticada en Firebase con el UID:\n\n${currentUser.uid}\n\nAsegúrate de copiar este código exactamente y pegarlo en tus Reglas de Firestore en la consola de Firebase.`;
+        } else {
+            msg += `\n\n⚠️ No estás autenticado actualmente en Firebase. Por favor inicia sesión con Google.`;
+        }
+    }
+    alert(msg);
 }
 
 async function loadAdminReviews(prodId) {
@@ -53,13 +156,11 @@ async function loadAdminReviews(prodId) {
             `;
             list.appendChild(card);
         });
-        // Attach delete handlers
         list.querySelectorAll('.del-review-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (!confirm('¿Eliminar esta reseña?')) return;
                 try {
                     await db.collection("products").doc(btn.dataset.prod).collection("reviews").doc(btn.dataset.id).delete();
-                    // Recalculate product rating
                     const snap2 = await db.collection("products").doc(btn.dataset.prod).collection("reviews").get();
                     let total = 0, count = 0;
                     snap2.forEach(d => { total += d.data().rating || 0; count++; });
@@ -68,7 +169,7 @@ async function loadAdminReviews(prodId) {
                     loadAdminReviews(prodId);
                 } catch(e) {
                     console.error(e);
-                    alert('Error al eliminar');
+                    showFirebaseErrorAlert('eliminar reseña', e);
                 }
             });
         });
@@ -77,28 +178,6 @@ async function loadAdminReviews(prodId) {
         list.innerHTML = '<div style="text-align:center;color:#ff4757;font-size:.85rem;padding:.5rem">Error al cargar reseñas</div>';
     }
 }
-
-if (localStorage.getItem('mimo_admin_auth') === 'true') {
-    loginScreen.classList.add('hidden');
-    dashboard.classList.remove('hidden');
-    loadProducts();
-}
-
-loginBtn.addEventListener('click', () => {
-    if (adminPin.value === PIN) {
-        localStorage.setItem('mimo_admin_auth', 'true');
-        loginScreen.classList.add('hidden');
-        dashboard.classList.remove('hidden');
-        loadProducts();
-    } else {
-        loginError.textContent = 'PIN Incorrecto';
-    }
-});
-
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('mimo_admin_auth');
-    location.reload();
-});
 
 // Products Logic
 let adminProducts = [];
@@ -153,8 +232,11 @@ function renderAdminProducts() {
 
     filtered.forEach(p => {
         const tr = document.createElement('tr');
+        const displayImg = isLocalFilePath(p.image) 
+            ? "https://placehold.co/100x100/1a1a2e/ff4757?text=PC+File" 
+            : (p.image || 'https://placehold.co/100x100/1a1a2e/00f0ff?text=Mimo!');
         tr.innerHTML = `
-            <td><img src="${p.image}" alt="img"></td>
+            <td><img src="${displayImg}" alt="img"></td>
             <td><strong>${p.name}</strong></td>
             <td style="text-transform: capitalize;">${p.category}</td>
             <td>$${fmt(p.price)}</td>
@@ -191,6 +273,8 @@ adminCategoryFilter.addEventListener('change', renderAdminProducts);
 function openModal(id = null) {
     form.reset();
     document.getElementById('prodId').value = '';
+    document.getElementById('prodCost').value = '0';
+    document.getElementById('prodMargin').value = '30';
     document.getElementById('modalTitle').textContent = 'Agregar Producto';
     
     currentUploadedImages = [];
@@ -207,15 +291,12 @@ function openModal(id = null) {
             document.getElementById('prodId').value = p.id;
             document.getElementById('prodName').value = p.name;
             document.getElementById('prodCategory').value = p.category;
+            document.getElementById('prodCost').value = p.cost || 0;
+            document.getElementById('prodMargin').value = p.margin || 30;
             document.getElementById('prodPrice').value = p.price;
             document.getElementById('prodOffer').value = p.offerPrice || '';
             document.getElementById('prodBadge').value = p.badge || '';
             document.getElementById('prodDesc').value = p.description || '';
-            document.getElementById('prodImg').value = p.image || '';
-            document.getElementById('prodFeatured').checked = p.isFeatured || false;
-            document.getElementById('prodStock').value = p.stock ?? 0;
-            document.getElementById('prodWeight').value = p.peso ?? 0.5;
-            
             let imgsToLoad = [];
             if (p.fullImages) {
                 try { imgsToLoad = JSON.parse(p.fullImages); } catch(e) {}
@@ -224,23 +305,35 @@ function openModal(id = null) {
                 imgsToLoad = [p.image];
             }
             
+            // Clean local files from the list loaded into the editor
+            currentUploadedImages = imgsToLoad.filter(src => !isLocalFilePath(src));
+            
+            // Check if primary image is a local path
+            if (p.image && isLocalFilePath(p.image)) {
+                document.getElementById('prodImg').value = '';
+                alert("Atención: Este producto tenía guardada una ruta de archivo local de tu PC (por ejemplo C:\\ o file://). Hemos limpiado el campo de la imagen para evitar errores. Por favor, sube una nueva imagen usando el botón 'Subir desde PC/Móvil' o pega un enlace de internet válido.");
+            } else {
+                document.getElementById('prodImg').value = p.image || '';
+            }
+            document.getElementById('prodFeatured').checked = p.isFeatured || false;
+            document.getElementById('prodStock').value = p.stock ?? 0;
+            document.getElementById('prodWeight').value = p.peso ?? 0.5;
+            
             if (imgsToLoad.length > 0) {
                 currentUploadedImages = imgsToLoad;
-                imgsToLoad.forEach(src => {
-                    const imgEl = document.createElement('img');
-                    imgEl.src = src;
-                    imgEl.style.cssText = "width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);";
-                    previewContainer.appendChild(imgEl);
-                });
-                if (statusText) statusText.textContent = `${imgsToLoad.length} imagen(es)`;
-                previewContainer.style.display = 'flex';
-                }
+                renderImagePreviews();
             }
+        }
+
             
             // Load reviews for this product
             loadAdminReviews(id);
         }
         modal.classList.add('active');
+        // Disparar evento para que aparezca la cruz de borrar imagen
+        document.getElementById('prodImg').dispatchEvent(new Event('input'));
+        // Update profit display
+        document.getElementById('prodPrice').dispatchEvent(new Event('input'));
     }
 
 form.addEventListener('submit', async (e) => {
@@ -248,8 +341,24 @@ form.addEventListener('submit', async (e) => {
     const id = document.getElementById('prodId').value;
     
     let finalImages = currentUploadedImages;
-    let mainImgUrl = document.getElementById('prodImg').value.trim() || 'https://placehold.co/400x400/1a1a2e/00f0ff?text=Mimo!';
+    let mainImgUrl = document.getElementById('prodImg').value.trim();
     
+    // Quitar comillas que puedan envolver la URL copiada
+    if (mainImgUrl) {
+        mainImgUrl = mainImgUrl.replace(/^["']|["']$/g, '').trim();
+        document.getElementById('prodImg').value = mainImgUrl;
+    }
+    
+    if (!mainImgUrl) {
+        mainImgUrl = 'https://placehold.co/400x400/1a1a2e/00f0ff?text=Mimo!';
+    }
+    
+    // Validar que no ponga un archivo local de su PC
+    if (isLocalFilePath(mainImgUrl)) {
+        alert("Error: No podés pegar una ruta de un archivo de tu PC (file://). Tenés que pegar un link de internet, o usar el botón 'Subir desde PC/Móvil' para cargar tu propia imagen.");
+        return;
+    }
+
     // Si metió un link manual o modificó el input URL
     if (finalImages.length === 0) {
         finalImages = [mainImgUrl];
@@ -258,10 +367,15 @@ form.addEventListener('submit', async (e) => {
         finalImages.unshift(mainImgUrl);
     }
     
+    // Filtrar cualquier ruta local que pudiera haberse colado en la lista de imágenes
+    finalImages = finalImages.filter(img => !isLocalFilePath(img));
+    
     const productData = {
         name: document.getElementById('prodName').value,
         category: document.getElementById('prodCategory').value,
         price: parseFloat(document.getElementById('prodPrice').value) || 0,
+        cost: parseFloat(document.getElementById('prodCost').value) || 0,
+        margin: parseInt(document.getElementById('prodMargin').value) || 0,
         offerPrice: document.getElementById('prodOffer').value ? parseFloat(document.getElementById('prodOffer').value) : null,
         badge: document.getElementById('prodBadge').value,
         description: document.getElementById('prodDesc').value,
@@ -286,17 +400,45 @@ form.addEventListener('submit', async (e) => {
         await loadProducts();
     } catch (error) {
         console.error("Error guardando:", error);
-        alert("Hubo un error al guardar.");
+        showFirebaseErrorAlert('guardar el producto', error);
     }
 
     saveBtn.textContent = 'Guardar Producto';
     saveBtn.disabled = false;
 });
 
+// Auto-calculate price
+function updateCalculatedPrice() {
+    const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+    const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
+    const finalPrice = cost * (1 + (margin / 100));
+    document.getElementById('prodPrice').value = finalPrice.toFixed(2);
+    
+    const profit = finalPrice - cost;
+    const display = document.getElementById('prodProfitDisplay');
+    if (display) display.textContent = `Ganancia: $${profit.toFixed(2)}`;
+}
+document.getElementById('prodCost').addEventListener('input', updateCalculatedPrice);
+document.getElementById('prodMargin').addEventListener('input', updateCalculatedPrice);
+
+// Also update profit display if user manually edits the final price
+document.getElementById('prodPrice').addEventListener('input', () => {
+    const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+    const finalPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
+    const profit = finalPrice - cost;
+    const display = document.getElementById('prodProfitDisplay');
+    if (display) display.textContent = `Ganancia: $${profit.toFixed(2)}`;
+});
+
 async function deleteProduct(id) {
     if (confirm("¿Estás seguro de que quieres borrar este producto?")) {
-        await db.collection("products").doc(id).delete();
-        loadProducts();
+        try {
+            await db.collection("products").doc(id).delete();
+            loadProducts();
+        } catch (error) {
+            console.error("Error eliminando producto:", error);
+            showFirebaseErrorAlert('eliminar el producto', error);
+        }
     }
 }
 
@@ -380,36 +522,67 @@ document.getElementById('cleanDuplicatesBtn').addEventListener('click', async ()
     btn.disabled = false;
 });
 
+// Global preview renderer
+function renderImagePreviews() {
+    const previewContainer = document.getElementById('imgPreviewContainer');
+    Array.from(previewContainer.querySelectorAll('.preview-img-wrapper')).forEach(w => w.remove());
+    const statusText = previewContainer.querySelector('span');
+    
+    if (currentUploadedImages.length === 0) {
+        previewContainer.style.display = 'none';
+        document.getElementById('prodImg').value = '';
+        document.getElementById('clearImgBtn').style.display = 'none';
+        return;
+    }
+    
+    currentUploadedImages.forEach((src, index) => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'preview-img-wrapper';
+        wrapper.style.cssText = "position: relative; display: inline-block;";
+        
+        const imgEl = document.createElement('img');
+        if (isLocalFilePath(src)) {
+            imgEl.src = "https://placehold.co/100x100/1a1a2e/ff4757?text=Local+File+Blocked";
+            imgEl.title = "Archivo local bloqueado: " + src;
+        } else {
+            imgEl.src = src;
+        }
+        imgEl.style.cssText = "width: 60px; height: 60px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);";
+        
+        const delBtn = document.createElement('button');
+        delBtn.innerHTML = '&times;';
+        delBtn.style.cssText = "position: absolute; top: -8px; right: -8px; background: #ff4757; color: white; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 16px; line-height: 1; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.5);";
+        delBtn.onclick = (e) => {
+            e.preventDefault();
+            currentUploadedImages.splice(index, 1);
+            renderImagePreviews();
+        };
+        
+        wrapper.appendChild(imgEl);
+        wrapper.appendChild(delBtn);
+        previewContainer.appendChild(wrapper);
+    });
+    
+    if(statusText) {
+        statusText.textContent = `${currentUploadedImages.length} imagen(es) listas`;
+        statusText.style.color = 'var(--accent-color)';
+    }
+    previewContainer.style.display = 'flex';
+    document.getElementById('prodImg').value = currentUploadedImages[0] || '';
+    document.getElementById('clearImgBtn').style.display = 'block';
+}
+
 // Image Upload and Preview Handler
 document.getElementById('prodImgFile').addEventListener('change', async function(e) {
     const files = Array.from(e.target.files);
     if (!files.length) return;
 
-    const previewContainer = document.getElementById('imgPreviewContainer');
-    // Clear old previews except the label/span
-    Array.from(previewContainer.querySelectorAll('img')).forEach(img => img.remove());
-    
-    const statusText = previewContainer.querySelector('span') || document.createElement('span');
-    if(!statusText.parentNode) previewContainer.appendChild(statusText);
-    statusText.textContent = 'Cargando imágenes...';
-    statusText.style.color = 'var(--text-secondary)';
-    previewContainer.style.display = 'flex';
-
-    currentUploadedImages = [];
-
     for(let file of files) {
         const base64 = await compressImageFile(file);
         currentUploadedImages.push(base64);
-        
-        const imgEl = document.createElement('img');
-        imgEl.src = base64;
-        imgEl.style.cssText = "width: 50px; height: 50px; border-radius: 8px; object-fit: cover; border: 1px solid var(--surface-border);";
-        previewContainer.appendChild(imgEl);
     }
     
-    statusText.textContent = `${files.length} imagen(es) listas`;
-    statusText.style.color = 'var(--accent-color)';
-    document.getElementById('prodImg').value = currentUploadedImages[0]; // Set primary to the first
+    renderImagePreviews();
 });
 
 function compressImageFile(file) {
@@ -445,20 +618,37 @@ function compressImageFile(file) {
 }
 
 // Update preview live if typing a URL
-document.getElementById('prodImg').addEventListener('input', function(e) {
-    const url = e.target.value.trim();
-    const previewContainer = document.getElementById('imgPreviewContainer');
-    const previewImg = document.getElementById('imgPreview');
-    const statusText = previewContainer.querySelector('span');
+const prodImgInput = document.getElementById('prodImg');
+const clearImgBtn = document.getElementById('clearImgBtn');
 
+prodImgInput.addEventListener('input', function(e) {
+    let url = e.target.value.trim();
+    
     if (url) {
-        previewImg.src = url;
-        statusText.textContent = '✓ Imagen cargada';
-        statusText.style.color = '#2ed573';
-        previewContainer.style.display = 'flex';
-    } else {
-        previewContainer.style.display = 'none';
+        url = url.replace(/^["']|["']$/g, '').trim();
     }
+    
+    if (url) {
+        if (isLocalFilePath(url)) {
+            alert('Error: No podés usar una ruta de tu PC');
+            return;
+        }
+        if (!currentUploadedImages.includes(url)) {
+            currentUploadedImages.unshift(url);
+            renderImagePreviews();
+        }
+    } else {
+        if (currentUploadedImages.length > 0) {
+            currentUploadedImages.shift();
+            renderImagePreviews();
+        }
+    }
+});
+
+clearImgBtn.addEventListener('click', () => {
+    prodImgInput.value = '';
+    currentUploadedImages = [];
+    renderImagePreviews();
 });
 
 // ─── COST CALCULATOR LOGIC ─────────────────────────────────
@@ -583,11 +773,16 @@ async function loadShippingRates() {
             btn.addEventListener('click', async () => {
                 const prov = btn.dataset.prov;
                 if (!confirm(`¿Eliminar tarifa para ${prov}?`)) return;
-                const doc = await db.collection('config').doc('shipping').get();
-                const rates = doc.exists ? doc.data().rates || {} : {};
-                delete rates[prov];
-                await db.collection('config').doc('shipping').set({ rates });
-                loadShippingRates();
+                try {
+                    const doc = await db.collection('config').doc('shipping').get();
+                    const rates = doc.exists ? doc.data().rates || {} : {};
+                    delete rates[prov];
+                    await db.collection('config').doc('shipping').set({ rates });
+                    loadShippingRates();
+                } catch (error) {
+                    console.error('Error deleting rate:', error);
+                    showFirebaseErrorAlert('eliminar la tarifa de envío', error);
+                }
             });
         });
     } catch (e) {
@@ -611,6 +806,7 @@ document.getElementById('addRateBtn').addEventListener('click', async () => {
         loadShippingRates();
     } catch (e) {
         console.error('Error adding rate:', e);
+        showFirebaseErrorAlert('agregar la tarifa de envío', e);
     }
 });
 
@@ -709,7 +905,10 @@ async function loadOrders(filter = 'all') {
                 try {
                     await db.collection('orders').doc(id).update({ status: next, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
                     loadOrders(document.getElementById('orderStatusFilter').value);
-                } catch (e) { console.error('Error updating order:', e); }
+                } catch (e) { 
+                    console.error('Error updating order:', e); 
+                    showFirebaseErrorAlert('actualizar el pedido', e);
+                }
             });
         });
     } catch (e) {
@@ -784,155 +983,22 @@ searchGoogleImagesBtn.addEventListener('click', () => {
     window.open(`https://www.google.com/search?tbm=isch&q=${query}`, '_blank');
 });
 
-// ─── GOOGLE CSE SEARCH (OPCIÓN 2A) ────────────────────────────
-const toggleGoogleCseBtn = document.getElementById('toggleGoogleCseBtn');
-const googleCsePanel = document.getElementById('googleCsePanel');
-const googleCseQuery = document.getElementById('googleCseQuery');
-const executeGoogleCseSearch = document.getElementById('executeGoogleCseSearch');
-const googleCseResults = document.getElementById('googleCseResults');
-const googleCseStatus = document.getElementById('googleCseStatus');
+// Google Custom Search feature has been removed as per user request.
 
-let googleApiKey = localStorage.getItem('mimo_google_api_key') || '';
-let googleCseId = localStorage.getItem('mimo_google_cse_id') || '';
+// ─── TABS LOGIC ───────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
 
-toggleGoogleCseBtn.addEventListener('click', () => {
-    const isVisible = googleCsePanel.style.display !== 'none';
-    googleCsePanel.style.display = isVisible ? 'none' : 'block';
-    if (!isVisible) {
-        // Pre-fill query with product name
-        const name = document.getElementById('prodName').value.trim();
-        if (name) googleCseQuery.value = name;
-        googleCseQuery.focus();
-        checkGoogleCreds();
-    }
-});
+        document.querySelectorAll('.tab-content').forEach(content => {
+            content.classList.add('hidden');
+        });
 
-// Admin Reviews Toggle
-const adminReviewsToggle = document.getElementById('adminReviewsToggle');
-const adminReviewsPanel = document.getElementById('adminReviewsPanel');
-const adminReviewsArrow = document.getElementById('adminReviewsArrow');
-if (adminReviewsToggle) {
-    adminReviewsToggle.addEventListener('click', () => {
-        const isOpen = adminReviewsPanel.style.display !== 'none';
-        adminReviewsPanel.style.display = isOpen ? 'none' : 'block';
-        if (adminReviewsArrow) adminReviewsArrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+        const targetId = btn.getAttribute('data-tab');
+        const targetContent = document.getElementById(targetId);
+        if (targetContent) {
+            targetContent.classList.remove('hidden');
+        }
     });
-}
-
-function checkGoogleCreds() {
-    if (!googleApiKey || !googleCseId) {
-        googleCseStatus.innerHTML = `⚠️ Google API no configurada. <a href="#" id="openGoogleSetupLink" style="color: var(--accent-color); text-decoration: underline;">Configurar ahora</a>`;
-        const link = document.getElementById('openGoogleSetupLink');
-        if (link) link.addEventListener('click', (e) => {
-            e.preventDefault();
-            document.getElementById('googleSettingsModal').classList.add('active');
-        });
-    } else {
-        googleCseStatus.textContent = '✅ Google API configurada';
-    }
-}
-
-executeGoogleCseSearch.addEventListener('click', () => searchGoogleCse());
-googleCseQuery.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') searchGoogleCse();
-});
-
-async function searchGoogleCse() {
-    const query = googleCseQuery.value.trim();
-    if (!query) return;
-
-    if (!googleApiKey || !googleCseId) {
-        document.getElementById('googleSettingsModal').classList.add('active');
-        return;
-    }
-
-    googleCseResults.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--text-secondary)">Buscando...</div>';
-    googleCseStatus.textContent = '';
-
-    try {
-        const url = `https://www.googleapis.com/customsearch/v1?key=${googleApiKey}&cx=${googleCseId}&q=${encodeURIComponent(query)}&searchType=image&num=10`;
-        const res = await fetch(url);
-        if (!res.ok) {
-            const err = await res.json();
-            throw new Error(err.error?.message || `Error ${res.status}`);
-        }
-        const data = await res.json();
-        const items = data.items || [];
-
-        googleCseResults.innerHTML = '';
-
-        if (items.length === 0) {
-            googleCseResults.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:1rem;color:var(--text-secondary)">Sin resultados. Probá con otra búsqueda.</div>';
-            return;
-        }
-
-        items.forEach(item => {
-            const imgUrl = item.link;
-            const thumb = item.image?.thumbnailLink || imgUrl;
-            const card = document.createElement('div');
-            card.style.cssText = 'cursor:pointer;border-radius:8px;overflow:hidden;border:2px solid transparent;transition:all .2s;position:relative;aspect-ratio:1';
-            card.innerHTML = `<img src="${thumb}" alt="${item.title}" style="width:100%;height:100%;object-fit:cover;display:block">`;
-            card.addEventListener('click', () => selectGoogleImage(imgUrl, item.title));
-            card.addEventListener('mouseenter', () => { card.style.borderColor = 'var(--accent-color)'; });
-            card.addEventListener('mouseleave', () => { card.style.borderColor = 'transparent'; });
-
-            // Load checker: validate the full URL
-            const img = new Image();
-            img.onload = () => {
-                if (img.naturalWidth < 100 || img.naturalHeight < 100) {
-                    card.style.display = 'none';
-                }
-            };
-            img.src = imgUrl;
-
-            googleCseResults.appendChild(card);
-        });
-
-        googleCseStatus.textContent = `${items.length} resultados para "${query}"`;
-    } catch (e) {
-        googleCseResults.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:1rem;color:#ff4757">Error: ${e.message}</div>`;
-        googleCseStatus.innerHTML = '';
-        console.error('Google CSE error:', e);
-    }
-}
-
-function selectGoogleImage(url, title) {
-    document.getElementById('prodImg').value = url;
-    document.getElementById('prodImg').dispatchEvent(new Event('input'));
-    googleCseStatus.textContent = `✅ Imagen seleccionada`;
-    googleCsePanel.style.display = 'none';
-}
-
-// ─── GOOGLE API SETTINGS MODAL ──────────────────────────────
-const googleSettingsModal = document.getElementById('googleSettingsModal');
-const googleSettingsBtn = document.getElementById('googleSettingsBtn');
-const closeGoogleSettingsBtn = document.getElementById('closeGoogleSettingsBtn');
-const saveGoogleSettingsBtn = document.getElementById('saveGoogleSettingsBtn');
-const googleApiKeyInput = document.getElementById('googleApiKey');
-const googleCseIdInput = document.getElementById('googleCseId');
-
-googleSettingsBtn.addEventListener('click', () => {
-    googleApiKeyInput.value = googleApiKey;
-    googleCseIdInput.value = googleCseId;
-    googleSettingsModal.classList.add('active');
-});
-
-closeGoogleSettingsBtn.addEventListener('click', () => {
-    googleSettingsModal.classList.remove('active');
-});
-
-googleSettingsModal.addEventListener('click', (e) => {
-    if (e.target === googleSettingsModal) googleSettingsModal.classList.remove('active');
-});
-
-saveGoogleSettingsBtn.addEventListener('click', () => {
-    googleApiKey = googleApiKeyInput.value.trim();
-    googleCseId = googleCseIdInput.value.trim();
-    localStorage.setItem('mimo_google_api_key', googleApiKey);
-    localStorage.setItem('mimo_google_cse_id', googleCseId);
-    googleSettingsModal.classList.remove('active');
-    checkGoogleCreds();
-    if (googleApiKey && googleCseId) {
-        googleCseStatus.textContent = '✅ Google API configurada correctamente';
-    }
 });
