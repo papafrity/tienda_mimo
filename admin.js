@@ -1099,6 +1099,12 @@ function renderReviewsTab(prodId) {
                     if (!confirm('¿Eliminar esta reseña definitivamente?')) return;
                     try {
                         await db.collection("products").doc(btn.dataset.prod).collection("reviews").doc(btn.dataset.id).delete();
+                        // Recalculate product rating after deletion
+                        const snap2 = await db.collection("products").doc(prodId).collection("reviews").get();
+                        let total = 0, count = 0;
+                        snap2.forEach(d => { total += d.data().rating || 0; count++; });
+                        const avg = count > 0 ? total / count : 0;
+                        try { await db.collection("products").doc(prodId).update({ rating: avg, reviewCount: count }); } catch(e) {}
                         renderReviewsTab(prodId);
                         showToast('Reseña eliminada', 'success');
                     } catch(e) {
@@ -1147,4 +1153,32 @@ document.getElementById('adminReviewsRefreshBtn')?.addEventListener('click', () 
     const prodId = select?.value;
     loadReviewsProductSelect();
     if (prodId) renderReviewsTab(prodId);
+});
+
+document.getElementById('adminRecalcAllBtn')?.addEventListener('click', async () => {
+    if (!confirm('¿Recalcular el rating de TODOS los productos según sus reseñas actuales?')) return;
+    const btn = document.getElementById('adminRecalcAllBtn');
+    btn.textContent = '⏳ Recalculando...';
+    btn.disabled = true;
+    try {
+        const prods = await db.collection("products").get();
+        let updated = 0;
+        for (const doc of prods.docs) {
+            const revSnap = await db.collection("products").doc(doc.id).collection("reviews").get();
+            let total = 0, count = 0;
+            revSnap.forEach(r => { total += r.data().rating || 0; count++; });
+            const avg = count > 0 ? total / count : 0;
+            await doc.ref.update({ rating: avg, reviewCount: count });
+            updated++;
+        }
+        showToast(`✅ ${updated} productos actualizados con su rating real`, 'success');
+        const select = document.getElementById('adminReviewsProductSelect');
+        if (select?.value) renderReviewsTab(select.value);
+        loadReviewsProductSelect();
+    } catch(e) {
+        console.error(e);
+        showToast('Error al recalcular', 'error');
+    }
+    btn.textContent = '♻️ Recalcular todos';
+    btn.disabled = false;
 });
