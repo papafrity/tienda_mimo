@@ -331,6 +331,31 @@
                     <button class="modal-add-cart magnetic-btn">Agregar al Carrito</button>
                 </div>
             </div>
+            <!-- Reviews Section -->
+            <div class="modal-reviews-section" id="modalReviewsSection">
+                <div class="reviews-header">
+                    <h3>⭐ Opiniones de clientes <span id="modalReviewCount" style="color:var(--text-secondary);font-size:.9rem;font-weight:400"></span></h3>
+                    <button type="button" class="review-toggle-btn magnetic-btn" id="toggleReviewForm">Dejar mi reseña</button>
+                </div>
+                <div class="review-form-container" id="reviewFormContainer" style="display:none;">
+                    <form id="publicReviewForm">
+                        <div class="review-form-row">
+                            <input type="text" id="reviewUserName" placeholder="Tu nombre (opcional)" maxlength="40">
+                            <div class="star-picker" id="starPicker">
+                                <span class="pick-star" data-star="1">★</span>
+                                <span class="pick-star" data-star="2">★</span>
+                                <span class="pick-star" data-star="3">★</span>
+                                <span class="pick-star" data-star="4">★</span>
+                                <span class="pick-star" data-star="5">★</span>
+                            </div>
+                        </div>
+                        <textarea id="reviewComment" placeholder="Contanos tu experiencia con este producto..." rows="3" maxlength="500"></textarea>
+                        <button type="submit" class="submit-review-btn magnetic-btn">Enviar reseña</button>
+                    </form>
+                </div>
+                <div id="modalReviewsList" class="reviews-list"></div>
+                <p id="modalReviewsEmpty" style="display:none;text-align:center;color:var(--text-secondary);font-size:.9rem;padding:1rem 0;">Aún no hay reseñas. ¡Sé el primero en opinar!</p>
+            </div>
         </div>
     </div>
 
@@ -438,6 +463,7 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>

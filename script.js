@@ -782,8 +782,243 @@ document.addEventListener('DOMContentLoaded', () => {
                 prevBtn.onclick = (e) => { e.stopPropagation(); window.openProductModal(prevId); };
                 nextBtn.onclick = (e) => { e.stopPropagation(); window.openProductModal(nextId); };
             }
+
+            // Load reviews for this product
+            loadPublicReviews(prodId);
+            initReviewForm(prodId);
+
             } catch(e) { console.error('Error en openProductModal:', e); }
         };
+
+        // ─── PUBLIC REVIEWS SYSTEM ──────────────────────────────
+        let currentReviewProductId = null;
+        let selectedStars = 0;
+
+        // ─── BAD WORD FILTER ───────────────────────────────────
+        const BAD_WORDS = [
+            'puto', 'puta', 'putas', 'putos', 'p3t0', 'p3ta',
+            'mierda', 'm13rd4',
+            'pendejo', 'pendeja',
+            'culo', 'kulo', 'cul0',
+            'choto', 'chota',
+            'pelotudo', 'pelotuda', 'pelotudo', 'pelotudez', 'p3l0tud0',
+            'concha', 'conchudo', 'conchuda', 'c0nch4',
+            'verga', 'v3rg4', 'verg4',
+            'pija', 'pij4', 'p1ja',
+            'coño', 'c0ñ0', 'conyo',
+            'hijueputa', 'hijoputa', 'hijaputa', 'hdp',
+            'marica', 'maricon', 'maricón', 'maric0n',
+            'estupido', 'estupida', 'estúpido', 'estúpida',
+            'idiota', 'id10ta',
+            'imbecil', 'imbécil', '1mb3c1l',
+            'tarado', 'tarada',
+            'boludo', 'boluda', 'b0lud0',
+            'forro', 'f0rr0',
+            'mogólico', 'mogolica',
+            'subnormal',
+            'trolo', 'trola',
+            'putazo', 'putaza',
+            'cagar', 'cagaste', 'cagon', 'cagón', 'cagona',
+            'recontra', 'la concha', 'la ctm', 'ctm',
+            'chupame', 'chupamela', 'chupame la',
+            'sorete',
+            'caca', 'pedo', 'pis',
+            'cerdo', 'cerda',
+            'hijo de puta', 'hija de puta',
+            'la reputa', 'reputa',
+            'burgués', 'burguesa',
+            'negro de mierda', 'negra de mierda',
+            'muérete', 'muere', 'matate', 'mátate'
+        ];
+
+        function normalizeText(text) {
+            let t = text.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+            t = t.replace(/@/g, 'a').replace(/4/g, 'a').replace(/3/g, 'e').replace(/1/g, 'i').replace(/0/g, 'o').replace(/5/g, 's').replace(/7/g, 't').replace(/2/g, 'z');
+            t = t.replace(/[^a-z0-9\s]/g, ' ').replace(/\s+/g, ' ').trim();
+            return t;
+        }
+
+        function containsBadWords(text) {
+            const normalized = normalizeText(text);
+            return BAD_WORDS.some(bw => normalized.includes(bw));
+        }
+
+        function loadPublicReviews(prodId) {
+            const list = document.getElementById('modalReviewsList');
+            const empty = document.getElementById('modalReviewsEmpty');
+            const countEl = document.getElementById('modalReviewCount');
+            if (!list) return;
+            list.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:.85rem;padding:.5rem">Cargando opiniones...</div>';
+            if (empty) empty.style.display = 'none';
+
+            db.collection("products").doc(prodId).collection("reviews").orderBy("date", "desc").limit(30).get()
+                .then(snap => {
+                    list.innerHTML = '';
+                    if (snap.empty) {
+                        if (empty) empty.style.display = '';
+                        if (countEl) countEl.textContent = '';
+                        return;
+                    }
+                    if (countEl) countEl.textContent = `(${snap.size})`;
+                    snap.forEach(doc => {
+                        const r = doc.data();
+                        const dateStr = r.date?.toDate?.() ? r.date.toDate().toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+                        const card = document.createElement('div');
+                        card.className = 'review-card';
+                        card.innerHTML = `
+                            <div class="review-card-header">
+                                <strong>${r.userName || 'Anónimo'}</strong>
+                                <span>${dateStr}</span>
+                            </div>
+                            <div class="stars">${renderStarsHtml(r.rating)}</div>
+                            ${r.comment ? `<p>${r.comment}</p>` : ''}
+                        `;
+                        list.appendChild(card);
+                    });
+                })
+                .catch(e => {
+                    console.error(e);
+                    list.innerHTML = '<div style="text-align:center;color:#ff4757;font-size:.85rem;padding:.5rem">Error al cargar opiniones</div>';
+                });
+        }
+
+        function initReviewForm(prodId) {
+            currentReviewProductId = prodId;
+            selectedStars = 0;
+
+            // Reset form
+            const formContainer = document.getElementById('reviewFormContainer');
+            const form = document.getElementById('publicReviewForm');
+            const toggleBtn = document.getElementById('toggleReviewForm');
+            if (formContainer) formContainer.style.display = 'none';
+            if (toggleBtn) toggleBtn.textContent = 'Dejar mi reseña';
+            if (form) form.reset();
+
+            // Reset stars
+            document.querySelectorAll('#starPicker .pick-star').forEach(s => s.classList.remove('active'));
+
+            // Toggle button
+            if (toggleBtn) {
+                const newToggle = toggleBtn.cloneNode(true);
+                toggleBtn.parentNode.replaceChild(newToggle, toggleBtn);
+                newToggle.addEventListener('click', () => {
+                    const isHidden = formContainer.style.display === 'none';
+                    formContainer.style.display = isHidden ? '' : 'none';
+                    newToggle.textContent = isHidden ? 'Cancelar' : 'Dejar mi reseña';
+                });
+            }
+
+            // Star picker interaction
+            document.querySelectorAll('#starPicker .pick-star').forEach(star => {
+                const newStar = star.cloneNode(true);
+                star.parentNode.replaceChild(newStar, star);
+
+                newStar.addEventListener('click', () => {
+                    selectedStars = parseInt(newStar.dataset.star);
+                    document.querySelectorAll('#starPicker .pick-star').forEach(s => {
+                        s.classList.toggle('active', parseInt(s.dataset.star) <= selectedStars);
+                    });
+                });
+                newStar.addEventListener('mouseenter', () => {
+                    const val = parseInt(newStar.dataset.star);
+                    document.querySelectorAll('#starPicker .pick-star').forEach(s => {
+                        s.classList.toggle('hover', parseInt(s.dataset.star) <= val);
+                    });
+                });
+                newStar.addEventListener('mouseleave', () => {
+                    document.querySelectorAll('#starPicker .pick-star').forEach(s => s.classList.remove('hover'));
+                });
+            });
+
+            // Form submission
+            if (form) {
+                const newForm = form.cloneNode(true);
+                form.parentNode.replaceChild(newForm, form);
+                // Re-init star picker on cloned form
+                document.querySelectorAll('#starPicker .pick-star').forEach(star => {
+                    star.addEventListener('click', () => {
+                        selectedStars = parseInt(star.dataset.star);
+                        document.querySelectorAll('#starPicker .pick-star').forEach(s => {
+                            s.classList.toggle('active', parseInt(s.dataset.star) <= selectedStars);
+                        });
+                    });
+                    star.addEventListener('mouseenter', () => {
+                        const val = parseInt(star.dataset.star);
+                        document.querySelectorAll('#starPicker .pick-star').forEach(s => {
+                            s.classList.toggle('hover', parseInt(s.dataset.star) <= val);
+                        });
+                    });
+                    star.addEventListener('mouseleave', () => {
+                        document.querySelectorAll('#starPicker .pick-star').forEach(s => s.classList.remove('hover'));
+                    });
+                });
+
+                newForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    if (selectedStars === 0) {
+                        showToast('Elegí una calificación de 1 a 5 estrellas.', 'warning');
+                        return;
+                    }
+
+                    const userName = document.getElementById('reviewUserName').value.trim() || 'Anónimo';
+                    const comment = document.getElementById('reviewComment').value.trim();
+                    const submitBtn = newForm.querySelector('.submit-review-btn');
+
+                    // Bad word filter
+                    if (containsBadWords(userName) || containsBadWords(comment)) {
+                        showToast('Tu reseña contiene lenguaje inapropiado. Por favor, editá tu mensaje.', 'error');
+                        return;
+                    }
+
+                    submitBtn.textContent = 'Enviando...';
+                    submitBtn.disabled = true;
+
+                    try {
+                        // Sign in anonymously for spam protection
+                        const auth = firebase.auth();
+                        let user = auth.currentUser;
+                        if (!user) {
+                            const cred = await auth.signInAnonymously();
+                            user = cred.user;
+                        }
+
+                        await db.collection("products").doc(currentReviewProductId).collection("reviews").add({
+                            userId: user.uid,
+                            userName: userName,
+                            rating: selectedStars,
+                            comment: comment,
+                            date: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        // Recalculate average
+                        const snap = await db.collection("products").doc(currentReviewProductId).collection("reviews").get();
+                        let total = 0, count = 0;
+                        snap.forEach(d => { total += d.data().rating || 0; count++; });
+                        const avg = count > 0 ? total / count : 0;
+                        await db.collection("products").doc(currentReviewProductId).update({ rating: avg, reviewCount: count });
+
+                        // Update local product data
+                        const localProd = products.find(x => x.id === currentReviewProductId);
+                        if (localProd) { localProd.rating = avg; localProd.reviewCount = count; }
+
+                        // Re-render
+                        document.getElementById('reviewFormContainer').style.display = 'none';
+                        const togBtn = document.getElementById('toggleReviewForm');
+                        if (togBtn) togBtn.textContent = 'Dejar mi reseña';
+                        loadPublicReviews(currentReviewProductId);
+                        renderProducts();
+
+                        showToast('¡Gracias por tu opinión!', 'success');
+                    } catch(err) {
+                        console.error('Error guardando reseña:', err);
+                        showToast('Hubo un error al enviar tu reseña. Intentá de nuevo.', 'error');
+                    }
+
+                    submitBtn.textContent = 'Enviar reseña';
+                    submitBtn.disabled = false;
+                });
+            }
+        }
 
         function closeM() { document.getElementById('productModal').classList.remove('active'); document.body.style.overflow = ''; }
 

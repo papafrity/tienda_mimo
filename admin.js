@@ -985,6 +985,20 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
+// ─── ADMIN REVIEWS TOGGLE ─────────────────────────────────
+function initAdminReviewsToggle() {
+    const toggle = document.getElementById('adminReviewsToggle');
+    const panel = document.getElementById('adminReviewsPanel');
+    const arrow = document.getElementById('adminReviewsArrow');
+    if (!toggle || !panel) return;
+    toggle.addEventListener('click', () => {
+        const isOpen = panel.style.display !== 'none';
+        panel.style.display = isOpen ? 'none' : '';
+        if (arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+    });
+}
+initAdminReviewsToggle();
+
 // ─── TABS LOGIC ───────────────────────────────────────────
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
