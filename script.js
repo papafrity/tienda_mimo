@@ -649,7 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     total: cart.reduce((sum, item) => sum + (Number(offerVal(item)) * item.qty), 0),
                     shippingCost: shippingCost,
-                    shippingProvince: provName
+                    shippingProvince: provField
                 });
 
                 const orderId = orderRef.id;
