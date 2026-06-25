@@ -323,8 +323,6 @@ function openModal(id = null) {
                 currentUploadedImages = imgsToLoad;
                 renderImagePreviews();
             }
-        }
-
             
             // Load reviews for this product
             loadAdminReviews(id);
@@ -334,46 +332,39 @@ function openModal(id = null) {
             if (panel) panel.style.display = '';
             if (arrow) arrow.style.transform = 'rotate(90deg)';
         }
-        modal.classList.add('active');
-        // Disparar evento para que aparezca la cruz de borrar imagen
-        document.getElementById('prodImg').dispatchEvent(new Event('input'));
-        // Update profit display
-        document.getElementById('prodPrice').dispatchEvent(new Event('input'));
     }
+    modal.classList.add('active');
+    // Disparar evento para que aparezca la cruz de borrar imagen
+    document.getElementById('prodImg').dispatchEvent(new Event('input'));
+    // Update profit display
+    document.getElementById('prodPrice').dispatchEvent(new Event('input'));
+}
 
 form.addEventListener('submit', async (e) => {
     e.preventDefault();
     const id = document.getElementById('prodId').value;
     
-    let finalImages = currentUploadedImages;
-    let mainImgUrl = document.getElementById('prodImg').value.trim();
+    let finalImages = [...currentUploadedImages];
+    let typedUrl = document.getElementById('prodImg').value.trim();
     
-    // Quitar comillas que puedan envolver la URL copiada
-    if (mainImgUrl) {
-        mainImgUrl = mainImgUrl.replace(/^["']|["']$/g, '').trim();
-        document.getElementById('prodImg').value = mainImgUrl;
+    // Si escribió un link pero olvidó hacer clic en "+ Agregar URL", agregarlo automáticamente
+    if (typedUrl) {
+        typedUrl = typedUrl.replace(/^["']|["']$/g, '').trim();
+        if (!isLocalFilePath(typedUrl) && !finalImages.includes(typedUrl)) {
+            finalImages.push(typedUrl);
+        }
     }
     
-    if (!mainImgUrl) {
-        mainImgUrl = 'https://placehold.co/400x400/1a1a2e/00f0ff?text=Mimo!';
-    }
-    
-    // Validar que no ponga un archivo local de su PC
-    if (isLocalFilePath(mainImgUrl)) {
-        alert("Error: No podés pegar una ruta de un archivo de tu PC (file://). Tenés que pegar un link de internet, o usar el botón 'Subir desde PC/Móvil' para cargar tu propia imagen.");
-        return;
-    }
-
-    // Si metió un link manual o modificó el input URL
+    // Validar que tengamos al menos una imagen en la colección
     if (finalImages.length === 0) {
-        finalImages = [mainImgUrl];
-    } else if (mainImgUrl !== finalImages[0]) {
-        // Agrega el modificado manual al frente
-        finalImages.unshift(mainImgUrl);
+        finalImages.push('https://placehold.co/400x400/1a1a2e/00f0ff?text=Mimo!');
     }
     
-    // Filtrar cualquier ruta local que pudiera haberse colado en la lista de imágenes
+    // Filtrar rutas locales
     finalImages = finalImages.filter(img => !isLocalFilePath(img));
+    
+    // La imagen principal será la primera de la lista
+    const mainImgUrl = finalImages[0];
     
     const productData = {
         name: document.getElementById('prodName').value,
@@ -573,7 +564,6 @@ function renderImagePreviews() {
         statusText.style.color = 'var(--accent-color)';
     }
     previewContainer.style.display = 'flex';
-    document.getElementById('prodImg').value = currentUploadedImages[0] || '';
     document.getElementById('clearImgBtn').style.display = 'block';
 }
 
@@ -625,28 +615,42 @@ function compressImageFile(file) {
 // Update preview live if typing a URL
 const prodImgInput = document.getElementById('prodImg');
 const clearImgBtn = document.getElementById('clearImgBtn');
+const addImgUrlBtn = document.getElementById('addImgUrlBtn');
 
-prodImgInput.addEventListener('input', function(e) {
-    let url = e.target.value.trim();
-    
-    if (url) {
-        url = url.replace(/^["']|["']$/g, '').trim();
-    }
-    
-    if (url) {
-        if (isLocalFilePath(url)) {
-            alert('Error: No podés usar una ruta de tu PC');
+// Add Image URL explicitly
+if (addImgUrlBtn) {
+    addImgUrlBtn.addEventListener('click', () => {
+        let url = prodImgInput.value.trim();
+        if (!url) {
+            alert('Por favor, ingresá una URL válida antes de agregar.');
             return;
         }
+        url = url.replace(/^["']|["']$/g, '').trim();
+        if (isLocalFilePath(url)) {
+            alert('Error: No podés usar una ruta de tu PC (file://).');
+            return;
+        }
+        
+        // Add to images if not already present
         if (!currentUploadedImages.includes(url)) {
-            currentUploadedImages.unshift(url);
+            currentUploadedImages.push(url);
             renderImagePreviews();
+            // Empty the URL input field so the user can easily paste another one!
+            prodImgInput.value = '';
+            showToast('Imagen agregada con éxito', 'success');
+        } else {
+            alert('Esta imagen ya está agregada.');
         }
+    });
+}
+
+// Toggle clear all button visibility dynamically
+prodImgInput.addEventListener('input', function(e) {
+    let url = e.target.value.trim();
+    if (url || currentUploadedImages.length > 0) {
+        clearImgBtn.style.display = 'block';
     } else {
-        if (currentUploadedImages.length > 0) {
-            currentUploadedImages.shift();
-            renderImagePreviews();
-        }
+        clearImgBtn.style.display = 'none';
     }
 });
 
