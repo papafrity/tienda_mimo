@@ -85,7 +85,7 @@ spinStyle.textContent = '@keyframes spin { from { transform: rotate(0deg); } to 
 document.head.appendChild(spinStyle);
 
 // ─── HELPER FUNCTIONS ─────────────────────────────────────
-function fmt(n) { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); }
+function fmt(n) { return Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
 function renderStarsHtml(rating) {
     const r = Math.round((rating || 0) * 2) / 2;
@@ -369,10 +369,10 @@ form.addEventListener('submit', async (e) => {
     const productData = {
         name: document.getElementById('prodName').value,
         category: document.getElementById('prodCategory').value,
-        price: parseFloat(document.getElementById('prodPrice').value) || 0,
+        price: Math.ceil((parseFloat(document.getElementById('prodPrice').value) || 0) / 100) * 100,
         cost: parseFloat(document.getElementById('prodCost').value) || 0,
         margin: parseInt(document.getElementById('prodMargin').value) || 0,
-        offerPrice: document.getElementById('prodOffer').value ? parseFloat(document.getElementById('prodOffer').value) : null,
+        offerPrice: document.getElementById('prodOffer').value ? Math.ceil((parseFloat(document.getElementById('prodOffer').value) || 0) / 100) * 100 : null,
         badge: document.getElementById('prodBadge').value,
         description: document.getElementById('prodDesc').value,
         image: mainImgUrl,
@@ -404,15 +404,17 @@ form.addEventListener('submit', async (e) => {
 });
 
 // Auto-calculate price
+const MP_FEE = 0.0649; // 6.49% Mercado Pago comisión inmediata
 function updateCalculatedPrice() {
     const cost = parseFloat(document.getElementById('prodCost').value) || 0;
     const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
-    const finalPrice = cost * (1 + (margin / 100));
-    document.getElementById('prodPrice').value = finalPrice.toFixed(2);
+    const basePrice = cost * (1 + (margin / 100));
+    const finalPrice = Math.ceil(basePrice * (1 + MP_FEE) / 100) * 100;
+    document.getElementById('prodPrice').value = finalPrice;
     
     const profit = finalPrice - cost;
     const display = document.getElementById('prodProfitDisplay');
-    if (display) display.textContent = `Ganancia: $${profit.toFixed(2)}`;
+    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / cost) * 100) || 0}% sobre costo)`;
 }
 document.getElementById('prodCost').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodMargin').addEventListener('input', updateCalculatedPrice);
@@ -423,7 +425,7 @@ document.getElementById('prodPrice').addEventListener('input', () => {
     const finalPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
     const profit = finalPrice - cost;
     const display = document.getElementById('prodProfitDisplay');
-    if (display) display.textContent = `Ganancia: $${profit.toFixed(2)}`;
+    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / cost) * 100) || 0}% sobre costo)`;
 });
 
 async function deleteProduct(id) {

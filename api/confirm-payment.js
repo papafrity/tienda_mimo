@@ -1,5 +1,5 @@
 const { MercadoPagoConfig, Payment } = require('mercadopago');
-const fmt = n => { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); };
+const fmt = n => Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.');
 
 const client = new MercadoPagoConfig({ 
     accessToken: process.env.MP_ACCESS_TOKEN || 'TEST-TU-ACCESS-TOKEN-AQUI' 

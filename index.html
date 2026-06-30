@@ -21,7 +21,7 @@
     <meta name="keywords" content="tecnología, auriculares, parlantes, televisores, cocinas, heladeras, tienda online, argentina">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
     <link rel="icon" type="image/svg+xml" href="/favicon.svg">
     <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg">
@@ -56,7 +56,13 @@
 <body>
     <!-- Preloader -->
     <div class="preloader" id="preloader">
-        <div class="preloader-logo">Mimo<span class="accent">!</span></div>
+        <div class="preloader-letters">
+            <span style="--i:0">M</span>
+            <span style="--i:1">i</span>
+            <span style="--i:2">m</span>
+            <span style="--i:3">o</span>
+            <span style="--i:4">!</span>
+        </div>
         <div class="preloader-bar"><div class="preloader-fill"></div></div>
     </div>
 
@@ -77,9 +83,9 @@
     <nav class="navbar" id="navbar">
         <div class="logo magnetic-btn">Mimo<span class="accent">!</span></div>
         <ul class="nav-links" id="navLinks">
-            <li><a href="#carousel">Ofertas</a></li>
-            <li><a href="#products">Productos</a></li>
-            <li><a href="#contact">Contacto</a></li>
+            <li><a href="#carousel"><span class="nav-text">Ofertas</span><span class="nav-text">Ver Deal →</span></a></li>
+            <li><a href="#products"><span class="nav-text">Productos</span><span class="nav-text">Catálogo →</span></a></li>
+            <li><a href="#contact"><span class="nav-text">Contacto</span><span class="nav-text">Escribinos →</span></a></li>
         </ul>
         <div class="search-container" id="searchContainer">
             <button class="search-toggle magnetic-btn" id="searchToggle" aria-label="Buscar">
@@ -108,15 +114,16 @@
                 <span class="tag-line">⚡ La tienda del futuro</span>
             </div>
             <h1 class="split-title" id="heroTitle">El Futuro en tus Manos</h1>
-            <p class="reveal-text">Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con <strong>Mimo!</strong></p>
-            <a href="#carousel" class="cta-button magnetic-btn">
-                <span>Ver Ofertas 🔥</span>
-                <div class="btn-ripple"></div>
-            </a>
+            <p class="reveal-text" data-role="desc">Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con <strong>Mimo!</strong></p>
         </div>
         <div class="hero-visual">
             <div class="glow-orb orb1"></div>
             <div class="glow-orb orb2"></div>
+            <div class="hero-deco deco-circle-1"></div>
+            <div class="hero-deco deco-circle-2"></div>
+            <div class="hero-deco deco-dots"></div>
+            <div class="hero-deco deco-line"></div>
+            <div class="hero-deco deco-triangle"></div>
         </div>
         <!-- Scroll Indicator -->
         <div class="scroll-indicator">
@@ -153,13 +160,18 @@
 
     <!-- Big Outline Text -->
     <div class="outline-text-section" data-parallax="0.15">
+        <div class="outline-deco outline-deco-circle"></div>
+        <div class="outline-deco outline-deco-dots"></div>
+        <div class="outline-deco outline-deco-line"></div>
         <span class="outline-text">TECNOLOGÍA</span>
         <span class="outline-text filled">PREMIUM</span>
     </div>
 
     <!-- 3D Carousel - Ofertas / Más Vendidos -->
     <section id="carousel" class="carousel-section">
-        <h2 class="section-title reveal-text">🔥 Ofertas &amp; Más Vendidos</h2>
+        <div class="section-counter reveal-text"><span>//</span><span>OFERTAS</span><span>001</span></div>
+        <span class="section-label reveal-text">Ofertas destacadas</span>
+        <h2 class="section-title reveal-text" data-role="title">🔥 Ofertas &amp; Más Vendidos</h2>
         <div class="carousel-wrapper">
             <button class="carousel-btn prev magnetic-btn" id="prevBtn" aria-label="Anterior">❮</button>
             <div class="carousel-3d" id="carousel3d">
@@ -172,16 +184,18 @@
 
     <!-- Stats Section -->
     <section class="stats-section">
-        <div class="stat-card reveal-text">
+        <div class="section-counter reveal-text" style="justify-content:center;width:100%;margin-bottom:1rem"><span>//</span><span>NÚMEROS</span><span>003</span></div>
+        <div class="stat-card reveal-up">
             <span class="stat-number" data-target="5000">0</span><span class="stat-plus">+</span>
             <p>Productos Vendidos</p>
         </div>
-        <div class="stat-card reveal-text">
+        <span class="stat-sep">|</span>
+        <div class="stat-card reveal-up">
             <span class="stat-number" data-target="98">0</span><span class="stat-plus">%</span>
             <p>Clientes Satisfechos</p>
         </div>
-
-        <div class="stat-card reveal-text">
+        <span class="stat-sep">|</span>
+        <div class="stat-card reveal-up">
             <span class="stat-number" data-target="15">0</span><span class="stat-plus">+</span>
             <p>Marcas Asociadas</p>
         </div>
@@ -189,7 +203,9 @@
 
     <!-- Products Section -->
     <section id="products" class="products-section">
-        <h2 class="section-title reveal-text">Todos los Productos</h2>
+        <div class="section-counter reveal-text"><span>//</span><span>CATÁLOGO</span><span>002</span></div>
+        <span class="section-label reveal-text">Catálogo completo</span>
+        <h2 class="section-title reveal-text" data-role="title">Todos los Productos</h2>
 
         <div class="product-toolbar">
             <div class="filter-tabs" id="filterTabs">
@@ -250,6 +266,8 @@
     <footer id="contact">
         <div class="footer-content">
             <div class="footer-brand">
+                <div class="section-counter reveal-text"><span>//</span><span>CONTACTO</span><span>004</span></div>
+                <span class="section-label reveal-text">Contacto</span>
                 <h2 class="reveal-text">Mimo<span class="accent">!</span></h2>
                 <p class="reveal-text">Tu destino para la tecnología de mañana, hoy.</p>
             </div>
@@ -351,6 +369,31 @@
 
     <!-- Toast Notifications -->
     <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Mobile Bottom Navbar -->
+    <nav class="mobile-nav" id="mobileNav">
+        <a href="#home" class="mobile-nav-item active" data-section="home">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+            <span>Inicio</span>
+        </a>
+        <a href="#carousel" class="mobile-nav-item" data-section="carousel">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            <span>Ofertas</span>
+        </a>
+        <a href="#products" class="mobile-nav-item" data-section="products">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <span>Productos</span>
+        </a>
+        <a href="#contact" class="mobile-nav-item" data-section="contact">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span>Contacto</span>
+        </a>
+        <button class="mobile-nav-item mobile-cart-btn" id="mobileCartBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+            <span class="mobile-cart-count" id="mobileCartCount">0</span>
+            <span>Carrito</span>
+        </button>
+    </nav>
 
     <!-- Checkout Form Modal -->
     <div class="modal-overlay" id="checkoutModal">

@@ -23,7 +23,11 @@ window.showToast = showToast;
 document.addEventListener('DOMContentLoaded', () => {
     // ─── PRELOADER ──────────────────────────────────────────
     const preloader = document.getElementById('preloader');
-    setTimeout(() => { if (preloader) preloader.classList.add('done'); }, 2200);
+    const navbar = document.getElementById('navbar');
+    setTimeout(() => {
+        if (preloader) preloader.classList.add('done');
+        setTimeout(() => { if (navbar) navbar.classList.add('--active'); }, 110);
+    }, 2000);
 
     // ─── CUSTOM CURSOR ──────────────────────────────────────
     const dot = document.getElementById('cursorDot');
@@ -48,6 +52,11 @@ document.addEventListener('DOMContentLoaded', () => {
         el.addEventListener('mouseenter', () => ring.classList.add('hover'));
         el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
     });
+    // Card-specific hover (glow ring)
+    document.querySelectorAll('.product-card, .carousel-card').forEach(el => {
+        el.addEventListener('mouseenter', () => { ring.classList.remove('hover'); ring.classList.add('hover-card'); });
+        el.addEventListener('mouseleave', () => ring.classList.remove('hover-card'));
+    });
 
     // ─── SPLIT TITLE ANIMATION ──────────────────────────────
     const title = document.getElementById('heroTitle');
@@ -69,9 +78,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── REVEAL ON SCROLL ───────────────────────────────────
     const revealObs = new IntersectionObserver((entries) => {
-        entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('revealed'); revealObs.unobserve(e.target); } });
+        entries.forEach(e => {
+            if (e.isIntersecting) {
+                e.target.classList.add('revealed');
+                // Stagger siblings within same parent
+                const parent = e.target.parentElement;
+                if (parent) {
+                    const siblings = parent.querySelectorAll('.reveal-text:not(.revealed), .reveal-up:not(.revealed), .section-counter:not(.revealed)');
+                    siblings.forEach((sib, i) => {
+                        setTimeout(() => sib.classList.add('revealed'), i * 80);
+                    });
+                }
+                revealObs.unobserve(e.target);
+            }
+        });
     }, { threshold: 0.15 });
-    document.querySelectorAll('.reveal-text').forEach(el => revealObs.observe(el));
+    document.querySelectorAll('.reveal-text, .reveal-up, .section-counter').forEach(el => revealObs.observe(el));
 
     // ─── MAGNETIC BUTTONS ───────────────────────────────────
     document.querySelectorAll('.magnetic-btn').forEach(btn => {
@@ -82,25 +104,6 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.style.transform = `translate(${x * 0.2}px, ${y * 0.2}px)`;
         });
         btn.addEventListener('mouseleave', () => { btn.style.transform = ''; });
-    });
-
-    // ─── RIPPLE ON CTA ──────────────────────────────────────
-    document.querySelectorAll('.cta-button').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const ripple = btn.querySelector('.btn-ripple');
-            if (!ripple) return;
-            const r = btn.getBoundingClientRect();
-            ripple.style.left = (e.clientX - r.left) + 'px';
-            ripple.style.top = (e.clientY - r.top) + 'px';
-            ripple.style.width = ripple.style.height = '0px';
-            ripple.style.opacity = '1';
-            requestAnimationFrame(() => {
-                ripple.style.transition = 'width .6s, height .6s, opacity .6s';
-                ripple.style.width = ripple.style.height = '400px';
-                ripple.style.opacity = '0';
-            });
-            setTimeout(() => { ripple.style.transition = 'none'; }, 700);
-        });
     });
 
     // ─── CARD GLOW FOLLOW MOUSE ─────────────────────────────
@@ -137,7 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── PRODUCT DATABASE (Fase 3: Firebase) ────────
     let products = [];
 
-    function fmt(n) { const v = Number(n); return v % 1 === 0 ? v.toString() : v.toFixed(2); }
+    function fmt(n) { return Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
     // Safe offer-price getter: handles $0 correctly (unlike `offerVal(p)`)
     function offerVal(p) { return p.offerPrice != null ? p.offerPrice : p.price; }
     function hasOffer(p) { return p.offerPrice != null && p.offerPrice !== p.price; }
@@ -193,14 +196,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const pageProducts = filteredProducts.slice(0, end);
 
         grid.innerHTML = '';
-        pageProducts.forEach(p => {
+        pageProducts.forEach((p, idx) => {
             const hasDiscount = hasOffer(p);
             let priceHtml = hasDiscount 
                 ? `<p class="price"><span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span></p>`
                 : `<p class="price">$${fmt(offerVal(p))}</p>`;
                 
             grid.innerHTML += `
-            <div class="product-card tilt-card" data-category="${p.category}" data-id="${p.id}">
+            <div class="product-card tilt-card reveal-up" data-category="${p.category}" data-id="${p.id}" style="transition-delay:${Math.min(idx * .04, .3)}s">
                 <div class="card-glow"></div>
                 <div class="product-image"><img src="${p.image}" alt="${p.name}"></div>
                 <div class="product-info">
@@ -218,6 +221,8 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         initDynamicEvents();
+        // Observe newly added reveal-up elements
+        document.querySelectorAll('.reveal-up:not(.revealed), .section-counter:not(.revealed)').forEach(el => revealObs.observe(el));
     }
 
     function renderCarousel() {
@@ -276,22 +281,46 @@ document.addEventListener('DOMContentLoaded', () => {
     function initDynamicEvents() {
         document.querySelectorAll('.tilt-card').forEach(card => {
             const glow = card.querySelector('.card-glow');
+            const img = card.querySelector('.product-image img');
+            const info = card.querySelector('.product-info');
             card.addEventListener('mousemove', e => {
                 const r = card.getBoundingClientRect();
                 const x = e.clientX - r.left;
                 const y = e.clientY - r.top;
-                if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
                 const cx2 = r.width / 2, cy2 = r.height / 2;
+                if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
+                // 3D tilt
                 const rotX = ((y - cy2) / cy2) * -4;
                 const rotY = ((x - cx2) / cx2) * 4;
                 card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-5px)`;
+                // Image parallax
+                const px = (x - cx2) / cx2;
+                const py = (y - cy2) / cy2;
+                if (img) {
+                    card.style.setProperty('--img-x', `${px * 10}px`);
+                    card.style.setProperty('--img-y', `${py * 6}px`);
+                }
+                if (info) {
+                    card.style.setProperty('--info-x', `${px * 4}`);
+                    card.style.setProperty('--info-y', `${py * 3}`);
+                }
             });
-            card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+                card.style.setProperty('--img-x', '0px');
+                card.style.setProperty('--img-y', '0px');
+                card.style.setProperty('--info-x', '0');
+                card.style.setProperty('--info-y', '0');
+            });
         });
         
         document.querySelectorAll('a, button, .product-card, .carousel-card, .filter-tab, .cart-btn').forEach(el => {
             el.addEventListener('mouseenter', () => ring.classList.add('hover'));
             el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
+        });
+        document.querySelectorAll('.product-card, .carousel-card').forEach(el => {
+            el.addEventListener('mouseenter', () => { ring.classList.remove('hover'); ring.classList.add('hover-card'); });
+            el.addEventListener('mouseleave', () => ring.classList.remove('hover-card'));
         });
     }
 
@@ -458,7 +487,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     zIndex = 0;
                 }
 
-                card.style.transition = smooth ? 'transform .6s cubic-bezier(.25,1,.5,1), opacity .6s ease' : 'none';
+                card.style.transition = smooth ? 'transform .6s cubic-bezier(.25,1,.5,1), opacity .6s cubic-bezier(.44,0,0,1)' : 'none';
                 card.style.transform = transform;
                 card.style.opacity = opacity;
                 card.style.zIndex = zIndex;
@@ -1056,24 +1085,6 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch(e) { console.error('Error al hacer clic en tarjeta:', e); }
         });
     }
-
-    function initDynamicEvents() {
-        document.querySelectorAll('.tilt-card').forEach(card => {
-            const glow = card.querySelector('.card-glow');
-            card.addEventListener('mousemove', e => {
-                const r = card.getBoundingClientRect();
-                const x = e.clientX - r.left;
-                const y = e.clientY - r.top;
-                if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
-                const cx2 = r.width / 2, cy2 = r.height / 2;
-                const rotX = ((y - cy2) / cy2) * -4;
-                const rotY = ((x - cx2) / cx2) * 4;
-                card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-5px)`;
-            });
-            card.addEventListener('mouseleave', () => { card.style.transform = ''; });
-        });
-    }
-    initDynamicEvents();
     // ─── SEARCH BAR LOGIC ───────────────────────────────────
     const searchToggle = document.getElementById('searchToggle');
     const searchDropdown = document.getElementById('searchDropdown');
@@ -1137,7 +1148,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ─── NAVBAR HIDE/SHOW ON SCROLL ─────────────────────────
-    const navbar = document.getElementById('navbar');
     let lastSY = 0;
     window.addEventListener('scroll', () => {
         const sy = window.scrollY;
@@ -1148,6 +1158,51 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         lastSY = sy;
     });
+
+    // ─── SMOOTH SCROLL OFFSET (navbar fixed) ─────────────────
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function(e) {
+            const target = document.querySelector(this.getAttribute('href'));
+            if (!target) return;
+            e.preventDefault();
+            const offset = window.innerWidth < 768 ? 80 : 70;
+            const top = target.getBoundingClientRect().top + window.scrollY - offset;
+            window.scrollTo({ top, behavior: 'smooth' });
+        });
+    });
+
+    // ─── MOBILE BOTTOM NAVBAR ────────────────────────────────
+    const mobileNav = document.getElementById('mobileNav');
+    const mobileCartBtn = document.getElementById('mobileCartBtn');
+    const mobileCartCount = document.getElementById('mobileCartCount');
+    if (mobileCartBtn) {
+        mobileCartBtn.addEventListener('click', () => {
+            document.getElementById('cartSidebar').classList.add('active');
+            document.getElementById('cartOverlay').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    // Active section tracking for mobile nav
+    function updateMobileNav() {
+        if (!mobileNav) return;
+        const sections = ['home', 'carousel', 'products', 'contact'];
+        const scrollY = window.scrollY + 150;
+        let current = 'home';
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el && el.offsetTop <= scrollY) current = id;
+        });
+        mobileNav.querySelectorAll('.mobile-nav-item').forEach(item => {
+            item.classList.toggle('active', item.dataset.section === current);
+        });
+    }
+    window.addEventListener('scroll', updateMobileNav);
+    // Sync mobile cart count
+    const origRenderCart = renderCart;
+    renderCart = function() {
+        origRenderCart();
+        if (mobileCartCount) mobileCartCount.textContent = document.getElementById('cartCount')?.textContent || '0';
+    };
 
     // ─── ANIMATED STAT COUNTERS ──────────────────────────────
     const statNums = document.querySelectorAll('.stat-number');
@@ -1195,88 +1250,169 @@ const st = document.createElement('style');
 st.textContent = `@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}`;
 document.head.appendChild(st);
 
-// ─── INTERACTIVE BACKGROUND ─────────────────────────────
+// ─── INTERACTIVE BACKGROUND (HEX + NEBULA) ─────────────────
 (function () {
     const canvas = document.getElementById('bgCanvas');
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     let w, h, mx = -1000, my = -1000;
     let s, draw_s, dx, dy;
+    const isMobile = () => w < 768;
 
-    function resize() { 
-        w = canvas.width = innerWidth; 
-        h = canvas.height = innerHeight; 
-        // Fit roughly 4.5 hexagons across the screen width (Massive size)
+    function resizeGrid() {
+        w = canvas.width = innerWidth;
+        h = canvas.height = innerHeight;
         dx = w / 4.5;
-        // The width of a hexagon is dx, so s = dx / sqrt(3)
         s = dx / Math.sqrt(3);
-        // Smaller draw_s to leave gaps so they don't touch
-        draw_s = s * 0.75; 
+        draw_s = s * 0.75;
         dy = s * 1.5;
     }
-    resize(); addEventListener('resize', resize);
-    
-    // Add touch support for mobile
+    resizeGrid();
+    addEventListener('resize', () => { resizeGrid(); initParticles(); initClouds(); });
+
     document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
-    document.addEventListener('touchstart', e => { mx = e.touches[0].clientX; my = e.touches[0].clientY; }, {passive: true});
-    document.addEventListener('touchmove', e => { mx = e.touches[0].clientX; my = e.touches[0].clientY; }, {passive: true});
-    document.addEventListener('touchend', e => { mx = -1000; my = -1000; }, {passive: true});
+    document.addEventListener('touchstart', e => { mx = e.touches[0].clientX; my = e.touches[0].clientY; }, {passive:true});
+    document.addEventListener('touchmove', e => { mx = e.touches[0].clientX; my = e.touches[0].clientY; }, {passive:true});
+    document.addEventListener('touchend', () => { mx = -1000; my = -1000; }, {passive:true});
+
+    // ── Nebula clouds ──
+    const clouds = [];
+    function initClouds() {
+        clouds.length = 0;
+        const count = isMobile() ? 2 : 4;
+        for (let i = 0; i < count; i++) {
+            clouds.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                r: 80 + Math.random() * 120,
+                vx: (Math.random() - 0.5) * 0.03,
+                vy: (Math.random() - 0.5) * 0.02,
+                color: i % 2 === 0 ? '0,240,255' : '138,43,226',
+                alpha: 0.012 + Math.random() * 0.008
+            });
+        }
+    }
+
+    // ── Particles ──
+    const particles = [];
+    function initParticles() {
+        particles.length = 0;
+        const count = isMobile() ? 80 : 160;
+        for (let i = 0; i < count; i++) {
+            const r = Math.random();
+            const color = r < 0.6 ? '255,255,255' : r < 0.85 ? '0,240,255' : '138,43,226';
+            particles.push({
+                x: Math.random() * w,
+                y: Math.random() * h,
+                vx: (Math.random() - 0.5) * 0.25,
+                vy: (Math.random() - 0.5) * 0.2,
+                size: 0.4 + Math.random() * 2,
+                baseOpacity: 0.15 + Math.random() * 0.6,
+                opacity: 0,
+                twinkleSpeed: 0.005 + Math.random() * 0.015,
+                twinklePhase: Math.random() * Math.PI * 2,
+                color,
+                glowSize: Math.random() > 0.8 ? 2 + Math.random() * 3 : 0
+            });
+        }
+    }
+    initClouds();
+    initParticles();
+
+    let time = 0;
 
     function anim() {
         ctx.clearRect(0, 0, w, h);
-        
-        // No background glow, just empty space
+        time++;
 
+        // 1. Nebula clouds (farthest back)
+        for (let i = 0; i < clouds.length; i++) {
+            const c = clouds[i];
+            c.x += c.vx;
+            c.y += c.vy;
+            if (c.x < -c.r) c.x = w + c.r;
+            if (c.x > w + c.r) c.x = -c.r;
+            if (c.y < -c.r) c.y = h + c.r;
+            if (c.y > h + c.r) c.y = -c.r;
+            const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.r);
+            grad.addColorStop(0, 'rgba(' + c.color + ',' + c.alpha + ')');
+            grad.addColorStop(1, 'rgba(' + c.color + ',0)');
+            ctx.fillStyle = grad;
+            ctx.fillRect(c.x - c.r, c.y - c.r, c.r * 2, c.r * 2);
+        }
+
+        // 2. Hex grid
         const cols = Math.ceil(w / dx) + 1;
         const rows = Math.ceil(h / dy) + 1;
-
         ctx.beginPath();
         for (let row = -1; row <= rows; row++) {
             for (let col = -1; col <= cols; col++) {
                 let x = col * dx;
                 let y = row * dy;
-                // Shift every other row to create the interlocking hex pattern
                 if (Math.abs(row) % 2 === 1) x += dx / 2;
-                
-                // Draw rounded hexagon
                 for (let i = 0; i < 6; i++) {
                     const a0 = Math.PI / 3 * (i - 1) - Math.PI / 6;
                     const a1 = Math.PI / 3 * i - Math.PI / 6;
                     const a2 = Math.PI / 3 * (i + 1) - Math.PI / 6;
-                    
                     const p0x = x + draw_s * Math.cos(a0);
                     const p0y = y + draw_s * Math.sin(a0);
                     const p1x = x + draw_s * Math.cos(a1);
                     const p1y = y + draw_s * Math.sin(a1);
                     const p2x = x + draw_s * Math.cos(a2);
                     const p2y = y + draw_s * Math.sin(a2);
-                    
-                    if (i === 0) {
-                        ctx.moveTo((p0x + p1x) / 2, (p0y + p1y) / 2);
-                    }
-                    // arcTo creates the rounded corners perfectly
+                    if (i === 0) ctx.moveTo((p0x + p1x) / 2, (p0y + p1y) / 2);
                     ctx.arcTo(p1x, p1y, p2x, p2y, draw_s * 0.15);
                 }
                 ctx.closePath();
             }
         }
-        
-        // 1. Draw base grid (very dim, empty interior)
-        ctx.strokeStyle = 'rgba(0, 240, 255, 0.05)';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = 'rgba(0,240,255,0.04)';
+        ctx.lineWidth = 1;
         ctx.stroke();
 
-        // 2. Draw the "circuit electricity" effect
-        // A radial gradient that only lights up paths near the mouse
-        const R = w < 768 ? Math.min(100, w * 0.25) : Math.min(180, w * 0.4); // Dynamic radius for mobile
-        const grad = ctx.createRadialGradient(mx, my, 0, mx, my, R);
-        grad.addColorStop(0, 'rgba(0, 240, 255, 1)');      // Bright center
-        grad.addColorStop(0.3, 'rgba(0, 240, 255, 0.8)');
-        grad.addColorStop(1, 'rgba(0, 240, 255, 0)');      // Fades out completely
-        
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 3; // Make the lit part slightly thicker for a glowing wire effect
+        // 3. Mouse glow on hex grid
+        const R = isMobile() ? Math.min(100, w * 0.25) : Math.min(180, w * 0.4);
+        const mGrad = ctx.createRadialGradient(mx, my, 0, mx, my, R);
+        mGrad.addColorStop(0, 'rgba(0,240,255,0.8)');
+        mGrad.addColorStop(0.3, 'rgba(0,240,255,0.4)');
+        mGrad.addColorStop(1, 'rgba(0,240,255,0)');
+        ctx.strokeStyle = mGrad;
+        ctx.lineWidth = 2.5;
         ctx.stroke();
+
+        // 4. Particles (front)
+        for (let i = 0; i < particles.length; i++) {
+            const p = particles[i];
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < -5) p.x = w + 5;
+            if (p.x > w + 5) p.x = -5;
+            if (p.y < -5) p.y = h + 5;
+            if (p.y > h + 5) p.y = -5;
+            p.opacity = p.baseOpacity + Math.sin(time * p.twinkleSpeed + p.twinklePhase) * 0.3;
+            if (p.opacity < 0.05) p.opacity = 0.05;
+            if (p.opacity > 1) p.opacity = 1;
+            const dxm = p.x - mx;
+            const dym = p.y - my;
+            const dist = Math.sqrt(dxm * dxm + dym * dym);
+            if (dist < 150) {
+                const boost = (1 - dist / 150) * 0.3;
+                if (p.opacity + boost > 1) p.opacity = 1; else p.opacity += boost;
+            }
+            if (p.glowSize > 0 && p.opacity > 0.3) {
+                const gGrad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.glowSize * 2);
+                gGrad.addColorStop(0, 'rgba(' + p.color + ',' + (p.opacity * 0.3) + ')');
+                gGrad.addColorStop(1, 'rgba(' + p.color + ',0)');
+                ctx.fillStyle = gGrad;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.glowSize * 2, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+            ctx.fillStyle = 'rgba(' + p.color + ',' + p.opacity + ')';
+            ctx.fill();
+        }
 
         requestAnimationFrame(anim);
     }
