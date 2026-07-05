@@ -1639,13 +1639,68 @@ document.head.appendChild(st);
     scene.add(rimLight);
 
     // ── Materials ──
-    const darkMat = new THREE.MeshStandardMaterial({ 
-        color: 0x0c0e16, 
-        metalness: 0.9, 
+    const tvFrameMat = new THREE.MeshPhysicalMaterial({ 
+        color: 0x181a22, 
+        metalness: 0.95, 
         roughness: 0.15,
         clearcoat: 1.0,
         clearcoatRoughness: 0.1
     });
+
+    const tvScreenMat = new THREE.MeshPhysicalMaterial({
+        color: 0x050c18,
+        metalness: 0.1,
+        roughness: 0.05,
+        transmission: 0.45,
+        thickness: 0.5,
+        emissive: 0x00f0ff,
+        emissiveIntensity: 0.35,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05
+    });
+
+    const cabinetMat = new THREE.MeshPhysicalMaterial({
+        color: 0x0f1118,
+        metalness: 0.8,
+        roughness: 0.35,
+        clearcoat: 0.5,
+        clearcoatRoughness: 0.2
+    });
+
+    const goldMat = new THREE.MeshPhysicalMaterial({
+        color: 0xd4af37, // premium metallic gold
+        metalness: 1.0,
+        roughness: 0.12,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.05
+    });
+
+    const glassTopMat = new THREE.MeshPhysicalMaterial({
+        color: 0x05070a,
+        metalness: 0.9,
+        roughness: 0.05,
+        clearcoat: 1.0
+    });
+
+    const phoneChassisMat = new THREE.MeshPhysicalMaterial({
+        color: 0x222633, // premium dark aluminum
+        metalness: 0.95,
+        roughness: 0.2,
+        clearcoat: 1.0
+    });
+
+    const phoneScreenMat = new THREE.MeshPhysicalMaterial({
+        color: 0x04060c,
+        metalness: 0.1,
+        roughness: 0.03,
+        transmission: 0.6,
+        thickness: 0.4,
+        emissive: 0x8a2be2,
+        emissiveIntensity: 0.4,
+        clearcoat: 1.0,
+        clearcoatRoughness: 0.02
+    });
+
     const cyanEdge = new THREE.MeshStandardMaterial({ 
         color: 0x00f0ff, 
         emissive: 0x00f0ff, 
@@ -1653,62 +1708,49 @@ document.head.appendChild(st);
         metalness: 0.9, 
         roughness: 0.1 
     });
-    const screenMat = new THREE.MeshStandardMaterial({ 
-        color: 0x050e18, 
-        metalness: 0.9, 
-        roughness: 0.1, 
-        emissive: 0x00f0ff, 
-        emissiveIntensity: 0.3 
-    });
-    const phoneScreenMat = new THREE.MeshStandardMaterial({ 
-        color: 0x070b15, 
-        metalness: 0.95, 
-        roughness: 0.05, 
-        emissive: 0x8a2be2, 
-        emissiveIntensity: 0.35 
-    });
 
-    // ── TV Object (Televisor Premium) ──
+    // ── TV Object (Televisor Curved OLED Premium) ──
     const tvGroup = new THREE.Group();
     
-    // Main frame chassis
-    const tvBody = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.7, 0.15), darkMat);
+    // Curved back chassis housing
+    const tvBody = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.7, 0.15), tvFrameMat);
     tvGroup.add(tvBody);
     
-    // Glossy screen
-    const tvScreen = new THREE.Mesh(new THREE.PlaneGeometry(4.18, 2.48), screenMat);
-    tvScreen.position.z = 0.08;
+    // Glossy OLED curved screen
+    const tvScreen = new THREE.Mesh(new THREE.BoxGeometry(4.28, 2.58, 0.05), tvScreenMat);
+    tvScreen.position.z = 0.07;
     tvGroup.add(tvScreen);
     
-    // Slim glowing bezel frame
-    const bezelGeom = new THREE.BoxGeometry(4.42, 2.72, 0.16);
-    const bezelEdge = new THREE.Mesh(new THREE.EdgesGeometry(bezelGeom), new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.5 }));
-    tvGroup.add(bezelEdge);
+    // Chrome bezels
+    const bezelGeom = new THREE.BoxGeometry(4.34, 2.64, 0.08);
+    const bezel = new THREE.Mesh(new THREE.EdgesGeometry(bezelGeom), new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.55 }));
+    tvGroup.add(bezel);
     
-    // Double designer metal feet stand
-    const footL = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.7), darkMat);
-    footL.position.set(-1.6, -1.5, 0);
-    footL.rotation.z = -0.15;
-    const footR = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.7), darkMat);
-    footR.position.set(1.6, -1.5, 0);
-    footR.rotation.z = 0.15;
-    tvGroup.add(footL);
-    tvGroup.add(footR);
+    // Premium Arc stand
+    const standArcGeom = new THREE.TorusGeometry(0.8, 0.05, 8, 32, Math.PI);
+    const standArc = new THREE.Mesh(standArcGeom, tvFrameMat);
+    standArc.position.set(0, -1.3, 0);
+    standArc.rotation.x = Math.PI / 2;
+    tvGroup.add(standArc);
+    
+    const standColumn = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 0.4, 16), tvFrameMat);
+    standColumn.position.set(0, -1.4, 0);
+    tvGroup.add(standColumn);
     
     // Power LED dot indicator
-    const led = new THREE.Mesh(new THREE.SphereGeometry(0.025, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
-    led.position.set(0, -1.32, 0.09);
+    const led = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+    led.position.set(0, -1.28, 0.1);
     tvGroup.add(led);
     
-    // Ambient Backlight Glow
-    const backGlow = new THREE.Mesh(new THREE.PlaneGeometry(4.8, 3.0), new THREE.MeshBasicMaterial({
+    // Ambient Backlight Glow behind TV
+    const backGlow = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 3.2), new THREE.MeshBasicMaterial({
         color: 0x00a8ff,
         transparent: true,
-        opacity: 0.18,
+        opacity: 0.2,
         blending: THREE.AdditiveBlending,
         side: THREE.DoubleSide
     }));
-    backGlow.position.z = -0.1;
+    backGlow.position.z = -0.15;
     tvGroup.add(backGlow);
     
     tvGroup.visible = false;
@@ -1718,72 +1760,94 @@ document.head.appendChild(st);
     const speakerGroup = new THREE.Group();
     
     // Cylindrical main mesh-textured cabinet
-    const spkBody = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.95, 3.0, 32), darkMat);
+    const spkBody = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.9, 3.0, 32), cabinetMat);
     speakerGroup.add(spkBody);
     
-    // Metallic chrome rings
-    const spkRing1 = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.03, 8, 32), cyanEdge);
+    // Premium Gold highlight rings
+    const spkRing1 = new THREE.Mesh(new THREE.TorusGeometry(0.87, 0.03, 8, 32), goldMat);
     spkRing1.rotation.x = Math.PI / 2;
     spkRing1.position.y = 1.2;
     speakerGroup.add(spkRing1);
     
-    const spkRing2 = new THREE.Mesh(new THREE.TorusGeometry(0.92, 0.03, 8, 32), cyanEdge);
+    const spkRing2 = new THREE.Mesh(new THREE.TorusGeometry(0.87, 0.03, 8, 32), goldMat);
     spkRing2.rotation.x = Math.PI / 2;
     spkRing2.position.y = -1.2;
     speakerGroup.add(spkRing2);
     
+    // Reflective glass top touch controls
+    const spkTop = new THREE.Mesh(new THREE.CylinderGeometry(0.83, 0.83, 0.05, 32), glassTopMat);
+    spkTop.position.y = 1.5;
+    speakerGroup.add(spkTop);
+    
+    // Glowing LED rainbow ring at the top
+    const spkLedRing = new THREE.Mesh(new THREE.TorusGeometry(0.76, 0.025, 8, 64), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+    spkLedRing.rotation.x = Math.PI / 2;
+    spkLedRing.position.y = 1.53;
+    speakerGroup.add(spkLedRing);
+    
     // Active front-facing bass driver / diaphragm
     const bassDriver = new THREE.Group();
-    const spkCone = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.5, 0.15, 32), new THREE.MeshStandardMaterial({
-        color: 0x121622,
-        metalness: 0.6,
-        roughness: 0.8
+    const spkCone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.45, 0.15, 32), new THREE.MeshStandardMaterial({
+        color: 0x1a2128,
+        metalness: 0.7,
+        roughness: 0.6
     }));
     spkCone.rotation.x = Math.PI / 2;
     bassDriver.add(spkCone);
     
-    // Central phase plug core dome
-    const spkDome = new THREE.Mesh(new THREE.SphereGeometry(0.24, 16, 16), cyanEdge);
-    spkDome.position.z = 0.08;
+    // Central copper/gold core dome
+    const spkDome = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), goldMat);
+    spkDome.position.z = 0.07;
     bassDriver.add(spkDome);
-    bassDriver.position.set(0, 0.2, 0.8);
+    bassDriver.position.set(0, 0.2, 0.78);
     speakerGroup.add(bassDriver);
     
-    // Glowing LED halo top control panel
-    const spkLedRing = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.03, 8, 32), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
-    spkLedRing.rotation.x = Math.PI / 2;
-    spkLedRing.position.y = 1.51;
-    speakerGroup.add(spkLedRing);
+    // Side passive bass radiators (Left and Right gold details)
+    const radiatorL = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 16), goldMat);
+    radiatorL.rotation.z = Math.PI / 2;
+    radiatorL.position.set(-0.86, -0.3, 0);
+    speakerGroup.add(radiatorL);
+    
+    const radiatorR = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 16), goldMat);
+    radiatorR.rotation.z = Math.PI / 2;
+    radiatorR.position.set(0.86, -0.3, 0);
+    speakerGroup.add(radiatorR);
     
     speakerGroup.visible = false;
     scene.add(speakerGroup);
 
-    // ── Phone Object (Smartphone Futurista) ──
+    // ── Phone Object (Smartphone Premium / Celular) ──
     const phoneGroup = new THREE.Group();
     
-    // Beveled frame chassis
-    const phBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3.8, 0.16), darkMat);
+    // Beveled aluminum frame chassis
+    const phBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3.8, 0.16), phoneChassisMat);
     phoneGroup.add(phBody);
     
-    // Holographic borderless screen
-    const phScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.68, 3.68), phoneScreenMat);
-    phScreen.position.z = 0.09;
+    // Holographic borderless physical screen
+    const phScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.72, 3.72), phoneScreenMat);
+    phScreen.position.z = 0.085;
     phoneGroup.add(phScreen);
     
     // Outer neon edge glow line
-    const phEdge = new THREE.Mesh(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.8, 3.8, 0.16)), new THREE.LineBasicMaterial({ color: 0x8a2be2, transparent: true, opacity: 0.5 }));
+    const phEdge = new THREE.Mesh(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.8, 3.8, 0.16)), new THREE.LineBasicMaterial({ color: 0x8a2be2, transparent: true, opacity: 0.55 }));
     phoneGroup.add(phEdge);
     
     // Camera module mount on the back
-    const camModule = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.2, 0.06), darkMat);
+    const camModule = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.2, 0.06), glassTopMat);
     camModule.position.set(0.4, 1.1, -0.09);
     phoneGroup.add(camModule);
     
-    // Triple premium camera rings
+    // Triple premium camera rings (gold borders + dark glass lenses)
     for (let i = 0; i < 3; i++) {
-        const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 0.05, 16), cyanEdge);
+        // Gold lens rings
+        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 32), goldMat);
+        ring.position.set(0.4, 1.4 - i * 0.3, -0.11);
+        phoneGroup.add(ring);
+        
+        // Dark glass lenses
+        const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.04, 16), glassTopMat);
         lens.rotation.x = Math.PI / 2;
-        lens.position.set(0.4, 1.4 - i * 0.3, -0.11);
+        lens.position.set(0.4, 1.4 - i * 0.3, -0.1);
         phoneGroup.add(lens);
     }
     
@@ -1814,7 +1878,6 @@ document.head.appendChild(st);
     const labels = document.querySelectorAll('.showcase-label');
 
     // ── Initial State Setup ──
-    // Load the first object immediately so the page does not look blank on load
     let currentIdx = 0;
     let progress = 0;
     objects[0].visible = true;
@@ -1830,13 +1893,17 @@ document.head.appendChild(st);
             scrub: 0.5,
             onUpdate: (self) => {
                 progress = self.progress;
-                const idx = Math.min(Math.floor(progress * 3), 2);
+                
+                // Nuevos rangos de scroll optimizados para darle más espacio al televisor al inicio
+                let idx = 0;
+                if (progress > 0.38) idx = 1;
+                if (progress > 0.72) idx = 2;
 
                 if (idx !== currentIdx) {
                     const prevIdx = currentIdx;
                     currentIdx = idx;
 
-                    // Fade out previous object
+                    // Desvanecer objeto anterior
                     if (prevIdx >= 0 && prevIdx < 3) {
                         gsap.to(objects[prevIdx].scale, { 
                             x: 0, y: 0, z: 0, 
@@ -1847,7 +1914,7 @@ document.head.appendChild(st);
                         if (labels[prevIdx]) labels[prevIdx].classList.remove('active');
                     }
                     
-                    // Fade in current object
+                    // Mostrar objeto actual
                     objects[currentIdx].visible = true;
                     objects[currentIdx].scale.set(0, 0, 0);
                     gsap.to(objects[currentIdx].scale, { 
@@ -1859,17 +1926,26 @@ document.head.appendChild(st);
                     if (labels[currentIdx]) labels[currentIdx].classList.add('active');
                 }
 
-                // Rotación continua fluida basada en el scroll
-                const localProgress = (progress * 3) % 1;
+                // Calcular progreso local escalado para cada segmento para una rotación perfecta
+                let localProgress = 0;
+                if (idx === 0) {
+                    localProgress = progress / 0.38;
+                } else if (idx === 1) {
+                    localProgress = (progress - 0.38) / 0.34;
+                } else {
+                    localProgress = (progress - 0.72) / 0.28;
+                }
+
+                // Rotación continua fluida basada en el scroll local
                 objects.forEach((obj, i) => {
                     if (obj.visible) {
                         obj.rotation.y = localProgress * Math.PI * 2;
-                        // Efecto de inclinación sutil al escrolear
+                        // Efecto de inclinación 3D al escrolear
                         obj.rotation.x = Math.sin(localProgress * Math.PI) * 0.15;
                     }
                 });
 
-                // Ambient lighting movement based on scroll progress
+                // Movimiento de luz según el progreso
                 cyanLight.position.x = Math.sin(progress * Math.PI * 2) * 4;
                 cyanLight.position.y = Math.cos(progress * Math.PI * 2) * 2;
             }
@@ -1882,14 +1958,20 @@ document.head.appendChild(st);
         requestAnimationFrame(animate);
         time++;
 
-        // Flotación tridimensional y rotación de partículas
+        // Rotación lenta de partículas
         particleSystem.rotation.y = time * 0.0004;
         particleSystem.rotation.x = time * 0.0002;
 
-        // Micro-animación premium: Latido de subwoofer en el parlante
+        // Vibración de subwoofer del parlante
         if (speakerGroup.visible) {
-            const beatScale = 1.0 + Math.sin(time * 0.15) * 0.04;
+            const beatScale = 1.0 + Math.sin(time * 0.18) * 0.035;
             bassDriver.scale.set(beatScale, beatScale, 1.0);
+        }
+
+        // Rotación de tono del anillo LED superior del parlante
+        if (speakerGroup.visible && spkLedRing) {
+            const hue = (time * 0.5) % 360;
+            spkLedRing.material.color.setHSL(hue / 360, 1, 0.5);
         }
 
         // Flotación lenta y natural para los objetos activos
