@@ -1950,10 +1950,10 @@ document.head.appendChild(st);
         g.visible = false; return g;
     }
 
-    const FLOAT_Y = -0.3;
-    const tvGroup = createTV(); tvGroup.userData.baseY = FLOAT_Y; scene.add(tvGroup);
-    const speakerGroup = createSpeaker(); speakerGroup.userData.baseY = FLOAT_Y; scene.add(speakerGroup);
-    const phoneGroup = createPhone(); phoneGroup.userData.baseY = FLOAT_Y; scene.add(phoneGroup);
+    const FLOAT_Y = { tv: -0.3, speaker: 0.4, phone: 0.4 };
+    const tvGroup = createTV(); tvGroup.userData.baseY = FLOAT_Y.tv; scene.add(tvGroup);
+    const speakerGroup = createSpeaker(); speakerGroup.userData.baseY = FLOAT_Y.speaker; scene.add(speakerGroup);
+    const phoneGroup = createPhone(); phoneGroup.userData.baseY = FLOAT_Y.phone; scene.add(phoneGroup);
     applyModel('tv', tvGroup); applyModel('speaker', speakerGroup); applyModel('phone', phoneGroup);
 
     // ── Background Digital Particle Field (Polvo Cyber) ──
