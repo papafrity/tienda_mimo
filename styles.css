@@ -125,13 +125,20 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 
 /* Gradient Section Transitions */
 .navbar::after{content:'';position:absolute;bottom:-80px;left:0;width:100%;height:80px;background:linear-gradient(to bottom,rgba(5,5,5,.75),transparent);pointer-events:none}
-.carousel-section::before,.products-section::before{content:'';position:absolute;top:0;left:0;width:100%;height:100px;background:linear-gradient(to bottom,var(--bg-color),transparent);pointer-events:none;z-index:1}
+.carousel-section::before,.products-section::before{content:'';position:absolute;top:0;left:0;width:100%;height:160px;background:linear-gradient(to bottom,var(--bg-color),transparent);pointer-events:none;z-index:1}
 .stats-section::after{content:'';position:absolute;bottom:0;left:0;width:100%;height:80px;background:linear-gradient(to top,var(--bg-color),transparent);pointer-events:none;z-index:1}
+
+/* ─── SMOOTH SCROLL WRAPPER + SCROLL GRADIENT ──────────── */
+#smooth-wrapper{overflow:hidden;position:relative}
+#smooth-content{will-change:transform}
+#bgGradient{position:fixed;inset:0;z-index:-1;pointer-events:none;background:linear-gradient(180deg,#050507 0%,#0a0e1a 100%)}
 
 /* ─── SHOWCASE 3D ───────────────────────────────────────── */
 .showcase-3d{position:relative;height:450vh;background:transparent;z-index:1}
-.showcase-canvas{position:sticky;top:0;left:0;width:100%;height:100vh;display:block;z-index:1}
-.showcase-labels{position:sticky;top:0;left:0;width:100%;height:100vh;pointer-events:none;z-index:2;display:flex;align-items:center;justify-content:flex-start;padding:0 8%}
+.showcase-pin{position:relative;height:100vh;width:100%;overflow:hidden}
+.showcase-pin::after{content:'';position:absolute;left:0;bottom:0;width:100%;height:25vh;background:linear-gradient(to bottom,transparent,var(--bg-color));z-index:3;pointer-events:none}
+.showcase-canvas{position:absolute;top:0;left:0;width:100%;height:100%;display:block;z-index:1}
+.showcase-labels{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:2;display:flex;align-items:center;justify-content:flex-start;padding:0 8%}
 .showcase-label{position:absolute;left:8%;max-width:380px;opacity:0;transform:translateY(40px);transition:opacity .6s var(--ease-out-expo),transform .6s var(--ease-out-expo); text-align: left;}
 .showcase-label .section-label {text-align: left;}
 .showcase-label .section-counter {justify-content: flex-start;}
@@ -252,12 +259,15 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .product-card:hover .card-glow{opacity:1}
 .product-card:hover{transform:translateY(-4px) scale(1.015);border-color:rgba(0,240,255,.15);box-shadow:0 0 30px rgba(0,240,255,.06),0 15px 35px rgba(0,0,0,.4)}
 .product-image{width:100%;height:230px;border-radius:16px;margin-bottom:1.2rem;overflow:hidden;background:#111;display:flex;align-items:center;justify-content:center;position:relative;z-index:1}
-.product-info{position:relative;z-index:1}
+.product-info{position:relative;z-index:1;display:flex;flex-direction:column;flex:1}
 .product-info .category{font-size:.8rem;color:var(--accent-color);text-transform:uppercase;letter-spacing:2px;font-weight:600}
 .product-info h3{font-size:1.3rem;margin:.4rem 0;font-weight:600}
 .product-info .price{font-size:1.2rem;color:var(--text-secondary);margin-bottom:1.2rem}
 .add-to-cart{width:100%;padding:.9rem;background:transparent;border:1px solid var(--surface-border);color:var(--text-primary);border-radius:12px;font-size:.95rem;font-weight:600;cursor:none;transition:all var(--transition-base);margin-top:auto;font-family:'Outfit',sans-serif;position:relative;z-index:1}
 .add-to-cart:hover,.product-card:hover .add-to-cart{background:var(--gradient-glow);border-color:transparent;color:#000}
+.add-to-cart.added{background:var(--gradient-glow) !important;border-color:transparent !important;color:#000 !important;animation:addedPulse .35s ease}
+@keyframes addedPulse{0%{transform:scale(1)}50%{transform:scale(1.04)}100%{transform:scale(1)}}
+.fly-to-cart{position:fixed;z-index:9999;pointer-events:none;border-radius:12px;object-fit:cover;box-shadow:0 0 25px rgba(0,240,255,.5)}
 
 /* MODAL */
 .modal-overlay{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.85);backdrop-filter:blur(12px);z-index:2000;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity .4s ease}
@@ -418,8 +428,9 @@ body{padding-bottom:70px}
 }
 
 .cart-count.bump {
-    transform: scale(1.3);
+    animation: countPop .4s ease;
 }
+@keyframes countPop{0%{transform:scale(1)}40%{transform:scale(1.5);box-shadow:0 0 18px var(--accent-color)}100%{transform:scale(1)}}
 
 .cart-overlay {
     position: fixed;

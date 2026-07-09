@@ -79,6 +79,9 @@
     <!-- Interactive Background Canvas -->
     <canvas id="bgCanvas"></canvas>
 
+    <!-- Scroll-linked Background Gradient -->
+    <div id="bgGradient"></div>
+
     <!-- Navbar -->
     <nav class="navbar" id="navbar">
         <div class="logo magnetic-btn">Mimo<span class="accent">!</span></div>
@@ -107,6 +110,9 @@
         </button>
     </nav>
 
+    <div id="smooth-wrapper">
+    <div id="smooth-content">
+
     <!-- Hero Section -->
     <header id="home" class="hero">
         <div class="hero-content">
@@ -117,13 +123,13 @@
             <p class="reveal-text" data-role="desc">Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con <strong>Mimo!</strong></p>
         </div>
         <div class="hero-visual">
-            <div class="glow-orb orb1"></div>
-            <div class="glow-orb orb2"></div>
-            <div class="hero-deco deco-circle-1"></div>
-            <div class="hero-deco deco-circle-2"></div>
-            <div class="hero-deco deco-dots"></div>
-            <div class="hero-deco deco-line"></div>
-            <div class="hero-deco deco-triangle"></div>
+            <div class="glow-orb orb1" data-speed="1.18"></div>
+            <div class="glow-orb orb2" data-speed="0.82"></div>
+            <div class="hero-deco deco-circle-1" data-speed="0.78"></div>
+            <div class="hero-deco deco-circle-2" data-speed="1.22"></div>
+            <div class="hero-deco deco-dots" data-speed="0.9"></div>
+            <div class="hero-deco deco-line" data-speed="1.1"></div>
+            <div class="hero-deco deco-triangle" data-speed="0.85"></div>
         </div>
         <!-- Scroll Indicator -->
         <div class="scroll-indicator">
@@ -134,22 +140,24 @@
 
     <!-- Showcase 3D -->
     <section class="showcase-3d" id="showcase3d">
-        <canvas class="showcase-canvas" id="showcaseCanvas"></canvas>
-        <div class="showcase-labels">
-            <div class="showcase-label" data-index="0">
-                <span class="showcase-label-tag">01</span>
-                <h2>TELEVISORES</h2>
-                <p>Experiencias de cine y definición ultra premium en tu hogar</p>
-            </div>
-            <div class="showcase-label" data-index="1">
-                <span class="showcase-label-tag">02</span>
-                <h2>PARLANTES</h2>
-                <p>Sonido envolvente con diseño premium</p>
-            </div>
-            <div class="showcase-label" data-index="2">
-                <span class="showcase-label-tag">03</span>
-                <h2>CELULARES</h2>
-                <p>La tecnología que llevás en tu bolsillo</p>
+        <div class="showcase-pin" id="showcasePin">
+            <canvas class="showcase-canvas" id="showcaseCanvas"></canvas>
+            <div class="showcase-labels">
+                <div class="showcase-label" data-index="0">
+                    <span class="showcase-label-tag">01</span>
+                    <h2>TELEVISORES</h2>
+                    <p>Experiencias de cine y definición ultra premium en tu hogar</p>
+                </div>
+                <div class="showcase-label" data-index="1">
+                    <span class="showcase-label-tag">02</span>
+                    <h2>PARLANTES</h2>
+                    <p>Sonido envolvente con diseño premium</p>
+                </div>
+                <div class="showcase-label" data-index="2">
+                    <span class="showcase-label-tag">03</span>
+                    <h2>CELULARES</h2>
+                    <p>La tecnología que llevás en tu bolsillo</p>
+                </div>
             </div>
         </div>
     </section>
@@ -181,7 +189,7 @@
     </div>
 
     <!-- Big Outline Text -->
-    <div class="outline-text-section" data-parallax="0.15">
+    <div class="outline-text-section" data-speed="0.92">
         <div class="outline-deco outline-deco-circle"></div>
         <div class="outline-deco outline-deco-dots"></div>
         <div class="outline-deco outline-deco-line"></div>
@@ -322,6 +330,8 @@
             </p>
         </div>
     </footer>
+    </div>
+    </div>
 
     <!-- Cart Sidebar -->
     <div class="cart-overlay" id="cartOverlay"></div>
@@ -521,9 +531,19 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
     <script src="firebase-config.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollSmoother.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

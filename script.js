@@ -20,6 +20,9 @@ function showToast(message, type = 'info', duration = 3500) {
 }
 window.showToast = showToast;
 
+// Shared smooth-scroll instance (created after GSAP/ScrollSmoother load)
+let smoother = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     // ─── PRELOADER ──────────────────────────────────────────
     const preloader = document.getElementById('preloader');
@@ -252,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
                 e.preventDefault();
-                window.addToCart(p.id);
+                window.addToCart(p.id, btn);
             });
             
             carousel.appendChild(card);
@@ -332,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCart();
     }
 
-    window.addToCart = function(id) {
+    window.addToCart = function(id, btn) {
         const product = products.find(p => p.id === id);
         if (!product) return;
         const existing = cart.find(item => item.id === id);
@@ -344,16 +347,50 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCart();
         gtag('event', 'add_to_cart', { currency: 'ARS', value: offerVal(product), items: [{ item_id: product.id, item_name: product.name, price: offerVal(product), quantity: 1 }] });
         showToast(`${product.name} agregado al carrito`, 'success');
-        
-        // Bump animation
-        const cartCount = document.getElementById('cartCount');
-        if (cartCount) {
-            cartCount.classList.add('bump');
-            setTimeout(() => cartCount.classList.remove('bump'), 300);
+
+        // Button morph + flying image to cart
+        if (btn && btn.classList && btn.classList.contains('add-to-cart')) {
+            const orig = btn.innerHTML;
+            btn.classList.add('added');
+            btn.innerHTML = '✓ Agregado';
+            setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 1200);
+            flyToCart(btn);
+        } else {
+            const cartCount = document.getElementById('cartCount');
+            if (cartCount) {
+                cartCount.classList.add('bump');
+                setTimeout(() => cartCount.classList.remove('bump'), 400);
+            }
         }
-        
-        openCart();
+
+        setTimeout(openCart, 650);
     };
+
+    function flyToCart(btn) {
+        const card = btn.closest('.product-card, .carousel-card, .modal-content');
+        const img = card ? card.querySelector('img') : null;
+        const cartBtnEl = document.getElementById('cartBtn');
+        if (!img || !cartBtnEl) return;
+        const ir = img.getBoundingClientRect();
+        const cr = cartBtnEl.getBoundingClientRect();
+        const fly = img.cloneNode(true);
+        fly.classList.add('fly-to-cart');
+        fly.style.left = ir.left + 'px';
+        fly.style.top = ir.top + 'px';
+        fly.style.width = ir.width + 'px';
+        fly.style.height = ir.height + 'px';
+        document.body.appendChild(fly);
+        gsap.to(fly, {
+            left: cr.left + cr.width / 2 - 20,
+            top: cr.top + cr.height / 2 - 20,
+            width: 40, height: 40, opacity: 0.15, duration: 0.7, ease: 'power2.in',
+            onComplete: () => {
+                fly.remove();
+                const cc = document.getElementById('cartCount');
+                if (cc) { cc.classList.add('bump'); setTimeout(() => cc.classList.remove('bump'), 400); }
+            }
+        });
+    }
 
     window.updateQty = function(id, delta) {
         const item = cart.find(i => i.id === id);
@@ -596,19 +633,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const abs = Math.abs(diff);
                 const dir = diff > 0 ? 1 : -1;
 
-                let targetX, targetScale, targetRotateY, targetOpacity, targetZ;
+                let targetX, targetScale, targetRotateY, targetRotateX, targetBlur, targetOpacity, targetZ;
 
                 if (abs === 0) {
-                    targetX = 0; targetScale = 1; targetRotateY = 0;
+                    targetX = 0; targetScale = 1; targetRotateY = 0; targetRotateX = 0; targetBlur = 'blur(0px)';
                     targetOpacity = 1; targetZ = 10;
                 } else if (abs === 1) {
-                    targetX = dir * X_STEP; targetScale = 0.82; targetRotateY = dir * -18;
+                    targetX = dir * X_STEP; targetScale = 0.82; targetRotateY = dir * -18; targetRotateX = dir * 8; targetBlur = 'blur(1.5px)';
                     targetOpacity = 0.55; targetZ = 5;
                 } else if (abs === 2) {
-                    targetX = dir * X_STEP * 2; targetScale = 0.65; targetRotateY = dir * -35;
+                    targetX = dir * X_STEP * 2; targetScale = 0.65; targetRotateY = dir * -35; targetRotateX = dir * 12; targetBlur = 'blur(3px)';
                     targetOpacity = 0.25; targetZ = 2;
                 } else {
-                    targetX = dir * X_STEP * 3; targetScale = 0.5; targetRotateY = 0;
+                    targetX = dir * X_STEP * 3; targetScale = 0.5; targetRotateY = 0; targetRotateX = 0; targetBlur = 'blur(4px)';
                     targetOpacity = 0; targetZ = 0;
                 }
 
@@ -619,18 +656,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Stagger: leaving card goes first, entering card follows
                 let dur, ease, delay;
                 if (isLeaving) {
-                    dur = 0.45; ease = 'power3.out'; delay = 0;
+                    dur = 0.4; ease = 'power3.in'; delay = 0;
                 } else if (isEntering) {
-                    dur = 0.7; ease = 'power2.out'; delay = 0.3;
+                    dur = 0.75; ease = 'back.out(1.4)'; delay = 0.25;
                     card.style.zIndex = 11; // above center during transition
                 } else {
-                    dur = 0.5; ease = 'power2.inOut';
+                    dur = 0.55; ease = 'power2.inOut';
                     delay = abs === 1 ? 0.05 : 0.1;
                 }
 
                 tl.to(card, {
-                    x: targetX, scale: targetScale, rotateY: targetRotateY,
-                    opacity: targetOpacity, zIndex: targetZ,
+                    x: targetX, scale: targetScale, rotateY: targetRotateY, rotateX: targetRotateX,
+                    filter: targetBlur, opacity: targetOpacity, zIndex: targetZ,
                     duration: dur, ease: ease
                 }, delay);
 
@@ -975,7 +1012,7 @@ document.addEventListener('DOMContentLoaded', () => {
             addBtn.parentNode.replaceChild(newAddBtn, addBtn);
             
             newAddBtn.addEventListener('click', () => {
-                window.addToCart(p.id);
+                window.addToCart(p.id, newAddBtn);
                 closeM();
             });
 
@@ -1264,7 +1301,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const id = card.dataset.id;
             if (!id) return;
             if (e.target.closest('.add-to-cart')) {
-                if (typeof window.addToCart === 'function') window.addToCart(id); else console.warn('addToCart no disponible');
+                if (typeof window.addToCart === 'function') window.addToCart(id, e.target.closest('.add-to-cart')); else console.warn('addToCart no disponible');
                 return;
             }
             if (typeof window.openProductModal === 'function') window.openProductModal(id); else console.warn('openProductModal no disponible, esperá a que carguen los productos');
@@ -1353,7 +1390,11 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const offset = window.innerWidth < 768 ? 80 : 70;
             const top = target.getBoundingClientRect().top + window.scrollY - offset;
-            window.scrollTo({ top, behavior: 'smooth' });
+            if (smoother) {
+                smoother.scrollTo(top, true);
+            } else {
+                window.scrollTo({ top, behavior: 'smooth' });
+            }
         });
     });
 
@@ -1414,27 +1455,64 @@ document.addEventListener('DOMContentLoaded', () => {
     statNums.forEach(n => countObs.observe(n));
 
     // ─── PARALLAX OUTLINE TEXT ───────────────────────────────
-    const outlineSection = document.querySelector('.outline-text-section');
-    if (outlineSection) {
-        const texts = outlineSection.querySelectorAll('.outline-text');
-        window.addEventListener('scroll', () => {
-            const r = outlineSection.getBoundingClientRect();
-            if (r.top < window.innerHeight && r.bottom > 0) {
-                const p = (window.innerHeight - r.top) / (window.innerHeight + r.height);
-                const multiplier = window.innerWidth < 768 ? 40 : 150;
-                texts.forEach((t, i) => {
-                    const dir = i === 0 ? 1 : -1;
-                    t.style.transform = `translateX(${(p - 0.5) * multiplier * dir}px)`;
-                });
-            }
-        });
-    }
+    // Handled by ScrollSmoother via data-speed="0.92" on .outline-text-section
 });
 
 // Keyframes injection
 const st = document.createElement('style');
 st.textContent = `@keyframes fadeInUp{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}`;
 document.head.appendChild(st);
+
+// ─── SMOOTH SCROLL + PARALLAX + SCROLL GRADIENT ───────────
+(function () {
+    if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+    gsap.registerPlugin(ScrollTrigger);
+    if (typeof ScrollSmoother !== 'undefined') {
+        gsap.registerPlugin(ScrollSmoother);
+        const isMobile = () => window.innerWidth < 768;
+        smoother = ScrollSmoother.create({
+            wrapper: '#smooth-wrapper',
+            content: '#smooth-content',
+            smooth: isMobile() ? 0 : 1.2,
+            smoothTouch: 0,
+            effects: !isMobile(),
+            normalizeScroll: false
+        });
+    }
+
+    // ── Scroll-linked background gradient (visual journey) ──
+    const bgGradient = document.getElementById('bgGradient');
+    if (bgGradient) {
+        // Color stops: [progress, topColor, bottomColor] — subtle dark tints
+        const stops = [
+            { p: 0.00, a: '#050507', b: '#0a0e1a' }, // hero (cyan deep)
+            { p: 0.16, a: '#050507', b: '#0a0a14' }, // showcase
+            { p: 0.34, a: '#0a0712', b: '#140a1f' }, // categorías (purple)
+            { p: 0.50, a: '#050507', b: '#0a0e1a' }, // carousel
+            { p: 0.66, a: '#0a0712', b: '#140a1f' }, // stats (purple)
+            { p: 0.84, a: '#05070a', b: '#0a141a' }, // products (cyan)
+            { p: 1.00, a: '#050507', b: '#070710' }  // footer
+        ];
+        const lerp = (c1, c2, t) => gsap.utils.interpolate(c1, c2, t);
+        ScrollTrigger.create({
+            trigger: document.body,
+            start: 'top top',
+            end: 'bottom bottom',
+            scrub: true,
+            onUpdate: (self) => {
+                const p = self.progress;
+                let i = 0;
+                while (i < stops.length - 1 && p > stops[i + 1].p) i++;
+                const seg = stops[i];
+                const next = stops[Math.min(i + 1, stops.length - 1)];
+                const localT = seg.p === next.p ? 0 : (p - seg.p) / (next.p - seg.p);
+                const c1 = lerp(seg.a, next.a, localT);
+                const c2 = lerp(seg.b, next.b, localT);
+                bgGradient.style.background = `linear-gradient(180deg, ${c1} 0%, ${c2} 100%)`;
+            }
+        });
+    }
+})();
 
 // ─── INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
 (function () {
@@ -1606,7 +1684,8 @@ document.head.appendChild(st);
 
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, w / h, 0.1, 1000);
-    camera.position.set(0, 0, 8);
+    camera.position.set(0, -0.5, 8);
+    camera.lookAt(0, 0.2, 0);
 
     const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setSize(w, h);
@@ -1614,12 +1693,15 @@ document.head.appendChild(st);
     renderer.setClearColor(0x000000, 0);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.2;
+    renderer.outputEncoding = THREE.sRGBEncoding;
 
+    let composer = null;
     addEventListener('resize', () => {
         w = innerWidth; h = innerHeight;
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
+        if (composer) composer.setSize(w, h);
     });
 
     // ── Lights ──
@@ -1709,150 +1791,166 @@ document.head.appendChild(st);
         roughness: 0.1 
     });
 
-    // ── TV Object (Televisor Curved OLED Premium) ──
-    const tvGroup = new THREE.Group();
-    
-    // Curved back chassis housing
-    const tvBody = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.7, 0.15), tvFrameMat);
-    tvGroup.add(tvBody);
-    
-    // Glossy OLED curved screen
-    const tvScreen = new THREE.Mesh(new THREE.BoxGeometry(4.28, 2.58, 0.05), tvScreenMat);
-    tvScreen.position.z = 0.07;
-    tvGroup.add(tvScreen);
-    
-    // Chrome bezels
-    const bezelGeom = new THREE.BoxGeometry(4.34, 2.64, 0.08);
-    const bezel = new THREE.Mesh(new THREE.EdgesGeometry(bezelGeom), new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.55 }));
-    tvGroup.add(bezel);
-    
-    // Premium Arc stand
-    const standArcGeom = new THREE.TorusGeometry(0.8, 0.05, 8, 32, Math.PI);
-    const standArc = new THREE.Mesh(standArcGeom, tvFrameMat);
-    standArc.position.set(0, -1.3, 0);
-    standArc.rotation.x = Math.PI / 2;
-    tvGroup.add(standArc);
-    
-    const standColumn = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 0.4, 16), tvFrameMat);
-    standColumn.position.set(0, -1.4, 0);
-    tvGroup.add(standColumn);
-    
-    // Power LED dot indicator
-    const led = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
-    led.position.set(0, -1.28, 0.1);
-    tvGroup.add(led);
-    
-    // Ambient Backlight Glow behind TV
-    const backGlow = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 3.2), new THREE.MeshBasicMaterial({
-        color: 0x00a8ff,
-        transparent: true,
-        opacity: 0.2,
-        blending: THREE.AdditiveBlending,
-        side: THREE.DoubleSide
-    }));
-    backGlow.position.z = -0.15;
-    tvGroup.add(backGlow);
-    
-    tvGroup.visible = false;
-    scene.add(tvGroup);
+    // ── PROCEDURAL ENVIRONMENT (real reflections on metal/glass) ──
+    const pmrem = new THREE.PMREMGenerator(renderer);
+    const envScene = new THREE.Scene();
+    const envCanvas = document.createElement('canvas');
+    envCanvas.width = 512; envCanvas.height = 256;
+    const ectx = envCanvas.getContext('2d');
+    const egrad = ectx.createLinearGradient(0, 0, 0, 256);
+    egrad.addColorStop(0, '#0a0e1a'); egrad.addColorStop(0.55, '#10131f'); egrad.addColorStop(1, '#05060a');
+    ectx.fillStyle = egrad; ectx.fillRect(0, 0, 512, 256);
+    const eblob = (x, y, r, c) => { const g = ectx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, c); g.addColorStop(1, 'rgba(0,0,0,0)'); ectx.fillStyle = g; ectx.fillRect(0, 0, 512, 256); };
+    eblob(110, 70, 100, 'rgba(0,240,255,0.55)');
+    eblob(400, 190, 120, 'rgba(138,43,226,0.5)');
+    eblob(256, 30, 80, 'rgba(255,255,255,0.22)');
+    const envTex = new THREE.CanvasTexture(envCanvas);
+    envTex.encoding = THREE.sRGBEncoding;
+    const envMesh = new THREE.Mesh(new THREE.SphereGeometry(50, 32, 32), new THREE.MeshBasicMaterial({ map: envTex, side: THREE.BackSide }));
+    envScene.add(envMesh);
+    scene.environment = pmrem.fromScene(envScene, 0.04).texture;
+    [tvFrameMat, cabinetMat, goldMat, glassTopMat, phoneChassisMat].forEach(m => { m.envMapIntensity = 1.4; });
 
-    // ── Speaker Object (Smart Home Hub / Parlante) ──
-    const speakerGroup = new THREE.Group();
-    
-    // Cylindrical main mesh-textured cabinet
-    const spkBody = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.9, 3.0, 32), cabinetMat);
-    speakerGroup.add(spkBody);
-    
-    // Premium Gold highlight rings
-    const spkRing1 = new THREE.Mesh(new THREE.TorusGeometry(0.87, 0.03, 8, 32), goldMat);
-    spkRing1.rotation.x = Math.PI / 2;
-    spkRing1.position.y = 1.2;
-    speakerGroup.add(spkRing1);
-    
-    const spkRing2 = new THREE.Mesh(new THREE.TorusGeometry(0.87, 0.03, 8, 32), goldMat);
-    spkRing2.rotation.x = Math.PI / 2;
-    spkRing2.position.y = -1.2;
-    speakerGroup.add(spkRing2);
-    
-    // Reflective glass top touch controls
-    const spkTop = new THREE.Mesh(new THREE.CylinderGeometry(0.83, 0.83, 0.05, 32), glassTopMat);
-    spkTop.position.y = 1.5;
-    speakerGroup.add(spkTop);
-    
-    // Glowing LED rainbow ring at the top
-    const spkLedRing = new THREE.Mesh(new THREE.TorusGeometry(0.76, 0.025, 8, 64), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
-    spkLedRing.rotation.x = Math.PI / 2;
-    spkLedRing.position.y = 1.53;
-    speakerGroup.add(spkLedRing);
-    
-    // Active front-facing bass driver / diaphragm
-    const bassDriver = new THREE.Group();
-    const spkCone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.45, 0.15, 32), new THREE.MeshStandardMaterial({
-        color: 0x1a2128,
-        metalness: 0.7,
-        roughness: 0.6
-    }));
-    spkCone.rotation.x = Math.PI / 2;
-    bassDriver.add(spkCone);
-    
-    // Central copper/gold core dome
-    const spkDome = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), goldMat);
-    spkDome.position.z = 0.07;
-    bassDriver.add(spkDome);
-    bassDriver.position.set(0, 0.2, 0.78);
-    speakerGroup.add(bassDriver);
-    
-    // Side passive bass radiators (Left and Right gold details)
-    const radiatorL = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 16), goldMat);
-    radiatorL.rotation.z = Math.PI / 2;
-    radiatorL.position.set(-0.86, -0.3, 0);
-    speakerGroup.add(radiatorL);
-    
-    const radiatorR = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 16), goldMat);
-    radiatorR.rotation.z = Math.PI / 2;
-    radiatorR.position.set(0.86, -0.3, 0);
-    speakerGroup.add(radiatorR);
-    
-    speakerGroup.visible = false;
-    scene.add(speakerGroup);
-
-    // ── Phone Object (Smartphone Premium / Celular) ──
-    const phoneGroup = new THREE.Group();
-    
-    // Beveled aluminum frame chassis
-    const phBody = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3.8, 0.16), phoneChassisMat);
-    phoneGroup.add(phBody);
-    
-    // Holographic borderless physical screen
-    const phScreen = new THREE.Mesh(new THREE.PlaneGeometry(1.72, 3.72), phoneScreenMat);
-    phScreen.position.z = 0.085;
-    phoneGroup.add(phScreen);
-    
-    // Outer neon edge glow line
-    const phEdge = new THREE.Mesh(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.8, 3.8, 0.16)), new THREE.LineBasicMaterial({ color: 0x8a2be2, transparent: true, opacity: 0.55 }));
-    phoneGroup.add(phEdge);
-    
-    // Camera module mount on the back
-    const camModule = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.2, 0.06), glassTopMat);
-    camModule.position.set(0.4, 1.1, -0.09);
-    phoneGroup.add(camModule);
-    
-    // Triple premium camera rings (gold borders + dark glass lenses)
-    for (let i = 0; i < 3; i++) {
-        // Gold lens rings
-        const ring = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 32), goldMat);
-        ring.position.set(0.4, 1.4 - i * 0.3, -0.11);
-        phoneGroup.add(ring);
-        
-        // Dark glass lenses
-        const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.04, 16), glassTopMat);
-        lens.rotation.x = Math.PI / 2;
-        lens.position.set(0.4, 1.4 - i * 0.3, -0.1);
-        phoneGroup.add(lens);
+    // ── Screen textures (powered-on displays) ──
+    function makeScreenTexture(kind) {
+        const c = document.createElement('canvas'); c.width = 512; c.height = 512;
+        const x = c.getContext('2d');
+        if (kind === 'tv') {
+            const g = x.createLinearGradient(0, 0, 512, 512);
+            g.addColorStop(0, '#04121f'); g.addColorStop(1, '#0a2a3a');
+            x.fillStyle = g; x.fillRect(0, 0, 512, 512);
+            x.strokeStyle = 'rgba(0,240,255,0.18)'; x.lineWidth = 1;
+            for (let i = 0; i <= 512; i += 32) { x.beginPath(); x.moveTo(i, 0); x.lineTo(i, 512); x.moveTo(0, i); x.lineTo(512, i); x.stroke(); }
+            const rg = x.createRadialGradient(256, 256, 0, 256, 256, 200);
+            rg.addColorStop(0, 'rgba(0,240,255,0.35)'); rg.addColorStop(1, 'rgba(0,240,255,0)');
+            x.fillStyle = rg; x.fillRect(0, 0, 512, 512);
+            x.fillStyle = '#00f0ff'; x.font = 'bold 64px sans-serif'; x.textAlign = 'center';
+            x.fillText('Mimo', 256, 280);
+            x.font = '22px sans-serif'; x.fillStyle = 'rgba(255,255,255,0.7)';
+            x.fillText('PREMIUM TECH', 256, 320);
+        } else {
+            const g = x.createLinearGradient(0, 0, 0, 512);
+            g.addColorStop(0, '#1a0a2e'); g.addColorStop(1, '#05060a');
+            x.fillStyle = g; x.fillRect(0, 0, 512, 512);
+            const rg = x.createRadialGradient(256, 200, 0, 256, 200, 260);
+            rg.addColorStop(0, 'rgba(138,43,226,0.4)'); rg.addColorStop(1, 'rgba(138,43,226,0)');
+            x.fillStyle = rg; x.fillRect(0, 0, 512, 512);
+            x.fillStyle = '#fff'; x.font = 'bold 90px sans-serif'; x.textAlign = 'center';
+            x.fillText('9:41', 256, 170);
+            x.font = '26px sans-serif'; x.fillStyle = 'rgba(255,255,255,0.8)';
+            x.fillText('Mimo OS', 256, 220);
+            x.fillStyle = 'rgba(0,240,255,0.85)';
+            for (let r = 0; r < 4; r++) for (let col = 0; col < 4; col++) { x.beginPath(); x.arc(120 + col * 90, 330 + r * 55, 14, 0, Math.PI * 2); x.fill(); }
+        }
+        const t = new THREE.CanvasTexture(c); t.encoding = THREE.sRGBEncoding; return t;
     }
-    
-    phoneGroup.visible = false;
-    scene.add(phoneGroup);
+    const tvScreenTex = makeScreenTexture('tv');
+    const phoneScreenTex = makeScreenTexture('phone');
+    tvScreenMat.transmission = 0; tvScreenMat.thickness = 0;
+    tvScreenMat.map = tvScreenTex; tvScreenMat.emissiveMap = tvScreenTex; tvScreenMat.emissiveIntensity = 0.9;
+    phoneScreenMat.transmission = 0; phoneScreenMat.thickness = 0;
+    phoneScreenMat.map = phoneScreenTex; phoneScreenMat.emissiveMap = phoneScreenTex; phoneScreenMat.emissiveIntensity = 0.8;
+
+    // ── Speaker fabric/mesh grille texture ──
+    const fabCanvas = document.createElement('canvas'); fabCanvas.width = fabCanvas.height = 256;
+    const fx = fabCanvas.getContext('2d');
+    fx.fillStyle = '#0f1118'; fx.fillRect(0, 0, 256, 256);
+    fx.fillStyle = 'rgba(255,255,255,0.06)';
+    for (let y = 0; y < 256; y += 8) for (let xx = 0; xx < 256; xx += 8) { fx.beginPath(); fx.arc(xx + 4, y + 4, 2, 0, Math.PI * 2); fx.fill(); }
+    const fabricTex = new THREE.CanvasTexture(fabCanvas);
+    fabricTex.wrapS = fabricTex.wrapT = THREE.RepeatWrapping; fabricTex.repeat.set(4, 6); fabricTex.encoding = THREE.sRGBEncoding;
+    cabinetMat.map = fabricTex; cabinetMat.metalness = 0.5; cabinetMat.roughness = 0.55;
+
+    // ── Studio pedestal + contact shadow (shared, static) ──
+    const pedestal = new THREE.Group();
+    const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.18, 64), new THREE.MeshStandardMaterial({ color: 0x0a0c12, metalness: 0.85, roughness: 0.25 }));
+    platform.position.y = -2.0; pedestal.add(platform);
+    const pedRim = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.025, 8, 80), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+    pedRim.rotation.x = Math.PI / 2; pedRim.position.y = -1.91; pedestal.add(pedRim);
+    const shCanvas = document.createElement('canvas'); shCanvas.width = shCanvas.height = 256;
+    const sx = shCanvas.getContext('2d');
+    const sg = sx.createRadialGradient(128, 128, 10, 128, 128, 128);
+    sg.addColorStop(0, 'rgba(0,0,0,0.55)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
+    sx.fillStyle = sg; sx.fillRect(0, 0, 256, 256);
+    const contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shCanvas), transparent: true, depthWrite: false, opacity: 0.85 }));
+    contactShadow.rotation.x = -Math.PI / 2; contactShadow.position.y = -1.89; pedestal.add(contactShadow);
+    scene.add(pedestal);
+
+    // ── GLB model slots (drop real models in /models/) ──
+    const MODEL_URLS = { tv: 'models/tv.glb', speaker: 'models/speaker.glb', phone: 'models/phone.glb' };
+    const MODEL_ROT = { tv: { x: 0, y: 0, z: 0 }, speaker: { x: 0, y: 0, z: 0 }, phone: { x: 0, y: 0, z: 0 } };
+    const gltfLoader = (typeof THREE.GLTFLoader !== 'undefined') ? new THREE.GLTFLoader() : null;
+    if (gltfLoader && typeof THREE.DRACOLoader !== 'undefined') {
+        const dracoLoader = new THREE.DRACOLoader();
+        dracoLoader.setDecoderPath('https://www.gstatic.com/draco/versioned/decoders/1.5.6/');
+        gltfLoader.setDRACOLoader(dracoLoader);
+    }
+    function applyModel(slot, group) {
+        const url = MODEL_URLS[slot];
+        if (!url || !gltfLoader) return;
+        gltfLoader.load(url, (gltf) => {
+            group.clear();
+            const model = gltf.scene;
+            // Center + auto-fit to ~4.2 units regardless of source scale
+            const box = new THREE.Box3().setFromObject(model);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            model.position.sub(center);
+            const maxDim = Math.max(size.x, size.y, size.z) || 1;
+            model.scale.setScalar(4.2 / maxDim);
+            const rot = MODEL_ROT[slot] || { x: 0, y: 0, z: 0 };
+            model.rotation.set(rot.x, rot.y, rot.z);
+            model.traverse(o => { if (o.isMesh && o.material) { o.material.envMapIntensity = 1.3; } });
+            group.add(model);
+        }, undefined, (err) => { console.warn('Modelo GLB no cargó (' + slot + '):', err); });
+    }
+
+    // ── Object factories ──
+    let bassDriver = null, spkLedRing = null;
+
+    function createTV() {
+        const g = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.BoxGeometry(4.4, 2.7, 0.15), tvFrameMat); g.add(body);
+        const screen = new THREE.Mesh(new THREE.BoxGeometry(4.28, 2.58, 0.05), tvScreenMat); screen.position.z = 0.07; g.add(screen);
+        const bezel = new THREE.Mesh(new THREE.EdgesGeometry(new THREE.BoxGeometry(4.34, 2.64, 0.08)), new THREE.LineBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.55 })); g.add(bezel);
+        const standArc = new THREE.Mesh(new THREE.TorusGeometry(0.8, 0.05, 8, 32, Math.PI), tvFrameMat); standArc.position.set(0, -1.3, 0); standArc.rotation.x = Math.PI / 2; g.add(standArc);
+        const standColumn = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.1, 0.4, 16), tvFrameMat); standColumn.position.set(0, -1.4, 0); g.add(standColumn);
+        const led = new THREE.Mesh(new THREE.SphereGeometry(0.028, 8, 8), new THREE.MeshBasicMaterial({ color: 0x00f0ff })); led.position.set(0, -1.28, 0.1); g.add(led);
+        const backGlow = new THREE.Mesh(new THREE.PlaneGeometry(5.0, 3.2), new THREE.MeshBasicMaterial({ color: 0x00a8ff, transparent: true, opacity: 0.2, blending: THREE.AdditiveBlending, side: THREE.DoubleSide })); backGlow.position.z = -0.15; g.add(backGlow);
+        g.visible = false; return g;
+    }
+    function createSpeaker() {
+        const g = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.CylinderGeometry(0.85, 0.9, 3.0, 32), cabinetMat); g.add(body);
+        const ring1 = new THREE.Mesh(new THREE.TorusGeometry(0.87, 0.03, 8, 32), goldMat); ring1.rotation.x = Math.PI / 2; ring1.position.y = 1.2; g.add(ring1);
+        const ring2 = new THREE.Mesh(new THREE.TorusGeometry(0.87, 0.03, 8, 32), goldMat); ring2.rotation.x = Math.PI / 2; ring2.position.y = -1.2; g.add(ring2);
+        const top = new THREE.Mesh(new THREE.CylinderGeometry(0.83, 0.83, 0.05, 32), glassTopMat); top.position.y = 1.5; g.add(top);
+        const led = new THREE.Mesh(new THREE.TorusGeometry(0.76, 0.025, 8, 64), new THREE.MeshBasicMaterial({ color: 0x00f0ff })); led.rotation.x = Math.PI / 2; led.position.y = 1.53; g.add(led); spkLedRing = led;
+        const bd = new THREE.Group();
+        const cone = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.45, 0.15, 32), new THREE.MeshStandardMaterial({ color: 0x1a2128, metalness: 0.7, roughness: 0.6 })); cone.rotation.x = Math.PI / 2; bd.add(cone);
+        const dome = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), goldMat); dome.position.z = 0.07; bd.add(dome);
+        bd.position.set(0, 0.2, 0.78); g.add(bd); bassDriver = bd;
+        const rL = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 16), goldMat); rL.rotation.z = Math.PI / 2; rL.position.set(-0.86, -0.3, 0); g.add(rL);
+        const rR = new THREE.Mesh(new THREE.CylinderGeometry(0.45, 0.45, 0.06, 16), goldMat); rR.rotation.z = Math.PI / 2; rR.position.set(0.86, -0.3, 0); g.add(rR);
+        g.visible = false; return g;
+    }
+    function createPhone() {
+        const g = new THREE.Group();
+        const body = new THREE.Mesh(new THREE.BoxGeometry(1.8, 3.8, 0.16), phoneChassisMat); g.add(body);
+        const screen = new THREE.Mesh(new THREE.PlaneGeometry(1.72, 3.72), phoneScreenMat); screen.position.z = 0.085; g.add(screen);
+        const edge = new THREE.Mesh(new THREE.EdgesGeometry(new THREE.BoxGeometry(1.8, 3.8, 0.16)), new THREE.LineBasicMaterial({ color: 0x8a2be2, transparent: true, opacity: 0.55 })); g.add(edge);
+        const cam = new THREE.Mesh(new THREE.BoxGeometry(0.7, 1.2, 0.06), glassTopMat); cam.position.set(0.4, 1.1, -0.09); g.add(cam);
+        for (let i = 0; i < 3; i++) {
+            const ring = new THREE.Mesh(new THREE.TorusGeometry(0.12, 0.02, 8, 32), goldMat); ring.position.set(0.4, 1.4 - i * 0.3, -0.11); g.add(ring);
+            const lens = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.04, 16), glassTopMat); lens.rotation.x = Math.PI / 2; lens.position.set(0.4, 1.4 - i * 0.3, -0.1); g.add(lens);
+        }
+        g.visible = false; return g;
+    }
+
+    const tvGroup = createTV(); scene.add(tvGroup);
+    const speakerGroup = createSpeaker(); scene.add(speakerGroup);
+    const phoneGroup = createPhone(); scene.add(phoneGroup);
+    applyModel('tv', tvGroup); applyModel('speaker', speakerGroup); applyModel('phone', phoneGroup);
 
     // ── Background Digital Particle Field (Polvo Cyber) ──
     const particleCount = 250;
@@ -1891,6 +1989,8 @@ document.head.appendChild(st);
             start: 'top top',
             end: 'bottom bottom',
             scrub: 0.5,
+            pin: '#showcasePin',
+            anticipatePin: 1,
             onUpdate: (self) => {
                 progress = self.progress;
                 
@@ -1952,6 +2052,16 @@ document.head.appendChild(st);
         });
     }
 
+    // ── Post-processing (Bloom) — desktop only ──
+    if (!isMobile() && typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
+        composer = new THREE.EffectComposer(renderer);
+        composer.addPass(new THREE.RenderPass(scene, camera));
+        composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(w, h), 0.6, 0.4, 0.85));
+        if (typeof THREE.GammaCorrectionShader !== 'undefined') {
+            composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
+        }
+    }
+
     // ── Animation Loop ──
     let time = 0;
     function animate() {
@@ -1986,7 +2096,7 @@ document.head.appendChild(st);
         cyanLight.intensity = 2.5 + Math.sin(time * 0.03) * 0.6;
         purpleLight.intensity = 2.0 + Math.cos(time * 0.03) * 0.4;
 
-        renderer.render(scene, camera);
+        if (composer) composer.render(); else renderer.render(scene, camera);
     }
     animate();
 })();
