@@ -1890,18 +1890,21 @@ document.head.appendChild(st);
         if (!url || !gltfLoader) return;
         gltfLoader.load(url, (gltf) => {
             group.clear();
+            const inner = new THREE.Group();
             const model = gltf.scene;
-            // Center + auto-fit to ~4.2 units regardless of source scale
+            inner.add(model);
+            // Center model on its own bbox (inner at identity → offset is correct regardless of GLB native transform)
             const box = new THREE.Box3().setFromObject(model);
             const size = box.getSize(new THREE.Vector3());
             const center = box.getCenter(new THREE.Vector3());
             model.position.sub(center);
-            const maxDim = Math.max(size.x, size.y, size.z) || 1;
-            model.scale.setScalar(4.2 / maxDim);
+            // Fit-box: scale to ~4.2 wide / ~3.8 tall so TVs/phones aren't grotesquely large
+            const s = Math.min(4.2 / (size.x || 1), 3.8 / (size.y || 1), 4.2 / (size.z || 1));
+            inner.scale.setScalar(s);
             const rot = MODEL_ROT[slot] || { x: 0, y: 0, z: 0 };
             model.rotation.set(rot.x, rot.y, rot.z);
             model.traverse(o => { if (o.isMesh && o.material) { o.material.envMapIntensity = 1.3; } });
-            group.add(model);
+            group.add(inner);
         }, undefined, (err) => { console.warn('Modelo GLB no cargó (' + slot + '):', err); });
     }
 
@@ -1947,9 +1950,10 @@ document.head.appendChild(st);
         g.visible = false; return g;
     }
 
-    const tvGroup = createTV(); scene.add(tvGroup);
-    const speakerGroup = createSpeaker(); scene.add(speakerGroup);
-    const phoneGroup = createPhone(); scene.add(phoneGroup);
+    const FLOAT_Y = -0.3;
+    const tvGroup = createTV(); tvGroup.userData.baseY = FLOAT_Y; scene.add(tvGroup);
+    const speakerGroup = createSpeaker(); speakerGroup.userData.baseY = FLOAT_Y; scene.add(speakerGroup);
+    const phoneGroup = createPhone(); phoneGroup.userData.baseY = FLOAT_Y; scene.add(phoneGroup);
     applyModel('tv', tvGroup); applyModel('speaker', speakerGroup); applyModel('phone', phoneGroup);
 
     // ── Background Digital Particle Field (Polvo Cyber) ──
@@ -2087,7 +2091,8 @@ document.head.appendChild(st);
         // Flotación lenta y natural para los objetos activos
         objects.forEach(obj => {
             if (obj.visible) {
-                obj.position.y = Math.sin(time * 0.03) * 0.1;
+                const by = obj.userData.baseY || 0;
+                obj.position.y = by + Math.sin(time * 0.03) * 0.1;
                 obj.position.x = Math.cos(time * 0.02) * 0.05;
             }
         });
