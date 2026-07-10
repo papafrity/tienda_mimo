@@ -1900,7 +1900,11 @@ document.head.appendChild(st);
             model.position.sub(center);
             // Fit-box: scale to ~4.2 wide / ~3.8 tall so TVs/phones aren't grotesquely large
             const s = Math.min(4.2 / (size.x || 1), 3.8 / (size.y || 1), 4.2 / (size.z || 1));
-            inner.scale.setScalar(s);
+            // Cap horizontal footprint so the model stays within the platform radius (3.2) and never overhangs
+            const SAFE_R = 2.7;
+            const horizR = Math.max(size.x, size.z) * s / 2;
+            const sFinal = horizR > SAFE_R ? s * (SAFE_R / horizR) : s;
+            inner.scale.setScalar(sFinal);
             const rot = MODEL_ROT[slot] || { x: 0, y: 0, z: 0 };
             model.rotation.set(rot.x, rot.y, rot.z);
             model.traverse(o => { if (o.isMesh && o.material) { o.material.envMapIntensity = 1.3; } });
