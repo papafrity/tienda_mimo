@@ -2172,11 +2172,22 @@ document.head.appendChild(st);
     const objects = [tvGroup, speakerGroup, phoneGroup];
     const labels = document.querySelectorAll('.showcase-label');
 
+    // Dynamic scale helper based on screen size (keeps the wide TV fully visible on mobile)
+    const getTargetScale = (idx) => {
+        if (isMobile()) {
+            if (idx === 0) return 0.65; // TV (wide screen object needs to scale down to fit portrait)
+            if (idx === 1) return 0.8;  // Speaker
+            if (idx === 2) return 0.85; // Phone
+        }
+        return 1.0;
+    };
+
     // ── Initial State Setup ──
     let currentIdx = 0;
     let progress = 0;
     objects[0].visible = true;
-    objects[0].scale.set(1, 1, 1);
+    const initialScale = getTargetScale(0);
+    objects[0].scale.set(initialScale, initialScale, initialScale);
     if (labels[0]) labels[0].classList.add('active');
 
     // ── ScrollTrigger Integration ──
@@ -2186,7 +2197,8 @@ document.head.appendChild(st);
             start: 'top top',
             end: 'bottom bottom',
             scrub: 0.5,
-            pin: '#showcasePin',
+            pin: !isMobile() ? '#showcasePin' : false,
+            pinSpacing: !isMobile(),
             anticipatePin: 1,
             onUpdate: (self) => {
                 progress = self.progress;
@@ -2214,8 +2226,9 @@ document.head.appendChild(st);
                     // Mostrar objeto actual
                     objects[currentIdx].visible = true;
                     objects[currentIdx].scale.set(0, 0, 0);
+                    const targetScale = getTargetScale(currentIdx);
                     gsap.to(objects[currentIdx].scale, { 
-                        x: 1, y: 1, z: 1, 
+                        x: targetScale, y: targetScale, z: targetScale, 
                         duration: 0.7, 
                         ease: 'back.out(1.5)', 
                         delay: 0.1 
