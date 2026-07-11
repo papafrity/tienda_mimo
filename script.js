@@ -2065,6 +2065,16 @@ document.head.appendChild(st);
     contactShadow.rotation.x = -Math.PI / 2; contactShadow.position.y = -1.89; pedestal.add(contactShadow);
     scene.add(pedestal);
 
+    const updatePedestalScale = () => {
+        if (isMobile()) {
+            pedestal.scale.set(0.65, 0.65, 0.65);
+        } else {
+            pedestal.scale.set(1, 1, 1);
+        }
+    };
+    updatePedestalScale();
+    window.addEventListener('resize', updatePedestalScale);
+
     // ── GLB model slots (drop real models in /models/) ──
     const MODEL_URLS = { tv: 'models/tv.glb', speaker: 'models/speaker.glb', phone: 'models/phone.glb' };
     const MODEL_ROT = { tv: { x: 0, y: 0, z: 0 }, speaker: { x: 0, y: 0, z: 0 }, phone: { x: 0, y: 0, z: 0 } };

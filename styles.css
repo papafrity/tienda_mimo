@@ -439,7 +439,7 @@ body{padding-bottom:70px}
 .product-card .price{font-size:1.15rem}
 .product-image{height:200px}
 .product-info{padding:1rem}
-.add-to-cart{padding:.8rem;font-size:.9rem}
+.add-to-cart{padding:.8rem;font-size:.9rem;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.05)}
  .carousel-3d{width:240px;height:430px}
  .carousel-wrapper{padding:4rem 20px 2.5rem;min-height:450px}
 }
