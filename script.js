@@ -65,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const title = document.getElementById('heroTitle');
     if (title) {
         const text = title.textContent;
-        const manosIdx = text.indexOf('Manos');
+        const manosIdx = text.indexOf('en');
         title.innerHTML = '';
         text.split('').forEach((ch, i) => {
             if (i === manosIdx && manosIdx !== -1) {
@@ -335,6 +335,35 @@ document.addEventListener('DOMContentLoaded', () => {
         renderCart();
     }
 
+    // Global Confetti particle spawner
+    function spawnConfetti(btn) {
+        const rect = btn.getBoundingClientRect();
+        const colors = ['#00f0ff','#8a2be2','#2ed573','#ffd700','#ff6b6b','#fff'];
+        const container = document.body;
+        for (let i = 0; i < 20; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'confetti-particle';
+            const angle = (Math.PI * 2 * i) / 20;
+            const dist = 50 + Math.random() * 70;
+            particle.style.setProperty('--cx', `${Math.cos(angle) * dist}px`);
+            particle.style.setProperty('--cy', `${Math.sin(angle) * dist}px`);
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.width = (4 + Math.random() * 5) + 'px';
+            particle.style.height = particle.style.width;
+            
+            const x = rect.left + window.scrollX + rect.width / 2;
+            const y = rect.top + window.scrollY + rect.height / 2;
+            particle.style.position = 'absolute';
+            particle.style.left = x + 'px';
+            particle.style.top = y + 'px';
+            particle.style.animationDelay = (Math.random() * 0.1) + 's';
+            particle.style.zIndex = '99999';
+            
+            container.appendChild(particle);
+            setTimeout(() => particle.remove(), 1200);
+        }
+    }
+
     window.addToCart = function(id, btn) {
         const product = products.find(p => p.id === id);
         if (!product) return;
@@ -353,6 +382,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const orig = btn.innerHTML;
             btn.classList.add('added');
             btn.innerHTML = '✓ Agregado';
+            spawnConfetti(btn);
             setTimeout(() => { btn.classList.remove('added'); btn.innerHTML = orig; }, 1200);
             flyToCart(btn);
         } else {
@@ -374,16 +404,21 @@ document.addEventListener('DOMContentLoaded', () => {
         const ir = img.getBoundingClientRect();
         const cr = cartBtnEl.getBoundingClientRect();
         const fly = img.cloneNode(true);
-        fly.classList.add('fly-to-cart');
+        fly.className = 'fly-to-cart-premium';
+        fly.style.position = 'fixed';
         fly.style.left = ir.left + 'px';
         fly.style.top = ir.top + 'px';
-        fly.style.width = ir.width + 'px';
-        fly.style.height = ir.height + 'px';
+        fly.style.width = Math.min(ir.width, 200) + 'px';
+        fly.style.height = Math.min(ir.height, 200) + 'px';
         document.body.appendChild(fly);
+        
+        const isModal = btn.classList.contains('modal-add-cart');
+        const delay = isModal ? 0.3 : 0.05;
+        
         gsap.to(fly, {
             left: cr.left + cr.width / 2 - 20,
             top: cr.top + cr.height / 2 - 20,
-            width: 40, height: 40, opacity: 0.15, duration: 0.7, ease: 'power2.in',
+            width: 35, height: 35, opacity: 0, duration: 0.85, ease: 'power3.in', delay: delay,
             onComplete: () => {
                 fly.remove();
                 const cc = document.getElementById('cartCount');
@@ -392,20 +427,48 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    window.updateQty = function(id, delta) {
+    window.updateQty = function(id, delta, btn) {
         const item = cart.find(i => i.id === id);
         if (!item) return;
         item.qty += delta;
         if (item.qty <= 0) {
-            window.removeFromCart(id);
+            window.removeFromCart(id, btn);
         } else {
             saveCart();
         }
     };
 
-    window.removeFromCart = function(id) {
-        cart = cart.filter(i => i.id !== id);
-        saveCart();
+    window.removeFromCart = function(id, btn) {
+        const itemEl = btn ? btn.closest('.cart-item') : null;
+        if (itemEl && typeof gsap !== 'undefined') {
+            itemEl.style.overflow = 'hidden';
+            gsap.to(itemEl, {
+                x: 120,
+                opacity: 0,
+                scale: 0.9,
+                duration: 0.3,
+                ease: 'power2.in',
+                onComplete: () => {
+                    gsap.to(itemEl, {
+                        height: 0,
+                        paddingTop: 0,
+                        paddingBottom: 0,
+                        marginTop: 0,
+                        marginBottom: -24, // collapses the 1.5rem (24px) gap of the container
+                        borderWidth: 0,
+                        duration: 0.25,
+                        ease: 'power2.inOut',
+                        onComplete: () => {
+                            cart = cart.filter(i => i.id !== id);
+                            saveCart();
+                        }
+                    });
+                }
+            });
+        } else {
+            cart = cart.filter(i => i.id !== id);
+            saveCart();
+        }
     };
 
     function openCart() {
@@ -446,12 +509,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4>${item.name}</h4>
                         <p>$${fmt(price)}</p>
                         <div class="cart-item-qty">
-                            <button class="qty-btn" onclick="updateQty('${item.id}', -1)">-</button>
+                            <button class="qty-btn" onclick="updateQty('${item.id}', -1, this)">-</button>
                             <span class="qty-val">${item.qty}</span>
-                            <button class="qty-btn" onclick="updateQty('${item.id}', 1)">+</button>
+                            <button class="qty-btn" onclick="updateQty('${item.id}', 1, this)">+</button>
                         </div>
                     </div>
-                    <button class="cart-item-del" onclick="removeFromCart('${item.id}')">&times;</button>
+                    <button class="cart-item-del" onclick="removeFromCart('${item.id}', this)">&times;</button>
                 </div>
                 `;
             });
@@ -1006,14 +1069,88 @@ document.addEventListener('DOMContentLoaded', () => {
             modalEl.classList.add('active'); document.body.style.overflow = 'hidden';
             try { gtag('event', 'view_item', { currency: 'ARS', value: offerVal(p), items: [{ item_id: p.id, item_name: p.name, price: offerVal(p) }] }); } catch(e) {}
             
-            // Re-bind the "Añadir al Carrito" inside modal
+            // Re-bind the "Añadir al Carrito" inside modal with premium animation
             const addBtn = modalEl.querySelector('.modal-add-cart');
             const newAddBtn = addBtn.cloneNode(true);
             addBtn.parentNode.replaceChild(newAddBtn, addBtn);
             
+            // Setup button inner structure for animation
+            newAddBtn.classList.remove('cart-adding', 'cart-added-success');
+            newAddBtn.style.position = 'relative';
+            newAddBtn.style.overflow = 'visible';
+            newAddBtn.innerHTML = `<span class="cart-btn-text">Agregar al Carrito</span><span class="cart-check-icon"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span>`;
+            
+            // Ensure modal-content has position:relative for the overlay
+            const modalContent = modalEl.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.position = 'relative';
+                const existingOverlay = modalContent.querySelector('.modal-cart-success-overlay');
+                if (existingOverlay) {
+                    existingOverlay.classList.remove('active');
+                }
+            }
+            
             newAddBtn.addEventListener('click', () => {
-                window.addToCart(p.id, newAddBtn);
-                closeM();
+                // Prevent double-click
+                if (newAddBtn.classList.contains('cart-adding') || newAddBtn.classList.contains('cart-added-success')) return;
+                
+                // 1. Add to cart (data)
+                const product = products.find(x => x.id === p.id);
+                if (!product) return;
+                const existing = cart.find(item => item.id === p.id);
+                if (existing) { existing.qty++; } else { cart.push({ ...product, qty: 1 }); }
+                saveCart();
+                try { gtag('event', 'add_to_cart', { currency: 'ARS', value: offerVal(product), items: [{ item_id: product.id, item_name: product.name, price: offerVal(product), quantity: 1 }] }); } catch(e) {}
+                showToast(`${product.name} agregado al carrito`, 'success');
+                
+                // 2. Button morph: adding state (sparkle ring)
+                newAddBtn.classList.add('cart-adding');
+                
+                // 3. Spawn confetti particles from button
+                spawnConfetti(newAddBtn);
+                
+                // 4. After short delay, transition to success state
+                setTimeout(() => {
+                    newAddBtn.classList.remove('cart-adding');
+                    newAddBtn.classList.add('cart-added-success');
+                }, 350);
+                
+                // 5. Show success overlay inside modal
+                let overlay = modalContent.querySelector('.modal-cart-success-overlay');
+                if (!overlay) {
+                    overlay = document.createElement('div');
+                    overlay.className = 'modal-cart-success-overlay';
+                    overlay.innerHTML = `
+                        <div class="success-ring"></div>
+                        <div class="success-text">¡Agregado al carrito!</div>
+                        <div class="success-subtext">${product.name}</div>
+                    `;
+                    modalContent.appendChild(overlay);
+                } else {
+                    overlay.querySelector('.success-subtext').textContent = product.name;
+                    // Reset animations by re-cloning inner elements
+                    const ring = overlay.querySelector('.success-ring');
+                    const newRing = ring.cloneNode(true);
+                    ring.parentNode.replaceChild(newRing, ring);
+                    const txt = overlay.querySelector('.success-text');
+                    const newTxt = txt.cloneNode(true);
+                    txt.parentNode.replaceChild(newTxt, txt);
+                    const sub = overlay.querySelector('.success-subtext');
+                    const newSub = sub.cloneNode(true);
+                    sub.parentNode.replaceChild(newSub, sub);
+                }
+                
+                setTimeout(() => overlay.classList.add('active'), 450);
+                
+                // 6. Launch flying image to cart using unified flyToCart
+                flyToCart(newAddBtn);
+                
+                // 7. Close modal and open cart after the full animation plays
+                setTimeout(() => {
+                    overlay.classList.remove('active');
+                    closeM();
+                    setTimeout(openCart, 350);
+                }, 1800);
             });
 
             // Navigation between visible products
@@ -1368,6 +1505,58 @@ document.addEventListener('DOMContentLoaded', () => {
                 searchResults.appendChild(item);
             });
         });
+    }
+
+    // ─── HERO SEARCH BAR ───────────────────────────────────
+    const heroSearchInput = document.getElementById('heroSearchInput');
+    const heroSearchResults = document.getElementById('heroSearchResults');
+    const heroSearchForm = document.getElementById('heroSearch');
+    if (heroSearchInput && heroSearchResults) {
+        const renderHeroResults = (q) => {
+            q = q.toLowerCase().trim();
+            heroSearchResults.innerHTML = '';
+            if (q.length < 2) { heroSearchResults.classList.remove('active'); return; }
+            const matches = products.filter(p =>
+                p.name.toLowerCase().includes(q) ||
+                p.category.toLowerCase().includes(q) ||
+                (p.description && p.description.toLowerCase().includes(q))
+            );
+            if (matches.length === 0) {
+                heroSearchResults.innerHTML = '<div class="search-no-results">No se encontraron productos 😕</div>';
+            } else {
+                matches.slice(0, 8).forEach(p => {
+                    const item = document.createElement('div');
+                    item.classList.add('search-result-item');
+                    const displayPrice = (hasOffer(p)) ? p.offerPrice : p.price;
+                    item.innerHTML = `
+                        <img src="${p.image}" alt="${p.name}">
+                        <div class="search-result-info"><h4>${p.name}</h4><p>$${fmt(displayPrice)}</p></div>
+                    `;
+                    item.addEventListener('click', () => {
+                        heroSearchResults.classList.remove('active');
+                        heroSearchInput.value = '';
+                        if (typeof window.openProductModal === 'function') window.openProductModal(p.id);
+                    });
+                    heroSearchResults.appendChild(item);
+                });
+            }
+            heroSearchResults.classList.add('active');
+        };
+        heroSearchInput.addEventListener('input', () => renderHeroResults(heroSearchInput.value));
+        heroSearchInput.addEventListener('focus', () => { if (heroSearchInput.value.trim().length >= 2) heroSearchResults.classList.add('active'); });
+        document.addEventListener('click', (e) => { if (!e.target.closest('.hero-search')) heroSearchResults.classList.remove('active'); });
+        if (heroSearchForm) {
+            heroSearchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                heroSearchResults.classList.remove('active');
+                const target = document.getElementById('products');
+                if (target) {
+                    const offset = window.innerWidth < 768 ? 80 : 70;
+                    const top = target.getBoundingClientRect().top + window.scrollY - offset;
+                    if (typeof smoother !== 'undefined' && smoother) smoother.scrollTo(top, true); else window.scrollTo({ top, behavior: 'smooth' });
+                }
+            });
+        }
     }
 
     // ─── NAVBAR HIDE/SHOW ON SCROLL ─────────────────────────
