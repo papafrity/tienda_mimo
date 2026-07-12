@@ -869,6 +869,7 @@ body{padding-bottom:70px}
 .mobile-nav-item.active svg{stroke:var(--accent-color)}
 .mobile-cart-btn{position:relative}
 .mobile-cart-count{position:absolute;top:0;right:2px;background:var(--accent-color);color:#000;font-size:.6rem;font-weight:800;min-width:14px;height:14px;display:flex;align-items:center;justify-content:center;border-radius:50%;line-height:1}
+.mobile-nav.hide-search{display:none !important}
 
 /* ─── ADMIN REVIEWS ────────────────────────────────────────── */
 .review-author{font-size:.9rem;font-weight:600;color:var(--text-primary)}

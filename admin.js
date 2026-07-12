@@ -369,10 +369,10 @@ form.addEventListener('submit', async (e) => {
     const productData = {
         name: document.getElementById('prodName').value,
         category: document.getElementById('prodCategory').value,
-        price: Math.ceil((parseFloat(document.getElementById('prodPrice').value) || 0) / 100) * 100,
+        price: (() => { const v = parseFloat(document.getElementById('prodPrice').value) || 0; return v < 100 ? v : Math.ceil(v / 100) * 100; })(),
         cost: parseFloat(document.getElementById('prodCost').value) || 0,
         margin: parseInt(document.getElementById('prodMargin').value) || 0,
-        offerPrice: document.getElementById('prodOffer').value ? Math.ceil((parseFloat(document.getElementById('prodOffer').value) || 0) / 100) * 100 : null,
+        offerPrice: document.getElementById('prodOffer').value ? (() => { const v = parseFloat(document.getElementById('prodOffer').value) || 0; return v < 100 ? v : Math.ceil(v / 100) * 100; })() : null,
         badge: document.getElementById('prodBadge').value,
         description: document.getElementById('prodDesc').value,
         image: mainImgUrl,
@@ -409,7 +409,8 @@ function updateCalculatedPrice() {
     const cost = parseFloat(document.getElementById('prodCost').value) || 0;
     const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
     const basePrice = cost * (1 + (margin / 100));
-    const finalPrice = Math.ceil(basePrice * (1 + MP_FEE) / 100) * 100;
+    const rawFinal = basePrice * (1 + MP_FEE);
+    const finalPrice = rawFinal < 100 ? rawFinal : Math.ceil(rawFinal / 100) * 100;
     document.getElementById('prodPrice').value = finalPrice;
     
     const profit = finalPrice - cost;

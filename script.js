@@ -1455,14 +1455,19 @@ document.addEventListener('DOMContentLoaded', () => {
         searchToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             searchDropdown.classList.toggle('active');
+            const mn = document.getElementById('mobileNav');
             if (searchDropdown.classList.contains('active')) {
                 setTimeout(() => searchInput.focus(), 100);
+                if (mn) mn.classList.add('hide-search');
+            } else {
+                if (mn) mn.classList.remove('hide-search');
             }
         });
 
         document.addEventListener('click', (e) => {
             if (!e.target.closest('.search-container')) {
                 searchDropdown.classList.remove('active');
+                const mn = document.getElementById('mobileNav'); if (mn) mn.classList.remove('hide-search');
             }
         });
 
@@ -1500,6 +1505,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.addEventListener('click', () => {
                     searchDropdown.classList.remove('active');
                     searchInput.value = '';
+                    const mn = document.getElementById('mobileNav'); if (mn) mn.classList.remove('hide-search');
                     window.openProductModal(p.id);
                 });
                 searchResults.appendChild(item);
@@ -1515,7 +1521,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const renderHeroResults = (q) => {
             q = q.toLowerCase().trim();
             heroSearchResults.innerHTML = '';
-            if (q.length < 2) { heroSearchResults.classList.remove('active'); return; }
+            const mnHero = document.getElementById('mobileNav');
+            if (q.length < 2) { heroSearchResults.classList.remove('active'); if (mnHero) mnHero.classList.remove('hide-search'); return; }
             const matches = products.filter(p =>
                 p.name.toLowerCase().includes(q) ||
                 p.category.toLowerCase().includes(q) ||
@@ -1535,20 +1542,23 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.addEventListener('click', () => {
                         heroSearchResults.classList.remove('active');
                         heroSearchInput.value = '';
+                        const mn = document.getElementById('mobileNav'); if (mn) mn.classList.remove('hide-search');
                         if (typeof window.openProductModal === 'function') window.openProductModal(p.id);
                     });
                     heroSearchResults.appendChild(item);
                 });
             }
             heroSearchResults.classList.add('active');
+            if (mnHero) mnHero.classList.add('hide-search');
         };
         heroSearchInput.addEventListener('input', () => renderHeroResults(heroSearchInput.value));
-        heroSearchInput.addEventListener('focus', () => { if (heroSearchInput.value.trim().length >= 2) heroSearchResults.classList.add('active'); });
-        document.addEventListener('click', (e) => { if (!e.target.closest('.hero-search')) heroSearchResults.classList.remove('active'); });
+        heroSearchInput.addEventListener('focus', () => { if (heroSearchInput.value.trim().length >= 2) { heroSearchResults.classList.add('active'); const mn = document.getElementById('mobileNav'); if (mn) mn.classList.add('hide-search'); } });
+        document.addEventListener('click', (e) => { if (!e.target.closest('.hero-search')) { heroSearchResults.classList.remove('active'); const mn = document.getElementById('mobileNav'); if (mn) mn.classList.remove('hide-search'); } });
         if (heroSearchForm) {
             heroSearchForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 heroSearchResults.classList.remove('active');
+                const mn = document.getElementById('mobileNav'); if (mn) mn.classList.remove('hide-search');
                 const target = document.getElementById('products');
                 if (target) {
                     const offset = window.innerWidth < 768 ? 80 : 70;
