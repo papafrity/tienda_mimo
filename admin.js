@@ -1021,7 +1021,21 @@ if (generateAIBtn) {
         generateAIBtn.style.opacity = '0.7';
 
         try {
-            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción corta (2 a 3 oraciones), premium y muy atractiva para un producto llamado "${prodName}" de la categoría "${prodCategory}". Resalta sus características principales y beneficios. Tono formal y persuasivo.`;
+            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción detallada, premium y comercial para el producto "${prodName}" de la categoría "${prodCategory}".
+MUY IMPORTANTE: La descripción DEBE estar estructurada y dividida en partes fáciles de leer, separadas por un doble salto de línea.
+No uses emojis. Usa un punto negro (•) al inicio de cada característica para crear una lista limpia.
+No uses formato Markdown (no uses asteriscos ** ni símbolos raros) ya que será texto plano.
+
+Usa una estructura similar a este ejemplo dependiendo de lo que aplique al producto:
+• Pantalla: LED de 43 pulgadas con resolución Full HD...
+
+• Diseño: Estructura Frameless (sin marcos)...
+
+• Rendimiento: Procesador de última generación...
+
+• Batería / Energía: [detalle...]
+
+• Conectividad: [detalle...]`;
             
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
                 method: 'POST',
