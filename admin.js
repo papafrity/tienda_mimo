@@ -1023,7 +1023,7 @@ if (generateAIBtn) {
         try {
             const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción corta (2 a 3 oraciones), premium y muy atractiva para un producto llamado "${prodName}" de la categoría "${prodCategory}". Resalta sus características principales y beneficios. Tono formal y persuasivo.`;
             
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
