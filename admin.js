@@ -1040,7 +1040,6 @@ if (generateAIBtn) {
 
             if (!response.ok) {
                 if (response.status === 400 || response.status === 403) {
-                    localStorage.removeItem('gemini_api_key');
                     throw new Error('API Key inválida o sin permisos.');
                 }
                 throw new Error('Error al conectar con la API de Gemini.');
