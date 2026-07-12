@@ -1021,9 +1021,9 @@ if (generateAIBtn) {
         generateAIBtn.style.opacity = '0.7';
 
         try {
-            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción detallada, premium y comercial para el producto "${prodName}" de la categoría "${prodCategory}".
-MUY IMPORTANTE: La descripción DEBE estar estructurada y dividida en partes fáciles de leer, separadas por un doble salto de línea.
-No uses emojis. Usa un punto negro (•) al inicio de cada característica para crear una lista limpia.
+            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción muy concisa y comercial para el producto "${prodName}" de la categoría "${prodCategory}".
+MUY IMPORTANTE: Da SOLO las características más importantes y resumidas. La descripción DEBE estar dividida en partes fáciles de leer, separadas por un doble salto de línea.
+No uses emojis. Usa un punto negro (•) al inicio de cada característica para crear una lista limpia y muy breve.
 No uses formato Markdown (no uses asteriscos ** ni símbolos raros) ya que será texto plano.
 
 Usa una estructura similar a este ejemplo dependiendo de lo que aplique al producto:

@@ -2183,12 +2183,25 @@ document.head.appendChild(st);
         particlePositions[i + 2] = (Math.random() - 0.5) * 8;
     }
     particlesGeom.setAttribute('position', new THREE.BufferAttribute(particlePositions, 3));
+    // Crear textura circular para las partículas
+    const circleCanvas = document.createElement('canvas');
+    circleCanvas.width = 16;
+    circleCanvas.height = 16;
+    const context = circleCanvas.getContext('2d');
+    context.beginPath();
+    context.arc(8, 8, 8, 0, Math.PI * 2);
+    context.fillStyle = '#FFF';
+    context.fill();
+    const circleTexture = new THREE.CanvasTexture(circleCanvas);
+
     const particlesMat = new THREE.PointsMaterial({
         color: 0x00f0ff,
         size: 0.05,
         transparent: true,
         opacity: 0.55,
-        blending: THREE.AdditiveBlending
+        blending: THREE.AdditiveBlending,
+        map: circleTexture,
+        alphaTest: 0.1
     });
     const particleSystem = new THREE.Points(particlesGeom, particlesMat);
     scene.add(particleSystem);
@@ -2286,15 +2299,8 @@ document.head.appendChild(st);
         });
     }
 
-    // ── Post-processing (Bloom) — desktop only ──
-    if (!isMobile() && typeof THREE.EffectComposer !== 'undefined' && typeof THREE.UnrealBloomPass !== 'undefined') {
-        composer = new THREE.EffectComposer(renderer);
-        composer.addPass(new THREE.RenderPass(scene, camera));
-        composer.addPass(new THREE.UnrealBloomPass(new THREE.Vector2(w, h), 0.6, 0.4, 0.85));
-        if (typeof THREE.GammaCorrectionShader !== 'undefined') {
-            composer.addPass(new THREE.ShaderPass(THREE.GammaCorrectionShader));
-        }
-    }
+    // ── Post-processing (Bloom removido a petición del usuario) ──
+    composer = null;
 
     // ── Animation Loop ──
     let time = 0;
