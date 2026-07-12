@@ -997,6 +997,70 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
+// ─── AI DESCRIPTION GENERATOR (GEMINI) ─────────────────────────
+const generateAIBtn = document.getElementById('generateAIBtn');
+if (generateAIBtn) {
+    generateAIBtn.addEventListener('click', async () => {
+        const prodName = document.getElementById('prodName').value.trim();
+        const prodCategory = document.getElementById('prodCategory').value.trim();
+
+        if (!prodName) {
+            alert('Por favor, ingresa el Nombre del Producto primero.');
+            return;
+        }
+
+        let apiKey = localStorage.getItem('gemini_api_key');
+        if (!apiKey) {
+            apiKey = prompt('Por favor, ingresa tu API Key de Google Gemini para usar esta función:');
+            if (!apiKey) return; // User cancelled
+            localStorage.setItem('gemini_api_key', apiKey);
+        }
+
+        const originalBtnText = generateAIBtn.innerHTML;
+        generateAIBtn.innerHTML = '<span>⏳ Generando...</span>';
+        generateAIBtn.style.pointerEvents = 'none';
+        generateAIBtn.style.opacity = '0.7';
+
+        try {
+            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción corta (2 a 3 oraciones), premium y muy atractiva para un producto llamado "${prodName}" de la categoría "${prodCategory}". Resalta sus características principales y beneficios. Tono formal y persuasivo.`;
+            
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{
+                            text: promptText
+                        }]
+                    }]
+                })
+            });
+
+            if (!response.ok) {
+                if (response.status === 400 || response.status === 403) {
+                    localStorage.removeItem('gemini_api_key');
+                    throw new Error('API Key inválida o sin permisos.');
+                }
+                throw new Error('Error al conectar con la API de Gemini.');
+            }
+
+            const data = await response.json();
+            const text = data.candidates[0].content.parts[0].text;
+            
+            document.getElementById('prodDesc').value = text.trim();
+        } catch (error) {
+            console.error(error);
+            alert(`Error: ${error.message}\nSi el problema persiste, la llave API puede ser incorrecta o haber expirado.`);
+        } finally {
+            generateAIBtn.innerHTML = originalBtnText;
+            generateAIBtn.style.pointerEvents = 'auto';
+            generateAIBtn.style.opacity = '1';
+        }
+    });
+}
+
 // ─── ADMIN REVIEWS TOGGLE ─────────────────────────────────
 function initAdminReviewsToggle() {
     const toggle = document.getElementById('adminReviewsToggle');
