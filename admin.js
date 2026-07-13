@@ -452,34 +452,27 @@ async function searchPrices(source) {
     minEl.textContent = '';
     btns.forEach(b => b.disabled = true);
 
-    let data;
+    const label2 = source === 'serper' || source === 'google' ? 'Google Shopping' : 'Mercado Libre';
+    src.textContent = label2;
+
     try {
-        if (source === 'mercadolibre' || source === 'ml') {
-            src.textContent = '📦 Mercado Libre';
-            const url = `https://api.mercadolibre.com/sites/MLA/search?q=${encodeURIComponent(name)}&limit=6`;
-            const resp = await fetch(url);
-            if (!resp.ok) throw new Error('Mercado Libre respondió con estado ' + resp.status);
-            const mlData = await resp.json();
-            const results = (mlData.results || []).map(r => ({
-                title: r.title,
-                price: r.price,
-                currency: r.currency_id === 'USD' ? 'US$' : '$',
-                store: r.seller?.official_store_name || 'Mercado Libre',
-                link: r.permalink,
-                thumbnail: r.thumbnail
-            }));
-            results.sort((a, b) => a.price - b.price);
-            data = { results, source: 'mercadolibre', query: name };
-        } else {
-            src.textContent = '💰 Google Shopping';
-            const resp = await fetch(`/api/search-prices?q=${encodeURIComponent(name)}&source=serper`);
-            const ct = resp.headers.get('content-type') || '';
-            if (!ct.includes('json')) {
-                const text = await resp.text();
-                throw new Error('Google Shopping devolvió HTML en vez de JSON. Asegurate de haber deployado api/search-prices.js en Vercel y configurado SERPER_API_KEY.<br><small>' + text.slice(0, 120).replace(/</g, '&lt;') + '</small>');
+        const resp = await fetch(`/api/search-prices?q=${encodeURIComponent(name)}&source=${source}`);
+        const ct = resp.headers.get('content-type') || '';
+        if (!ct.includes('json')) {
+            const text = await resp.text();
+            const is404 = text.includes('<!DOCTYPE') || text.includes('Not Found');
+            if (is404) {
+                throw new Error(
+                    'La función /api/search-prices no está deployada. ' +
+                    'En la terminal de tu proyecto ejecutá: <strong>vercel --prod</strong> ' +
+                    '(subir archivos manualmente por el dashboard NO deploya las funciones del servidor).' +
+                    '<br><small>Recibido: ' + text.slice(0, 100).replace(/</g, '&lt;') + '</small>'
+                );
             }
-            data = await resp.json();
+            throw new Error('Respuesta inesperada: ' + text.slice(0, 200).replace(/</g, '&lt;'));
         }
+
+        const data = await resp.json();
 
         if (!data || data.error) {
             errEl.innerHTML = data?.error || 'Error desconocido';
@@ -492,7 +485,6 @@ async function searchPrices(source) {
 
         const results = data.results;
         const min = results[0];
-        const max = results[results.length - 1];
 
         minEl.textContent = `Mín: $${fmt(min.price)}`;
 
@@ -503,9 +495,9 @@ async function searchPrices(source) {
                 <td>${r.store}</td>
                 <td style="${isMin ? 'color:#2ed573;font-weight:700' : ''}">$${fmt(r.price)}</td>
                 <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                    <a href="${r.link}" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px">
+                    <a href="${r.link || '#'}" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px">
                         <img src="${r.thumbnail || ''}" alt="" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">
-                        ${r.title.length > 40 ? r.title.slice(0,38) + '…' : r.title}
+                        ${r.title ? (r.title.length > 40 ? r.title.slice(0,38) + '…' : r.title) : '—'}
                     </a>
                 </td>
             `;
