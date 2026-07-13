@@ -430,15 +430,13 @@ document.getElementById('prodPrice').addEventListener('input', () => {
 });
 
 // ─── PRICE COMPARISON SEARCH ──────────────────────────
-const CORS_PROXY = 'https://corsproxy.io/?';
-
 async function searchPrices(source) {
     const name = document.getElementById('prodName').value.trim();
     if (!name) { alert('Escribí el nombre del producto primero.'); return; }
 
     const panel = document.getElementById('priceSearchResults');
     const tbl = document.getElementById('psTbody');
-    const srcEl = document.getElementById('psSource');
+    const src = document.getElementById('psSource');
     const minEl = document.getElementById('psMin');
     const compEl = document.getElementById('psCompare');
     const errEl = document.getElementById('psError');
@@ -446,43 +444,48 @@ async function searchPrices(source) {
     const btns = document.querySelectorAll('.ps-btn');
 
     panel.style.display = 'block';
-    errEl.innerHTML = '';
+    errEl.textContent = '';
     compEl.innerHTML = '';
     loadEl.style.display = 'block';
     tbl.innerHTML = '';
-    srcEl.textContent = '';
+    src.textContent = '';
     minEl.textContent = '';
     btns.forEach(b => b.disabled = true);
 
-    if (source === 'serper' || source === 'google') {
-        errEl.innerHTML = 'Google Shopping requiere deployar con <strong>vercel --prod</strong> y configurar SERPER_API_KEY en Vercel. Por ahora usá Mercado Libre.';
-        loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return;
-    }
-
-    srcEl.textContent = 'Mercado Libre';
+    const label2 = source === 'serper' || source === 'google' ? 'Google Shopping' : 'Mercado Libre';
+    src.textContent = label2;
 
     try {
-        const mlUrl = `https://api.mercadolibre.com/sites/MLA/search?q=${encodeURIComponent(name)}&limit=6`;
-        const resp = await fetch(CORS_PROXY + encodeURIComponent(mlUrl));
+        const resp = await fetch(`/api/search-prices?q=${encodeURIComponent(name)}&source=${source}`);
+        const ct = resp.headers.get('content-type') || '';
+        if (!ct.includes('json')) {
+            const text = await resp.text();
+            const is404 = text.includes('<!DOCTYPE') || text.includes('Not Found');
+            if (is404) {
+                throw new Error(
+                    'La función /api/search-prices no está deployada. ' +
+                    'En la terminal de tu proyecto ejecutá: <strong>vercel --prod</strong> ' +
+                    '(subir archivos manualmente por el dashboard NO deploya las funciones del servidor).' +
+                    '<br><small>Recibido: ' + text.slice(0, 100).replace(/</g, '&lt;') + '</small>'
+                );
+            }
+            throw new Error('Respuesta inesperada: ' + text.slice(0, 200).replace(/</g, '&lt;'));
+        }
 
-        if (!resp.ok) throw new Error('Mercado Libre respondió con estado ' + resp.status);
         const data = await resp.json();
 
+        if (!data || data.error) {
+            errEl.innerHTML = data?.error || 'Error desconocido';
+            loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return;
+        }
         if (!data.results || data.results.length === 0) {
-            errEl.textContent = 'No se encontraron resultados en Mercado Libre.';
+            errEl.textContent = 'No se encontraron resultados.';
             loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return;
         }
 
-        const results = data.results.map(r => ({
-            title: r.title,
-            price: r.price,
-            store: r.seller?.official_store_name || 'Mercado Libre',
-            link: r.permalink,
-            thumbnail: r.thumbnail
-        }));
-        results.sort((a, b) => a.price - b.price);
-
+        const results = data.results;
         const min = results[0];
+
         minEl.textContent = `Mín: $${fmt(min.price)}`;
 
         results.forEach(r => {
