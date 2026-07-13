@@ -452,18 +452,49 @@ async function searchPrices(source) {
     minEl.textContent = '';
     btns.forEach(b => b.disabled = true);
 
+    let data;
     try {
-        const resp = await fetch(`/api/search-prices?q=${encodeURIComponent(name)}&source=${source}`);
-        const data = await resp.json();
-        if (data.error) { errEl.textContent = data.error; loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return; }
-        if (!data.results || data.results.length === 0) { errEl.textContent = 'No se encontraron resultados.'; loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return; }
+        if (source === 'mercadolibre' || source === 'ml') {
+            src.textContent = '📦 Mercado Libre';
+            const url = `https://api.mercadolibre.com/sites/MLA/search?q=${encodeURIComponent(name)}&limit=6`;
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('Mercado Libre respondió con estado ' + resp.status);
+            const mlData = await resp.json();
+            const results = (mlData.results || []).map(r => ({
+                title: r.title,
+                price: r.price,
+                currency: r.currency_id === 'USD' ? 'US$' : '$',
+                store: r.seller?.official_store_name || 'Mercado Libre',
+                link: r.permalink,
+                thumbnail: r.thumbnail
+            }));
+            results.sort((a, b) => a.price - b.price);
+            data = { results, source: 'mercadolibre', query: name };
+        } else {
+            src.textContent = '💰 Google Shopping';
+            const resp = await fetch(`/api/search-prices?q=${encodeURIComponent(name)}&source=serper`);
+            const ct = resp.headers.get('content-type') || '';
+            if (!ct.includes('json')) {
+                const text = await resp.text();
+                throw new Error('Google Shopping devolvió HTML en vez de JSON. Asegurate de haber deployado api/search-prices.js en Vercel y configurado SERPER_API_KEY.<br><small>' + text.slice(0, 120).replace(/</g, '&lt;') + '</small>');
+            }
+            data = await resp.json();
+        }
+
+        if (!data || data.error) {
+            errEl.innerHTML = data?.error || 'Error desconocido';
+            loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return;
+        }
+        if (!data.results || data.results.length === 0) {
+            errEl.textContent = 'No se encontraron resultados.';
+            loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return;
+        }
 
         const results = data.results;
         const min = results[0];
         const max = results[results.length - 1];
 
-        src.textContent = source === 'serper' || source === 'google' ? 'ðŸ’° Google Shopping' : 'ðŸ“¦ Mercado Libre';
-        minEl.textContent = `MÃ­n: $${fmt(min.price)}`;
+        minEl.textContent = `Mín: $${fmt(min.price)}`;
 
         results.forEach(r => {
             const tr = document.createElement('tr');
@@ -474,25 +505,24 @@ async function searchPrices(source) {
                 <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                     <a href="${r.link}" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px">
                         <img src="${r.thumbnail || ''}" alt="" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">
-                        ${r.title.length > 40 ? r.title.slice(0,38) + 'â€¦' : r.title}
+                        ${r.title.length > 40 ? r.title.slice(0,38) + '…' : r.title}
                     </a>
                 </td>
             `;
             tbl.appendChild(tr);
         });
 
-        // Compare with current price in form
         const currentPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
         if (currentPrice > 0 && min.price > 0) {
             const diff = currentPrice - min.price;
             const pct = ((diff / min.price) * 100).toFixed(0);
             const color = Math.abs(diff) < min.price * 0.2 ? '#2ed573' : '#ff4757';
-            const label = diff <= 0 ? 'EstÃ¡s por debajo del mÃ­nimo' : 'EstÃ¡s $' + fmt(Math.abs(diff)) + ' arriba del mÃ­nimo (' + pct + '%)';
-            compEl.innerHTML = `<div style="margin-top:.6rem;font-size:.85rem;color:${color}">Tu precio: <strong>$${fmt(currentPrice)}</strong> Ã· MÃ­n: <strong>$${fmt(min.price)}</strong> â€” ${label}</div>`;
+            const label = diff <= 0 ? 'Estás por debajo del mínimo' : 'Estás $' + fmt(Math.abs(diff)) + ' arriba del mínimo (' + pct + '%)';
+            compEl.innerHTML = `<div style="margin-top:.6rem;font-size:.85rem;color:${color}">Tu precio: <strong>$${fmt(currentPrice)}</strong> · Mín: <strong>$${fmt(min.price)}</strong> — ${label}</div>`;
         }
 
     } catch(e) {
-        errEl.textContent = 'Error de conexiÃ³n: ' + e.message;
+        errEl.innerHTML = e.message;
     }
 
     loadEl.style.display = 'none';
