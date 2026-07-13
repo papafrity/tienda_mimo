@@ -280,6 +280,25 @@
                     <label>Nombre del Producto</label>
                     <input type="text" id="prodName" required>
                 </div>
+                <div class="price-search-btns">
+                    <button type="button" class="ps-btn" id="btnSearchML">ðŸ” Mercado Libre</button>
+                    <button type="button" class="ps-btn" id="btnSearchSerper">ðŸ” Google Shopping</button>
+                </div>
+                <div class="price-search-results" id="priceSearchResults">
+                    <div class="ps-header" id="psHeader">
+                        <span id="psSource"></span>
+                        <span class="ps-min" id="psMin"></span>
+                    </div>
+                    <div class="ps-body" id="psBody">
+                        <table class="ps-table">
+                            <thead><tr><th>Tienda</th><th>Precio</th><th>Producto</th></tr></thead>
+                            <tbody id="psTbody"></tbody>
+                        </table>
+                        <div class="ps-compare" id="psCompare"></div>
+                        <div class="ps-error" id="psError"></div>
+                        <div class="ps-loading" id="psLoading">Buscando precios...</div>
+                    </div>
+                </div>
                 <div class="form-group">
                     <label>Categoría</label>
                     <select id="prodCategory" required>

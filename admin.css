@@ -656,3 +656,20 @@ select option { background: #fff; color: #000; }
         font-size: 0.85rem !important;
     }
 }
+
+/* ─── PRICE COMPARISON SEARCH ──────────────────────── */
+.price-search-btns{display:flex;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap}
+.ps-btn{padding:.5rem 1rem;border:1px solid var(--surface-border);border-radius:8px;background:rgba(0,240,255,.08);color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;cursor:pointer;transition:all .25s}
+.ps-btn:hover{background:rgba(0,240,255,.18);border-color:var(--accent-color)}
+.ps-btn:disabled{opacity:.4;pointer-events:none}
+.price-search-results{display:none;border:1px solid var(--surface-border);border-radius:12px;margin-bottom:1.5rem;overflow:hidden;background:rgba(0,0,0,.15)}
+.ps-header{display:flex;justify-content:space-between;align-items:center;padding:.6rem 1rem;border-bottom:1px solid var(--surface-border);font-size:.85rem}
+.ps-min{color:#2ed573;font-weight:700}
+.ps-body{padding:.5rem}
+.ps-table{width:100%;border-collapse:collapse;font-size:.8rem}
+.ps-table th{padding:.4rem .6rem;text-align:left;border-bottom:1px solid var(--surface-border);color:var(--text-secondary);font-weight:500;font-size:.78rem}
+.ps-table td{padding:.35rem .6rem;border-bottom:1px solid rgba(255,255,255,.04)}
+.ps-table tr:hover td{background:rgba(0,240,255,.04)}
+.ps-compare{padding:.4rem .6rem .2rem}
+.ps-error{padding:.6rem;color:#ff4757;font-size:.82rem}
+.ps-loading{padding:.8rem;text-align:center;color:var(--text-secondary);font-size:.85rem;display:none}

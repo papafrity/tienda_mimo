@@ -429,6 +429,80 @@ document.getElementById('prodPrice').addEventListener('input', () => {
     if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / cost) * 100) || 0}% sobre costo)`;
 });
 
+// ─── PRICE COMPARISON SEARCH ──────────────────────────
+async function searchPrices(source) {
+    const name = document.getElementById('prodName').value.trim();
+    if (!name) { alert('Escribí el nombre del producto primero.'); return; }
+
+    const panel = document.getElementById('priceSearchResults');
+    const tbl = document.getElementById('psTbody');
+    const src = document.getElementById('psSource');
+    const minEl = document.getElementById('psMin');
+    const compEl = document.getElementById('psCompare');
+    const errEl = document.getElementById('psError');
+    const loadEl = document.getElementById('psLoading');
+    const btns = document.querySelectorAll('.ps-btn');
+
+    panel.style.display = 'block';
+    errEl.textContent = '';
+    compEl.innerHTML = '';
+    loadEl.style.display = 'block';
+    tbl.innerHTML = '';
+    src.textContent = '';
+    minEl.textContent = '';
+    btns.forEach(b => b.disabled = true);
+
+    try {
+        const resp = await fetch(`/api/search-prices?q=${encodeURIComponent(name)}&source=${source}`);
+        const data = await resp.json();
+        if (data.error) { errEl.textContent = data.error; loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return; }
+        if (!data.results || data.results.length === 0) { errEl.textContent = 'No se encontraron resultados.'; loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return; }
+
+        const results = data.results;
+        const min = results[0];
+        const max = results[results.length - 1];
+
+        src.textContent = source === 'serper' || source === 'google' ? 'ðŸ’° Google Shopping' : 'ðŸ“¦ Mercado Libre';
+        minEl.textContent = `MÃ­n: $${fmt(min.price)}`;
+
+        results.forEach(r => {
+            const tr = document.createElement('tr');
+            const isMin = r === min;
+            tr.innerHTML = `
+                <td>${r.store}</td>
+                <td style="${isMin ? 'color:#2ed573;font-weight:700' : ''}">$${fmt(r.price)}</td>
+                <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
+                    <a href="${r.link}" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px">
+                        <img src="${r.thumbnail || ''}" alt="" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">
+                        ${r.title.length > 40 ? r.title.slice(0,38) + 'â€¦' : r.title}
+                    </a>
+                </td>
+            `;
+            tbl.appendChild(tr);
+        });
+
+        // Compare with current price in form
+        const currentPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
+        if (currentPrice > 0 && min.price > 0) {
+            const diff = currentPrice - min.price;
+            const pct = ((diff / min.price) * 100).toFixed(0);
+            const color = Math.abs(diff) < min.price * 0.2 ? '#2ed573' : '#ff4757';
+            const label = diff <= 0 ? 'EstÃ¡s por debajo del mÃ­nimo' : 'EstÃ¡s $' + fmt(Math.abs(diff)) + ' arriba del mÃ­nimo (' + pct + '%)';
+            compEl.innerHTML = `<div style="margin-top:.6rem;font-size:.85rem;color:${color}">Tu precio: <strong>$${fmt(currentPrice)}</strong> Ã· MÃ­n: <strong>$${fmt(min.price)}</strong> â€” ${label}</div>`;
+        }
+
+    } catch(e) {
+        errEl.textContent = 'Error de conexiÃ³n: ' + e.message;
+    }
+
+    loadEl.style.display = 'none';
+    btns.forEach(b => b.disabled = false);
+}
+
+// Wire buttons
+document.getElementById('btnSearchML').addEventListener('click', () => searchPrices('mercadolibre'));
+document.getElementById('btnSearchSerper').addEventListener('click', () => searchPrices('serper'));
+
 async function deleteProduct(id) {
     if (confirm("¿Estás seguro de que quieres borrar este producto?")) {
         try {

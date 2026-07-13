@@ -1622,12 +1622,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const target = document.querySelector(this.getAttribute('href'));
             if (!target) return;
             e.preventDefault();
+            const isInstant = this.hasAttribute('data-instant');
             const offset = window.innerWidth < 768 ? 80 : 70;
             const top = target.getBoundingClientRect().top + window.scrollY - offset;
             if (smoother) {
-                smoother.scrollTo(top, true);
+                smoother.scrollTo(top, !isInstant);
             } else {
-                window.scrollTo({ top, behavior: 'smooth' });
+                if (isInstant) window.scrollTo(0, top);
+                else window.scrollTo({ top, behavior: 'smooth' });
             }
         });
     });
