@@ -525,13 +525,20 @@ body{padding-bottom:70px}
 .cart-close {
     background: none;
     border: none;
-    color: var(--text-secondary);
-    font-size: 2rem;
+    color: #fff !important;
+    font-size: 2.2rem !important;
     cursor: pointer;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.2s ease;
+    z-index: 10000 !important;
+    position: relative;
+    opacity: 1 !important;
+    visibility: visible !important;
 }
 
-.cart-close:hover { color: var(--primary); }
+.cart-close:hover {
+    color: var(--accent-color) !important;
+    transform: scale(1.1);
+}
 
 .cart-items {
     flex: 1;

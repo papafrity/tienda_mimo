@@ -327,10 +327,23 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ─── CART LOGIC ─────────────────────────────────────────
-    let cart = JSON.parse(localStorage.getItem('mimo_cart')) || [];
+    let cart = [];
+    try {
+        const storedCart = localStorage.getItem('mimo_cart');
+        console.log("Carrito cargado desde localStorage:", storedCart);
+        if (storedCart) {
+            cart = JSON.parse(storedCart);
+            if (!Array.isArray(cart)) {
+                cart = [];
+            }
+        }
+    } catch (e) {
+        console.error("Error al inicializar el carrito:", e);
+        cart = [];
+    }
 
     function saveCart() {
+        console.log("Guardando carrito en localStorage:", cart);
         localStorage.setItem('mimo_cart', JSON.stringify(cart));
         renderCart();
     }
@@ -365,8 +378,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     window.addToCart = function(id, btn) {
+        console.log("window.addToCart llamado con id:", id, "Carrito actual:", JSON.stringify(cart));
         const product = products.find(p => p.id === id);
-        if (!product) return;
+        if (!product) {
+            console.error("Producto no encontrado en products para ID:", id);
+            return;
+        }
         const existing = cart.find(item => item.id === id);
         if (existing) {
             existing.qty++;
@@ -1091,12 +1108,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             
             newAddBtn.addEventListener('click', () => {
+                console.log("Agregar al carrito desde modal para ID:", p.id, "Carrito actual:", JSON.stringify(cart));
                 // Prevent double-click
                 if (newAddBtn.classList.contains('cart-adding') || newAddBtn.classList.contains('cart-added-success')) return;
                 
                 // 1. Add to cart (data)
                 const product = products.find(x => x.id === p.id);
-                if (!product) return;
+                if (!product) {
+                    console.error("Producto no encontrado en products para ID en modal:", p.id);
+                    return;
+                }
                 const existing = cart.find(item => item.id === p.id);
                 if (existing) { existing.qty++; } else { cart.push({ ...product, qty: 1 }); }
                 saveCart();
