@@ -541,13 +541,23 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cartCount) cartCount.textContent = count;
     }
 
+    function toggleCart() {
+        const sidebar = document.getElementById('cartSidebar');
+        if (sidebar && sidebar.classList.contains('active')) {
+            closeCart();
+        } else {
+            openCart();
+        }
+    }
+    window.toggleCart = toggleCart;
+
     // Attach cart UI events
     const cartBtn = document.getElementById('cartBtn');
     const cartClose = document.getElementById('cartClose');
     const cartOverlay = document.getElementById('cartOverlay');
     
-    if (cartBtn) cartBtn.addEventListener('click', openCart);
-    if (cartClose) cartClose.addEventListener('click', closeCart);
+    if (cartBtn) cartBtn.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); toggleCart(); });
+    if (cartClose) cartClose.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); closeCart(); });
     if (cartOverlay) cartOverlay.addEventListener('click', closeCart);
 
     // Initial render
@@ -1627,10 +1637,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobileCartBtn = document.getElementById('mobileCartBtn');
     const mobileCartCount = document.getElementById('mobileCartCount');
     if (mobileCartBtn) {
-        mobileCartBtn.addEventListener('click', () => {
-            document.getElementById('cartSidebar').classList.add('active');
-            document.getElementById('cartOverlay').classList.add('active');
-            document.body.style.overflow = 'hidden';
+        mobileCartBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            toggleCart();
         });
     }
     // Active section tracking for mobile nav
