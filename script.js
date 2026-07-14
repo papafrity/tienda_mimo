@@ -1834,9 +1834,9 @@ document.head.appendChild(st);
         });
         backToTop.addEventListener('click', () => {
             if (smoother) {
-                smoother.scrollTo(0, { duration: 1.2, ease: 'power3.inOut' });
+                smoother.scrollTo(0, { duration: 0, ease: 'none' });
             } else {
-                window.scrollTo({ top: 0, behavior: 'smooth' });
+                window.scrollTo({ top: 0, behavior: 'instant' });
             }
         });
     }
