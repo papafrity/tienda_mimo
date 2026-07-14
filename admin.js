@@ -1192,25 +1192,49 @@ function initAdminReviewsToggle() {
 initAdminReviewsToggle();
 
 // ─── TABS LOGIC ───────────────────────────────────────────
+function updateTabIndicator(btn) {
+    const tabsBar = document.querySelector('.admin-tabs');
+    if (!tabsBar || !btn) return;
+    const rect = btn.getBoundingClientRect();
+    const barRect = tabsBar.getBoundingClientRect();
+    tabsBar.style.setProperty('--tab-indicator-x', (rect.left - barRect.left) + 'px');
+    tabsBar.style.setProperty('--tab-indicator-w', rect.width + 'px');
+}
+
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+        updateTabIndicator(btn);
 
         document.querySelectorAll('.tab-content').forEach(content => {
             content.classList.add('hidden');
+            content.style.animation = 'none';
         });
 
         const targetId = btn.getAttribute('data-tab');
         const targetContent = document.getElementById(targetId);
         if (targetContent) {
             targetContent.classList.remove('hidden');
+            // Force reflow to restart animation
+            void targetContent.offsetWidth;
+            targetContent.style.animation = '';
         }
         // Refresh reviews tab when opened
         if (targetId === 'tab-reviews') {
             loadReviewsProductSelect();
         }
     });
+});
+
+// Initialize indicator on the active tab after load
+window.addEventListener('load', () => {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) updateTabIndicator(activeTab);
+});
+window.addEventListener('resize', () => {
+    const activeTab = document.querySelector('.tab-btn.active');
+    if (activeTab) updateTabIndicator(activeTab);
 });
 
 // ─── ADMIN REVIEWS TAB ───────────────────────────────────

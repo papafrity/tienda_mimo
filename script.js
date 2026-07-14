@@ -208,6 +208,7 @@ document.addEventListener('DOMContentLoaded', () => {
             grid.innerHTML += `
             <div class="product-card tilt-card reveal-up" data-category="${p.category}" data-id="${p.id}" style="transition-delay:${Math.min(idx * .04, .3)}s">
                 <div class="card-glow"></div>
+                <div class="card-spotlight"></div>
                 <div class="product-image"><img src="${p.image}" alt="${p.name}"></div>
                 <div class="product-info">
                     <span class="category">${p.category}</span>
@@ -279,11 +280,95 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ─── SKELETON LOADING ───────────────────────────────────
+    function showSkeletons() {
+        const grid = document.getElementById('productGrid');
+        if (!grid) return;
+        grid.innerHTML = '';
+        for (let i = 0; i < 12; i++) {
+            grid.innerHTML += `
+            <div class="skeleton-card" style="animation-delay:${i * .05}s">
+                <div class="skeleton-img"></div>
+                <div class="skeleton-line w-60"></div>
+                <div class="skeleton-line w-80"></div>
+                <div class="skeleton-line w-40"></div>
+                <div class="skeleton-btn"></div>
+            </div>`;
+        }
+    }
+    showSkeletons();
+
     fetchProducts();
+
+    // ─── TESTIMONIALS: load best reviews from Firebase ──────
+    async function loadTestimonials() {
+        const track = document.getElementById('testimonialsTrack');
+        if (!track) return;
+        const fallback = [
+            { userName: 'María González', rating: 5, comment: 'Excelente atención y los productos llegaron antes de lo esperado. La calidad superó mis expectativas, volveré a comprar sin dudas.', productName: 'Auriculares Bluetooth' },
+            { userName: 'Carlos Méndez', rating: 5, comment: 'Muy buena experiencia de compra. El envío fue rápido y el producto es tal cual se describe en la página. Recomendado.', productName: 'Smart TV 50"' },
+            { userName: 'Lucía Fernández', rating: 5, comment: 'Me encantó la atención personalizada por WhatsApp. Resolvieron todas mis dudas y el producto es excelente. ¡Gracias Mimo!', productName: 'Parlante Portátil' },
+            { userName: 'Diego Romero', rating: 4, comment: 'Buena calidad-precio. El producto funcionó perfecto desde el primer día. Volvería a comprar en la tienda.', productName: 'TV Box Android' },
+            { userName: 'Sofía Torres', rating: 5, comment: 'Increíble servicio post-venta. Tuve un problema con el envío y lo resolvieron inmediatamente. Profesionales de verdad.', productName: 'Celular Liberado' },
+            { userName: 'Martín Acosta', rating: 5, comment: 'Compré una cocina y llegó en perfectas condiciones. El precio fue el mejor que encontré. Muy conformes con la compra.', productName: 'Cocina 4 Hornallas' }
+        ];
+
+        try {
+            const snapshot = await db.collection("products").orderBy("rating", "desc").limit(20).get();
+            let testimonials = [];
+            for (const doc of snapshot.docs) {
+                if (testimonials.length >= 6) break;
+                const prod = doc.data();
+                if (!prod.rating || prod.rating < 4) continue;
+                const reviewsSnap = await db.collection("products").doc(doc.id).collection("reviews")
+                    .where("rating", ">=", 4).orderBy("rating", "desc").limit(1).get();
+                reviewsSnap.forEach(r => {
+                    const d = r.data();
+                    testimonials.push({
+                        userName: d.userName || 'Cliente Verificado',
+                        rating: d.rating,
+                        comment: d.comment || '',
+                        productName: prod.name
+                    });
+                });
+            }
+            renderTestimonials(testimonials.length > 0 ? testimonials : fallback);
+        } catch (e) {
+            console.error('Error cargando testimonios:', e);
+            renderTestimonials(fallback);
+        }
+    }
+
+    function renderTestimonials(items) {
+        const track = document.getElementById('testimonialsTrack');
+        if (!track) return;
+        track.innerHTML = '';
+        items.forEach(t => {
+            const stars = '★'.repeat(t.rating) + '☆'.repeat(5 - t.rating);
+            const initials = (t.userName || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+            const card = document.createElement('div');
+            card.className = 'testimonial-card';
+            card.innerHTML = `
+                <span class="testimonial-quote">"</span>
+                <div class="testimonial-stars">${'★'.repeat(t.rating)}<span style="color:rgba(255,255,255,.15)">${'★'.repeat(5-t.rating)}</span></div>
+                <p class="testimonial-text">${t.comment}</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">${initials}</div>
+                    <div>
+                        <div class="testimonial-name">${t.userName}</div>
+                        <div class="testimonial-product">${t.productName}</div>
+                    </div>
+                </div>`;
+            track.appendChild(card);
+        });
+    }
+
+    loadTestimonials();
     // Re-attach specific dynamic events
     function initDynamicEvents() {
         document.querySelectorAll('.tilt-card').forEach(card => {
             const glow = card.querySelector('.card-glow');
+            const spotlight = card.querySelector('.card-spotlight');
             const img = card.querySelector('.product-image img');
             const info = card.querySelector('.product-info');
             card.addEventListener('mousemove', e => {
@@ -292,10 +377,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 const y = e.clientY - r.top;
                 const cx2 = r.width / 2, cy2 = r.height / 2;
                 if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
-                // 3D tilt
-                const rotX = ((y - cy2) / cy2) * -4;
-                const rotY = ((x - cx2) / cx2) * 4;
-                card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-5px)`;
+                if (spotlight) { spotlight.style.setProperty('--spot-x', x + 'px'); spotlight.style.setProperty('--spot-y', y + 'px'); }
+                // 3D tilt (increased intensity)
+                const rotX = ((y - cy2) / cy2) * -6;
+                const rotY = ((x - cx2) / cx2) * 6;
+                card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-6px)`;
                 // Image parallax
                 const px = (x - cx2) / cx2;
                 const py = (y - cy2) / cy2;
@@ -616,7 +702,7 @@ document.addEventListener('DOMContentLoaded', () => {
         function startFloating(card) {
             if (floatingTl) floatingTl.kill();
             floatingTl = gsap.to(card, {
-                y: -6, duration: 1.8, ease: 'sine.inOut', yoyo: true, repeat: -1
+                y: '+=8', duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1
             });
         }
 
@@ -625,39 +711,40 @@ document.addEventListener('DOMContentLoaded', () => {
         function startGlow(card) {
             if (glowTl) glowTl.kill();
             glowTl = gsap.to(card, {
-                boxShadow: '0 0 50px rgba(0,240,255,.25), 0 0 100px rgba(0,240,255,.08)',
-                duration: 1.5, ease: 'sine.inOut', yoyo: true, repeat: -1
+                boxShadow: '0 0 60px rgba(0,240,255,.3), 0 0 120px rgba(0,240,255,.1)',
+                duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1
             });
         }
 
-        // ── Transition particles ──
+        // ── Transition particles — elegant burst ──
         function spawnParticles(card) {
             if (isMobile()) return;
             const rect = card.getBoundingClientRect();
             const wrapRect = wrapper.getBoundingClientRect();
             const cx = rect.left + rect.width / 2 - wrapRect.left;
             const cy = rect.top + rect.height / 2 - wrapRect.top;
-            for (let i = 0; i < 8; i++) {
+            const count = 12;
+            for (let i = 0; i < count; i++) {
                 const p = document.createElement('div');
                 p.className = 'carousel-particle';
                 p.style.left = cx + 'px';
                 p.style.top = cy + 'px';
                 wrapper.appendChild(p);
-                const angle = (Math.PI * 2 / 8) * i;
-                const dist = 40 + Math.random() * 60;
+                const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
+                const dist = 50 + Math.random() * 80;
                 gsap.to(p, {
                     x: Math.cos(angle) * dist,
                     y: Math.sin(angle) * dist,
                     opacity: 0,
                     scale: 0,
-                    duration: 0.6 + Math.random() * 0.3,
+                    duration: 0.8 + Math.random() * 0.4,
                     ease: 'power2.out',
                     onComplete: () => p.remove()
                 });
             }
         }
 
-        // ── Mouse parallax on card images ──
+        // ── Mouse parallax on card images — silky follow ──
         function bindCardParallax(card) {
             card.addEventListener('mousemove', e => {
                 const img = card.querySelector('img');
@@ -665,24 +752,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const r = card.getBoundingClientRect();
                 const px = (e.clientX - r.left) / r.width - 0.5;
                 const py = (e.clientY - r.top) / r.height - 0.5;
-                gsap.to(img, { x: px * 8, y: py * 5, duration: 0.3, ease: 'power1.out' });
+                gsap.to(img, { x: px * 12, y: py * 8, duration: 0.6, ease: 'power2.out' });
+                // Subtle card tilt following mouse
+                gsap.to(card, { rotateY: px * 6, rotateX: py * -4, duration: 0.6, ease: 'power2.out', transformPerspective: 1000, force3D: true });
             });
             card.addEventListener('mouseleave', () => {
                 const img = card.querySelector('img');
-                if (img) gsap.to(img, { x: 0, y: 0, duration: 0.4, ease: 'power2.out' });
+                if (img) gsap.to(img, { x: 0, y: 0, duration: 0.8, ease: 'expo.out' });
+                gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.8, ease: 'expo.out' });
             });
         }
 
-        // ── Magnetic buttons ──
+        // ── Magnetic buttons — springy feel ──
         [prevBtn, nextBtn].forEach(btn => {
             btn.addEventListener('mousemove', e => {
                 const r = btn.getBoundingClientRect();
                 const x = e.clientX - r.left - r.width / 2;
                 const y = e.clientY - r.top - r.height / 2;
-                gsap.to(btn, { x: x * 0.3, y: y * 0.3, duration: 0.2, ease: 'power1.out' });
+                gsap.to(btn, { x: x * 0.35, y: y * 0.35, duration: 0.3, ease: 'power2.out' });
             });
             btn.addEventListener('mouseleave', () => {
-                gsap.to(btn, { x: 0, y: 0, duration: 0.4, ease: 'elastic.out(1, 0.5)' });
+                gsap.to(btn, { x: 0, y: 0, duration: 0.7, ease: 'elastic.out(1, 0.4)' });
             });
         });
 
@@ -729,13 +819,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     targetX = 0; targetScale = 1; targetRotateY = 0; targetRotateX = 0; targetBlur = 'blur(0px)';
                     targetOpacity = 1; targetZ = 10;
                 } else if (abs === 1) {
-                    targetX = dir * X_STEP; targetScale = 0.82; targetRotateY = dir * -18; targetRotateX = dir * 8; targetBlur = 'blur(1.5px)';
-                    targetOpacity = 0.55; targetZ = 5;
+                    targetX = dir * X_STEP; targetScale = 0.82; targetRotateY = dir * -22; targetRotateX = 0; targetBlur = 'blur(1.5px)';
+                    targetOpacity = 0.5; targetZ = 5;
                 } else if (abs === 2) {
-                    targetX = dir * X_STEP * 2; targetScale = 0.65; targetRotateY = dir * -35; targetRotateX = dir * 12; targetBlur = 'blur(3px)';
-                    targetOpacity = 0.25; targetZ = 2;
+                    targetX = dir * X_STEP * 1.9; targetScale = 0.62; targetRotateY = dir * -38; targetRotateX = 0; targetBlur = 'blur(3.5px)';
+                    targetOpacity = 0.2; targetZ = 2;
                 } else {
-                    targetX = dir * X_STEP * 3; targetScale = 0.5; targetRotateY = 0; targetRotateX = 0; targetBlur = 'blur(4px)';
+                    targetX = dir * X_STEP * 2.6; targetScale = 0.45; targetRotateY = 0; targetRotateX = 0; targetBlur = 'blur(5px)';
                     targetOpacity = 0; targetZ = 0;
                 }
 
@@ -743,44 +833,49 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isEntering = (i === ci);
                 const isLeaving = (i === prevCi && i !== ci);
 
-                // Stagger: leaving card goes first, entering card follows
+                // Cinematic timing: smooth cascade with premium easings
                 let dur, ease, delay;
                 if (isLeaving) {
-                    dur = 0.4; ease = 'power3.in'; delay = 0;
+                    // Card leaving center: quick elegant exit
+                    dur = 0.5; ease = 'expo.in'; delay = 0;
                 } else if (isEntering) {
-                    dur = 0.75; ease = 'back.out(1.4)'; delay = 0.25;
+                    // Card entering center: dramatic, satisfying arrival
+                    dur = 0.95; ease = 'expo.out'; delay = 0.18;
                     card.style.zIndex = 11; // above center during transition
                 } else {
-                    dur = 0.55; ease = 'power2.inOut';
-                    delay = abs === 1 ? 0.05 : 0.1;
+                    // Side cards: fluid repositioning
+                    dur = 0.85; ease = 'power3.inOut';
+                    delay = abs === 1 ? 0.06 : 0.12;
                 }
 
                 tl.to(card, {
                     x: targetX, scale: targetScale, rotateY: targetRotateY, rotateX: targetRotateX,
                     filter: targetBlur, opacity: targetOpacity, zIndex: targetZ,
-                    duration: dur, ease: ease
+                    duration: dur, ease: ease,
+                    force3D: true, transformPerspective: 1000
                 }, delay);
 
                 card.style.pointerEvents = abs <= 2 ? 'auto' : 'none';
 
                 if (isCenter) {
                     card.classList.add('active');
-                    // Animate card info stagger
+                    // Animate card info stagger — silky reveal sequence
                     const info = card.querySelector('.carousel-card-info');
                     const badge = card.querySelector('.badge');
                     const title = card.querySelector('h3');
                     const price = card.querySelector('.offer-price') || card.querySelector('.old-price');
                     const btn = card.querySelector('.add-to-cart');
-                    if (info) tl.fromTo(info, { y: 15, opacity: 0 }, { y: 0, opacity: 1, duration: 0.4, ease: 'power2.out' }, 0.25);
-                    if (badge) tl.fromTo(badge, { scale: 0.8, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.3, ease: 'back.out(2)' }, 0.3);
-                    if (title) tl.fromTo(title, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }, 0.35);
-                    if (price) tl.fromTo(price, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }, 0.4);
-                    if (btn) tl.fromTo(btn, { y: 8, opacity: 0 }, { y: 0, opacity: 1, duration: 0.3, ease: 'power2.out' }, 0.45);
+                    const baseEase = 'expo.out';
+                    if (info) tl.fromTo(info, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: baseEase }, 0.35);
+                    if (badge) tl.fromTo(badge, { scale: 0.6, opacity: 0, y: 10 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(2.2)' }, 0.4);
+                    if (title) tl.fromTo(title, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.46);
+                    if (price) tl.fromTo(price, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.53);
+                    if (btn) tl.fromTo(btn, { y: 14, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, 0.6);
                 }
             });
 
-            // Spotlight move
-            tl.to(spotlight, { left: '50%', duration: 0.5, ease: 'power2.inOut' }, 0);
+            // Spotlight move — smooth follow
+            tl.to(spotlight, { left: '50%', duration: 0.9, ease: 'expo.out' }, 0);
 
             // Particles
             spawnParticles(cards[ci]);
@@ -824,11 +919,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const abs = Math.abs(diff);
             const dir = diff > 0 ? 1 : -1;
             gsap.set(card, {
-                x: abs === 0 ? 0 : dir * X_STEP * abs,
-                scale: abs === 0 ? 1 : abs === 1 ? 0.82 : abs === 2 ? 0.65 : 0.5,
-                rotateY: abs === 0 ? 0 : dir * (abs === 1 ? -18 : -35),
-                opacity: abs === 0 ? 1 : abs === 1 ? 0.55 : abs === 2 ? 0.25 : 0,
-                zIndex: abs === 0 ? 10 : abs === 1 ? 5 : abs === 2 ? 2 : 0
+                x: abs === 0 ? 0 : dir * X_STEP * (abs === 1 ? 1 : abs === 2 ? 1.9 : 2.6),
+                scale: abs === 0 ? 1 : abs === 1 ? 0.82 : abs === 2 ? 0.62 : 0.45,
+                rotateY: abs === 0 ? 0 : dir * (abs === 1 ? -22 : -38),
+                opacity: abs === 0 ? 1 : abs === 1 ? 0.5 : abs === 2 ? 0.2 : 0,
+                zIndex: abs === 0 ? 10 : abs === 1 ? 5 : abs === 2 ? 2 : 0,
+                force3D: true,
+                transformPerspective: 1000
             });
             card.style.pointerEvents = abs <= 2 ? 'auto' : 'none';
             card.classList.toggle('active', abs === 0);
@@ -1748,6 +1845,83 @@ document.head.appendChild(st);
             }
         });
     }
+
+    // ─── PREMIUM SCROLL ANIMATIONS ─────────────────────────
+    const isMobileGsap = () => window.innerWidth < 768;
+
+    // Hero orbs parallax
+    document.querySelectorAll('.hero-visual [data-speed]').forEach(el => {
+        const speed = parseFloat(el.dataset.speed) || 1;
+        gsap.to(el, {
+            y: () => (1 - speed) * 200,
+            ease: 'none',
+            scrollTrigger: {
+                trigger: '.hero',
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1.5
+            }
+        });
+    });
+
+    // Product cards stagger reveal with GSAP ScrollTrigger
+    ScrollTrigger.batch('.product-card', {
+        onEnter: (elements) => {
+            gsap.fromTo(elements,
+                { opacity: 0, y: 50, scale: 0.95 },
+                { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.08, ease: 'power3.out', overwrite: true }
+            );
+        },
+        start: 'top 90%',
+        once: true
+    });
+
+    // Stats section stagger
+    ScrollTrigger.batch('.stat-card', {
+        onEnter: (elements) => {
+            gsap.fromTo(elements,
+                { opacity: 0, y: 40 },
+                { opacity: 1, y: 0, duration: 0.7, stagger: 0.15, ease: 'power3.out' }
+            );
+        },
+        start: 'top 85%',
+        once: true
+    });
+
+    // Testimonials section reveal
+    const testSection = document.querySelector('.testimonials-section');
+    if (testSection) {
+        ScrollTrigger.create({
+            trigger: testSection,
+            start: 'top 80%',
+            onEnter: () => {
+                gsap.fromTo('.testimonial-card',
+                    { opacity: 0, y: 40, scale: 0.95 },
+                    { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.12, ease: 'power3.out' }
+                );
+            },
+            once: true
+        });
+    }
+
+    // ─── BACK TO TOP BUTTON ─────────────────────────────────
+    const backToTop = document.getElementById('backToTop');
+    if (backToTop) {
+        ScrollTrigger.create({
+            trigger: document.body,
+            start: 'top -400',
+            end: 'top -400',
+            onEnter: () => backToTop.classList.add('visible'),
+            onLeaveBack: () => backToTop.classList.remove('visible')
+        });
+        backToTop.addEventListener('click', () => {
+            if (smoother) {
+                smoother.scrollTo(0, { duration: 1.2, ease: 'power3.inOut' });
+            } else {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+    }
 })();
 
 // ─── INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
@@ -2530,4 +2704,59 @@ document.head.appendChild(st);
         const resultsEl = document.getElementById('searchResults');
         if (resultsEl) observer.observe(resultsEl, { childList: true });
     }
+})();
+
+// ─── TESTIMONIALS AUTOPLAY ───────────────────────────────
+(function () {
+    const track = document.querySelector('.testimonials-track');
+    if (!track) return;
+    const cards = [...track.querySelectorAll('.testimonial-card')];
+    const dotsC = document.querySelector('.testimonial-dots');
+    if (cards.length === 0) return;
+
+    let idx = 0;
+    let autoTimer = null;
+    let isHovering = false;
+
+    // Build dots
+    if (dotsC) {
+        cards.forEach((_, i) => {
+            const d = document.createElement('div');
+            d.classList.add('testimonial-dot');
+            if (i === 0) d.classList.add('active');
+            d.addEventListener('click', () => goTo(i));
+            dotsC.appendChild(d);
+        });
+    }
+
+    function goTo(i) {
+        if (i < 0) i = cards.length - 1;
+        if (i >= cards.length) i = 0;
+        idx = i;
+        if (typeof gsap !== 'undefined') {
+            gsap.to(track, { scrollTo: { x: cards[idx], offsetX: 0 }, duration: 0.8, ease: 'power3.inOut' });
+        } else {
+            cards[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+        }
+        document.querySelectorAll('.testimonial-dot').forEach((d, j) => d.classList.toggle('active', j === idx));
+    }
+
+    function startAuto() {
+        stopAuto();
+        autoTimer = setInterval(() => { if (!isHovering) goTo(idx + 1); }, 5000);
+    }
+    function stopAuto() { if (autoTimer) clearInterval(autoTimer); }
+
+    track.addEventListener('mouseenter', () => isHovering = true);
+    track.addEventListener('mouseleave', () => isHovering = false);
+
+    // Touch swipe support
+    let touchX = 0;
+    track.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
+    track.addEventListener('touchend', e => {
+        const diff = touchX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 50) goTo(idx + (diff > 0 ? 1 : -1));
+    }, { passive: true });
+
+    startAuto();
 })();

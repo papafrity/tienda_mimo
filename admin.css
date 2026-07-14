@@ -249,6 +249,20 @@ select option { background: #fff; color: #000; }
     border-bottom: 1px solid var(--surface-border);
     padding-bottom: 0px;
     flex-wrap: wrap;
+    position: relative;
+}
+.admin-tabs::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    width: var(--tab-indicator-w, 120px);
+    background: var(--gradient-glow);
+    transform: translateX(var(--tab-indicator-x, 0));
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 0 12px rgba(0,240,255,.4);
+    border-radius: 2px;
 }
 .tab-btn {
     background: transparent;
@@ -272,11 +286,15 @@ select option { background: #fff; color: #000; }
 }
 .tab-btn.active {
     color: var(--primary);
-    border-bottom: 2px solid var(--primary);
-    background: rgba(0, 240, 255, 0.05);
+    border-bottom: 2px solid transparent;
+    background: rgba(0, 240, 255, 0.08);
 }
 .tab-content {
-    transition: opacity 0.3s ease;
+    animation: tabFadeIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+@keyframes tabFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 .tab-content.hidden {
     display: none !important;
