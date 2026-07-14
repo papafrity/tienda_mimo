@@ -484,16 +484,24 @@ async function searchPrices(source) {
         }
 
         const results = data.results;
+        const exchangeRate = data.exchangeRate;
+        const rateSource = data.rateSource;
         const min = results[0];
 
-        minEl.textContent = `Mín: $${fmt(min.price)}`;
+        // Show exchange rate info in header
+        if (exchangeRate) {
+            src.textContent = `${label2} · ${rateSource}: $${fmt(exchangeRate)}`;
+        }
+
+        minEl.textContent = `Mín: $${fmt(min.price)}${min.converted ? ' (USD→ARS)' : ''}`;
 
         results.forEach(r => {
             const tr = document.createElement('tr');
             const isMin = r === min;
+            const convTag = r.converted ? ' <small style="color:#ffa502;font-size:.65rem">USD→ARS</small>' : '';
             tr.innerHTML = `
                 <td>${r.store}</td>
-                <td style="${isMin ? 'color:#2ed573;font-weight:700' : ''}">$${fmt(r.price)}</td>
+                <td style="${isMin ? 'color:#2ed573;font-weight:700' : ''}">$${fmt(r.price)}${convTag}</td>
                 <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
                     <a href="${r.link || '#'}" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px">
                         <img src="${r.thumbnail || ''}" alt="" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">
