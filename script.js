@@ -299,72 +299,6 @@ document.addEventListener('DOMContentLoaded', () => {
     showSkeletons();
 
     fetchProducts();
-
-    // ─── TESTIMONIALS: load best reviews from Firebase ──────
-    async function loadTestimonials() {
-        const track = document.getElementById('testimonialsTrack');
-        if (!track) return;
-        const fallback = [
-            { userName: 'María González', rating: 5, comment: 'Excelente atención y los productos llegaron antes de lo esperado. La calidad superó mis expectativas, volveré a comprar sin dudas.', productName: 'Auriculares Bluetooth' },
-            { userName: 'Carlos Méndez', rating: 5, comment: 'Muy buena experiencia de compra. El envío fue rápido y el producto es tal cual se describe en la página. Recomendado.', productName: 'Smart TV 50"' },
-            { userName: 'Lucía Fernández', rating: 5, comment: 'Me encantó la atención personalizada por WhatsApp. Resolvieron todas mis dudas y el producto es excelente. ¡Gracias Mimo!', productName: 'Parlante Portátil' },
-            { userName: 'Diego Romero', rating: 4, comment: 'Buena calidad-precio. El producto funcionó perfecto desde el primer día. Volvería a comprar en la tienda.', productName: 'TV Box Android' },
-            { userName: 'Sofía Torres', rating: 5, comment: 'Increíble servicio post-venta. Tuve un problema con el envío y lo resolvieron inmediatamente. Profesionales de verdad.', productName: 'Celular Liberado' },
-            { userName: 'Martín Acosta', rating: 5, comment: 'Compré una cocina y llegó en perfectas condiciones. El precio fue el mejor que encontré. Muy conformes con la compra.', productName: 'Cocina 4 Hornallas' }
-        ];
-
-        try {
-            const snapshot = await db.collection("products").orderBy("rating", "desc").limit(20).get();
-            let testimonials = [];
-            for (const doc of snapshot.docs) {
-                if (testimonials.length >= 6) break;
-                const prod = doc.data();
-                if (!prod.rating || prod.rating < 4) continue;
-                const reviewsSnap = await db.collection("products").doc(doc.id).collection("reviews")
-                    .where("rating", ">=", 4).orderBy("rating", "desc").limit(1).get();
-                reviewsSnap.forEach(r => {
-                    const d = r.data();
-                    testimonials.push({
-                        userName: d.userName || 'Cliente Verificado',
-                        rating: d.rating,
-                        comment: d.comment || '',
-                        productName: prod.name
-                    });
-                });
-            }
-            renderTestimonials(testimonials.length > 0 ? testimonials : fallback);
-        } catch (e) {
-            console.error('Error cargando testimonios:', e);
-            renderTestimonials(fallback);
-        }
-    }
-
-    function renderTestimonials(items) {
-        const track = document.getElementById('testimonialsTrack');
-        if (!track) return;
-        track.innerHTML = '';
-        items.forEach(t => {
-            const stars = '★'.repeat(t.rating) + '☆'.repeat(5 - t.rating);
-            const initials = (t.userName || '?').split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
-            const card = document.createElement('div');
-            card.className = 'testimonial-card';
-            card.innerHTML = `
-                <span class="testimonial-quote">"</span>
-                <div class="testimonial-stars">${'★'.repeat(t.rating)}<span style="color:rgba(255,255,255,.15)">${'★'.repeat(5-t.rating)}</span></div>
-                <p class="testimonial-text">${t.comment}</p>
-                <div class="testimonial-author">
-                    <div class="testimonial-avatar">${initials}</div>
-                    <div>
-                        <div class="testimonial-name">${t.userName}</div>
-                        <div class="testimonial-product">${t.productName}</div>
-                    </div>
-                </div>`;
-            track.appendChild(card);
-        });
-    }
-
-    loadTestimonials();
-    // Re-attach specific dynamic events
     function initDynamicEvents() {
         document.querySelectorAll('.tilt-card').forEach(card => {
             const glow = card.querySelector('.card-glow');
@@ -1888,22 +1822,6 @@ document.head.appendChild(st);
         once: true
     });
 
-    // Testimonials section reveal
-    const testSection = document.querySelector('.testimonials-section');
-    if (testSection) {
-        ScrollTrigger.create({
-            trigger: testSection,
-            start: 'top 80%',
-            onEnter: () => {
-                gsap.fromTo('.testimonial-card',
-                    { opacity: 0, y: 40, scale: 0.95 },
-                    { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.12, ease: 'power3.out' }
-                );
-            },
-            once: true
-        });
-    }
-
     // ─── BACK TO TOP BUTTON ─────────────────────────────────
     const backToTop = document.getElementById('backToTop');
     if (backToTop) {
@@ -2704,59 +2622,4 @@ document.head.appendChild(st);
         const resultsEl = document.getElementById('searchResults');
         if (resultsEl) observer.observe(resultsEl, { childList: true });
     }
-})();
-
-// ─── TESTIMONIALS AUTOPLAY ───────────────────────────────
-(function () {
-    const track = document.querySelector('.testimonials-track');
-    if (!track) return;
-    const cards = [...track.querySelectorAll('.testimonial-card')];
-    const dotsC = document.querySelector('.testimonial-dots');
-    if (cards.length === 0) return;
-
-    let idx = 0;
-    let autoTimer = null;
-    let isHovering = false;
-
-    // Build dots
-    if (dotsC) {
-        cards.forEach((_, i) => {
-            const d = document.createElement('div');
-            d.classList.add('testimonial-dot');
-            if (i === 0) d.classList.add('active');
-            d.addEventListener('click', () => goTo(i));
-            dotsC.appendChild(d);
-        });
-    }
-
-    function goTo(i) {
-        if (i < 0) i = cards.length - 1;
-        if (i >= cards.length) i = 0;
-        idx = i;
-        if (typeof gsap !== 'undefined') {
-            gsap.to(track, { scrollTo: { x: cards[idx], offsetX: 0 }, duration: 0.8, ease: 'power3.inOut' });
-        } else {
-            cards[idx].scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-        }
-        document.querySelectorAll('.testimonial-dot').forEach((d, j) => d.classList.toggle('active', j === idx));
-    }
-
-    function startAuto() {
-        stopAuto();
-        autoTimer = setInterval(() => { if (!isHovering) goTo(idx + 1); }, 5000);
-    }
-    function stopAuto() { if (autoTimer) clearInterval(autoTimer); }
-
-    track.addEventListener('mouseenter', () => isHovering = true);
-    track.addEventListener('mouseleave', () => isHovering = false);
-
-    // Touch swipe support
-    let touchX = 0;
-    track.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, { passive: true });
-    track.addEventListener('touchend', e => {
-        const diff = touchX - e.changedTouches[0].clientX;
-        if (Math.abs(diff) > 50) goTo(idx + (diff > 0 ? 1 : -1));
-    }, { passive: true });
-
-    startAuto();
 })();
