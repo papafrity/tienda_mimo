@@ -185,9 +185,10 @@ let currentUploadedImages = [];
 const tbody = document.getElementById('adminProductList');
 const adminSearchInput = document.getElementById('adminSearchInput');
 const adminCategoryFilter = document.getElementById('adminCategoryFilter');
+const adminStatusFilter = document.getElementById('adminStatusFilter');
 
 async function loadProducts() {
-    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
     try {
         const querySnapshot = await db.collection("products").get();
         adminProducts = [];
@@ -196,7 +197,7 @@ async function loadProducts() {
         });
         renderAdminProducts();
     } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center; padding: 2rem; color: #ff4757;">Error conectando a Firebase: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: #ff4757;">Error conectando a Firebase: ${e.message}</td></tr>`;
     }
 }
 
@@ -204,7 +205,7 @@ function renderAdminProducts() {
     tbody.innerHTML = '';
     const migrateBtn = document.getElementById('migrateBtn');
     if (adminProducts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem;">No hay productos. Usa "Cargar Catálogo Inicial" para iniciar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">No hay productos. Usa "Cargar Catálogo Inicial" para iniciar.</td></tr>';
         if (migrateBtn) migrateBtn.style.display = '';
         return;
     }
@@ -219,14 +220,16 @@ function renderAdminProducts() {
     // Apply filters
     const searchTerm = (adminSearchInput.value || '').toLowerCase().trim();
     const catFilter = adminCategoryFilter.value;
+    const statusFilter = adminStatusFilter.value;
     const filtered = adminProducts.filter(p => {
         const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm);
         const matchCat = catFilter === 'all' || p.category === catFilter;
-        return matchSearch && matchCat;
+        const matchStatus = statusFilter === 'all' || (statusFilter === 'active' ? p.isActive !== false : p.isActive === false);
+        return matchSearch && matchCat && matchStatus;
     });
     
     if (filtered.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No se encontraron productos con ese filtro.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem; color: var(--text-secondary);">No se encontraron productos con ese filtro.</td></tr>';
         return;
     }
 
@@ -243,6 +246,11 @@ function renderAdminProducts() {
             <td>${p.offerPrice ? '$' + fmt(p.offerPrice) : '-'}</td>
             <td style="text-align:center">${p.stock !== undefined ? p.stock : '-'}</td>
             <td style="text-align:center">${p.peso ? p.peso + 'kg' : '-'}</td>
+            <td style="text-align:center">
+                <span class="status-badge ${p.isActive !== false ? 'active' : 'paused'}">
+                    ${p.isActive !== false ? '🟢 Activo' : '🔴 Pausado'}
+                </span>
+            </td>
             <td>
                 <button class="action-btn edit-btn" data-id="${p.id}" title="Editar">✏️</button>
                 <button class="action-btn del del-btn" data-id="${p.id}" title="Borrar">🗑️</button>
@@ -269,6 +277,7 @@ document.getElementById('cancelBtn').addEventListener('click', () => modal.class
 
 adminSearchInput.addEventListener('input', renderAdminProducts);
 adminCategoryFilter.addEventListener('change', renderAdminProducts);
+adminStatusFilter.addEventListener('change', renderAdminProducts);
 
 function openModal(id = null) {
     form.reset();
@@ -316,6 +325,7 @@ function openModal(id = null) {
                 document.getElementById('prodImg').value = p.image || '';
             }
             document.getElementById('prodFeatured').checked = p.isFeatured || false;
+            document.getElementById('prodActive').checked = p.isActive !== false;
             document.getElementById('prodStock').value = p.stock ?? 0;
             document.getElementById('prodWeight').value = p.peso ?? 0.5;
             
@@ -378,6 +388,7 @@ form.addEventListener('submit', async (e) => {
         image: mainImgUrl,
         fullImages: JSON.stringify(finalImages),
         isFeatured: document.getElementById('prodFeatured').checked,
+        isActive: document.getElementById('prodActive').checked,
         stock: parseInt(document.getElementById('prodStock').value) || 0,
         peso: parseFloat(document.getElementById('prodWeight').value) || 0.5
     };

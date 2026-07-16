@@ -167,7 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const sortBy = document.getElementById('sortSelect')?.value || 'default';
         const priceMin = parseFloat(document.getElementById('priceMin')?.value) || 0;
         const priceMax = parseFloat(document.getElementById('priceMax')?.value) || Infinity;
-        let filtered = activeFilter === 'all' ? [...products] : products.filter(p => p.category === activeFilter);
+        let filtered = products.filter(p => p.isActive !== false); // Solo productos activos
+        filtered = activeFilter === 'all' ? [...filtered] : filtered.filter(p => p.category === activeFilter);
         filtered = filtered.filter(p => {
             const dp = hasOffer(p) ? p.offerPrice : p.price;
             return dp >= priceMin && dp <= priceMax;
@@ -233,7 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const carousel = document.getElementById('carousel3d');
         if (!carousel) return;
         carousel.innerHTML = '';
-        const featured = products.filter(p => p.isFeatured);
+        const featured = products.filter(p => p.isFeatured && p.isActive !== false);
         featured.forEach(p => {
             const hasDiscount = p.oldPrice && p.offerPrice && p.oldPrice !== p.offerPrice;
             let priceHtml = hasDiscount 
@@ -270,14 +271,47 @@ document.addEventListener('DOMContentLoaded', () => {
             querySnapshot.forEach((doc) => {
                 products.push({ id: doc.id, ...doc.data() });
             });
-            renderProducts();
-            renderCarousel();
+            if (products.length === 0) {
+                showEmptyProductsMessage();
+            } else {
+                renderProducts();
+                renderCarousel();
+            }
             initDynamicEvents();
             initCarouselLogic();
             initProductFiltersAndModals();
         } catch(e) {
             console.error("Error fetching products", e);
+            showProductsError(e.message);
         }
+    }
+
+    function showProductsError(msg) {
+        const grid = document.getElementById('productGrid');
+        if (!grid) return;
+        grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--text-secondary)">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin:0 auto 1rem;opacity:.5">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h3 style="margin:0 0 .5rem;color:var(--text-primary)">No se pudieron cargar los productos</h3>
+                <p style="margin:0;font-size:.9rem">${msg.includes('permission') || msg.includes('Permission') ? 'Verificá las reglas de Firestore (allow read)' : msg}</p>
+            </div>`;
+    }
+
+    function showEmptyProductsMessage() {
+        const grid = document.getElementById('productGrid');
+        if (!grid) return;
+        grid.innerHTML = `
+            <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--text-secondary)">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin:0 auto 1rem;opacity:.5">
+                    <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <h3 style="margin:0 0 .5rem;color:var(--text-primary)">No hay productos publicados</h3>
+                <p style="margin:0;font-size:.9rem">Agregá productos desde el panel de administración</p>
+            </div>`;
     }
 
     // ─── SKELETON LOADING ───────────────────────────────────
@@ -1547,11 +1581,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            const matches = products.filter(p =>
-                p.name.toLowerCase().includes(query) ||
-                p.category.toLowerCase().includes(query) ||
-                (p.description && p.description.toLowerCase().includes(query))
-            );
+            const matches = products
+                .filter(p => p.isActive !== false)
+                .filter(p =>
+                    p.name.toLowerCase().includes(query) ||
+                    p.category.toLowerCase().includes(query) ||
+                    (p.description && p.description.toLowerCase().includes(query))
+                );
 
             if (matches.length === 0) {
                 searchResults.innerHTML = '<div class="search-no-results">No se encontraron productos 😕</div>';
