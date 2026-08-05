@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mimo! | Tu Tienda de Tecnología Premium</title>
+    <meta name="description" content="Descubre la mejor tecnología en Mimo! Auriculares, parlantes, televisores, cocinas y mucho más. Envíos a todo el país.">
+    <meta property="og:title" content="Mimo! - Tu Tienda de Tecnología Premium">
+    <meta property="og:description" content="Descubre la selección más exclusiva de gadgets y tecnología premium. ¡Envíos a todo el país!">
+    <meta property="og:image" content="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&h=630&fit=crop">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://tienda-mimo.vercel.app">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="es_AR">
+    <meta property="og:site_name" content="Mimo!">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Mimo! - Tu Tienda de Tecnología Premium">
+    <meta name="twitter:description" content="Descubre la mejor tecnología en Mimo! Auriculares, parlantes, televisores, cocinas y mucho más. Envíos a todo el país.">
+    <meta name="twitter:image" content="https://images.unsplash.com/photo-1550751827-4bd374c3f58b?w=1200&h=630&fit=crop">
+    <meta name="keywords" content="tecnología, auriculares, parlantes, televisores, cocinas, heladeras, tienda online, argentina">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Outfit:wght@300;400;600;800&family=Space+Grotesk:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <meta name="theme-color" content="#0a0a1a">
+    <link rel="canonical" href="https://tienda-mimo.vercel.app/">
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Mimo!",
+      "url": "https://tienda-mimo.vercel.app/",
+      "description": "Tu Tienda de Tecnología Premium",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://tienda-mimo.vercel.app/?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "Mimo!",
+      "url": "https://tienda-mimo.vercel.app/",
+      "logo": "https://tienda-mimo.vercel.app/img/og-image.svg",
+      "description": "Tu Tienda de Tecnología Premium"
+    }
+    </script>
+</head>
+<body>
+    <!-- Preloader -->
+    <div class="preloader" id="preloader">
+        <div class="preloader-letters">
+            <span style="--i:0">M</span>
+            <span style="--i:1">i</span>
+            <span style="--i:2">m</span>
+            <span style="--i:3">o</span>
+            <span style="--i:4">!</span>
+        </div>
+        <div class="preloader-bar"><div class="preloader-fill"></div></div>
+    </div>
+
+    <!-- Custom Cursor -->
+    <div class="cursor-dot" id="cursorDot"></div>
+    <div class="cursor-ring" id="cursorRing"></div>
+
+    <!-- Noise Overlay -->
+    <div class="noise-overlay"></div>
+
+    <!-- Hex Grid Pattern -->
+    <div class="hex-grid"></div>
+
+    <!-- Interactive Background Canvas -->
+    <canvas id="bgCanvas"></canvas>
+
+    <!-- Scroll-linked Background Gradient -->
+    <div id="bgGradient"></div>
+
+    <!-- Navbar -->
+    <nav class="navbar" id="navbar">
+        <div class="logo magnetic-btn">Mimo<span class="accent">!</span></div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#carousel" data-instant><span class="nav-text">Ofertas</span><span class="nav-text">Ver Deal →</span></a></li>
+            <li><a href="#products"><span class="nav-text">Productos</span><span class="nav-text">Catálogo →</span></a></li>
+            <li><a href="#contact"><span class="nav-text">Contacto</span><span class="nav-text">Escribinos →</span></a></li>
+        </ul>
+        <div class="search-container" id="searchContainer">
+            <button class="search-toggle magnetic-btn" id="searchToggle" aria-label="Buscar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+            </button>
+            <div class="search-dropdown" id="searchDropdown">
+                <input type="text" class="search-input" id="searchInput" placeholder="Buscar productos..." autocomplete="off">
+                <div class="search-results" id="searchResults"></div>
+            </div>
+        </div>
+        <button class="cart-btn magnetic-btn" id="cartBtn" aria-label="Carrito">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+            <span class="cart-count" id="cartCount">0</span>
+        </button>
+        <button class="hamburger" id="hamburger" aria-label="Abrir menú">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </button>
+    </nav>
+
+    <div id="smooth-wrapper">
+    <div id="smooth-content">
+
+    <!-- Hero Section -->
+    <header id="home" class="hero">
+        <div class="hero-content">
+            <div class="hero-tag reveal-text">
+                <span class="tag-line">⚡ La tienda del futuro</span>
+            </div>
+            <h1 class="split-title" id="heroTitle">Tu universo tech en un click</h1>
+            <p class="reveal-text" data-role="desc">Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con <strong>Mimo!</strong></p>
+            <form class="hero-search" id="heroSearch" autocomplete="off">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                <input type="text" id="heroSearchInput" class="hero-search-input" placeholder="Buscar productos, categorías...">
+                <div class="hero-search-results" id="heroSearchResults"></div>
+            </form>
+            <div class="hero-actions reveal-text" data-role="desc" style="transition-delay: 0.25s;">
+                <a href="#carousel" class="hero-btn primary magnetic-btn" id="toCarouselBtn" data-instant>
+                    <span>🔥 Ver Ofertas</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 13l-7 7-7-7m14-6l-7 7-7-7"/></svg>
+                </a>
+            </div>
+        </div>
+        <div class="hero-visual">
+            <div class="glow-orb orb1" data-speed="1.18"></div>
+            <div class="glow-orb orb2" data-speed="0.82"></div>
+            <div class="hero-deco deco-circle-1" data-speed="0.78"></div>
+            <div class="hero-deco deco-circle-2" data-speed="1.22"></div>
+            <div class="hero-deco deco-dots" data-speed="0.9"></div>
+            <div class="hero-deco deco-line" data-speed="1.1"></div>
+            <div class="hero-deco deco-triangle" data-speed="0.85"></div>
+        </div>
+        <!-- Scroll Indicator -->
+        <div class="scroll-indicator">
+            <div class="scroll-line"></div>
+            <span>Scroll</span>
+        </div>
+    </header>
+
+    <!-- Showcase 3D -->
+    <section class="showcase-3d" id="showcase3d">
+        <div class="showcase-pin" id="showcasePin">
+            <canvas class="showcase-canvas" id="showcaseCanvas"></canvas>
+            <div class="showcase-labels">
+                <div class="showcase-label" data-index="0">
+                    <span class="showcase-label-tag">01</span>
+                    <h2>TELEVISORES</h2>
+                    <p>Experiencias de cine y definición ultra premium en tu hogar</p>
+                </div>
+                <div class="showcase-label" data-index="1">
+                    <span class="showcase-label-tag">02</span>
+                    <h2>PARLANTES</h2>
+                    <p>Sonido envolvente con diseño premium</p>
+                </div>
+                <div class="showcase-label" data-index="2">
+                    <span class="showcase-label-tag">03</span>
+                    <h2>CELULARES</h2>
+                    <p>La tecnología que llevás en tu bolsillo</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marquee Banner -->
+    <div class="marquee-banner">
+        <div class="marquee-track" style="animation-duration: 15s; animation-direction: reverse;">
+            <span>AURICULARES</span><span class="marquee-dot">✦</span>
+            <span>PARLANTES</span><span class="marquee-dot">✦</span>
+            <span>TV BOX</span><span class="marquee-dot">✦</span>
+            <span>TELEVISORES</span><span class="marquee-dot">✦</span>
+            <span>COCINAS</span><span class="marquee-dot">✦</span>
+            <span>HELADERAS</span><span class="marquee-dot">✦</span>
+            <span>AURICULARES</span><span class="marquee-dot">✦</span>
+            <span>PARLANTES</span><span class="marquee-dot">✦</span>
+            <span>TV BOX</span><span class="marquee-dot">✦</span>
+            <span>TELEVISORES</span><span class="marquee-dot">✦</span>
+            <span>COCINAS</span><span class="marquee-dot">✦</span>
+            <span>HELADERAS</span><span class="marquee-dot">✦</span>
+        </div>
+    </div>
+    <div class="marquee-banner" style="background: rgba(0,240,255,0.05); border-top: none; padding: 0.8rem 0;">
+        <div class="marquee-track" id="enviosMarquee" style="animation-duration: 12s; color: var(--accent-color); font-size: 0.9rem;">
+            <span>🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)</span><span class="marquee-dot">✦</span>
+            <span>🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)</span><span class="marquee-dot">✦</span>
+            <span>🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)</span><span class="marquee-dot">✦</span>
+            <span>🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)</span><span class="marquee-dot">✦</span>
+        </div>
+    </div>
+
+    <!-- Big Outline Text -->
+    <div class="outline-text-section" data-speed="0.92">
+        <div class="outline-deco outline-deco-circle"></div>
+        <div class="outline-deco outline-deco-dots"></div>
+        <div class="outline-deco outline-deco-line"></div>
+        <span class="outline-text">TECNOLOGÍA</span>
+        <span class="outline-text filled">PREMIUM</span>
+    </div>
+
+    <!-- 3D Carousel - Ofertas / Más Vendidos -->
+    <section id="carousel" class="carousel-section">
+        <div class="section-counter reveal-text"><span>//</span><span>OFERTAS</span><span>001</span></div>
+        <span class="section-label reveal-text">Ofertas destacadas</span>
+        <h2 class="section-title reveal-text" data-role="title">🔥 Ofertas &amp; Más Vendidos</h2>
+        <div class="carousel-wrapper">
+            <button class="carousel-btn prev magnetic-btn" id="prevBtn" aria-label="Anterior">❮</button>
+            <div class="carousel-3d" id="carousel3d">
+                <!-- Dynamically rendered via JS -->
+            </div>
+            <button class="carousel-btn next magnetic-btn" id="nextBtn" aria-label="Siguiente">❯</button>
+        </div>
+        <div class="carousel-dots" id="carouselDots"></div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats-section">
+        <div class="section-counter reveal-text" style="justify-content:center;width:100%;margin-bottom:1rem"><span>//</span><span>NÚMEROS</span><span>003</span></div>
+        <div class="stat-card reveal-up">
+            <span class="stat-number" data-target="5000">0</span><span class="stat-plus">+</span>
+            <p>Productos Vendidos</p>
+        </div>
+        <span class="stat-sep">|</span>
+        <div class="stat-card reveal-up">
+            <span class="stat-number" data-target="98">0</span><span class="stat-plus">%</span>
+            <p>Clientes Satisfechos</p>
+        </div>
+        <span class="stat-sep">|</span>
+        <div class="stat-card reveal-up">
+            <span class="stat-number" data-target="15">0</span><span class="stat-plus">+</span>
+            <p>Marcas Asociadas</p>
+        </div>
+    </section>
+
+    <!-- Products Section -->
+    <section id="products" class="products-section">
+        <div class="section-counter reveal-text"><span>//</span><span>CATÁLOGO</span><span>002</span></div>
+        <span class="section-label reveal-text">Catálogo completo</span>
+        <h2 class="section-title reveal-text" data-role="title">Todos los Productos</h2>
+
+        <div class="product-toolbar">
+            <div class="filter-tabs" id="filterTabs">
+                <button class="filter-tab active magnetic-btn" data-filter="all">Todos</button>
+                <button class="filter-tab magnetic-btn" data-filter="televisores">Televisores</button>
+                <button class="filter-tab magnetic-btn" data-filter="celulares">Celulares</button>
+                <button class="filter-tab magnetic-btn" data-filter="tvbox">TV Box</button>
+                <button class="filter-tab magnetic-btn" data-filter="proyectores">Proyectores</button>
+                <button class="filter-tab magnetic-btn" data-filter="parlantes">Parlantes</button>
+                <button class="filter-tab magnetic-btn" data-filter="auriculares">Auriculares</button>
+                <button class="filter-tab magnetic-btn" data-filter="gaming">Gaming</button>
+                <button class="filter-tab magnetic-btn" data-filter="cocinas">Cocinas</button>
+                <button class="filter-tab magnetic-btn" data-filter="calefaccion">Calefacción</button>
+                <button class="filter-tab magnetic-btn" data-filter="climatizacion">Climatización</button>
+                <button class="filter-tab magnetic-btn" data-filter="ventilacion">Ventilación</button>
+                <button class="filter-tab magnetic-btn" data-filter="herramientas">Herramientas</button>
+                <button class="filter-tab magnetic-btn" data-filter="belleza">Belleza</button>
+                <button class="filter-tab magnetic-btn" data-filter="bicicletas">Bicicletas</button>
+                <button class="filter-tab magnetic-btn" data-filter="movilidad">Movilidad</button>
+                <button class="filter-tab magnetic-btn" data-filter="hogar-muebles">Hogar</button>
+                <button class="filter-tab magnetic-btn" data-filter="bano">Baño</button>
+                <button class="filter-tab magnetic-btn" data-filter="decoracion">Decoración</button>
+                <button class="filter-tab magnetic-btn" data-filter="iluminacion-gadgets">Iluminación</button>
+                <button class="filter-tab magnetic-btn" data-filter="exteriores">Exteriores</button>
+                <button class="filter-tab magnetic-btn" data-filter="limpieza">Limpieza</button>
+                <button class="filter-tab magnetic-btn" data-filter="gadgets">Gadgets</button>
+                <button class="filter-tab magnetic-btn" data-filter="cargadores-accesorios">Cargadores</button>
+                <button class="filter-tab magnetic-btn" data-filter="relojes-fundas">Relojes</button>
+            </div>
+            <div class="filter-extra">
+                <div class="price-range">
+                    <input type="number" class="price-input" id="priceMin" placeholder="Min $" step="0.01" min="0">
+                    <span class="price-sep">—</span>
+                    <input type="number" class="price-input" id="priceMax" placeholder="Max $" step="0.01" min="0">
+                </div>
+                <select class="sort-select" id="sortSelect">
+                    <option value="default">Por defecto</option>
+                    <option value="price-asc">Menor precio</option>
+                    <option value="price-desc">Mayor precio</option>
+                    <option value="name-asc">A-Z</option>
+                    <option value="name-desc">Z-A</option>
+                    <option value="rating">Mejor calificados</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            <!-- Dynamically rendered via JS -->
+        </div>
+        <div id="loadMoreContainer" style="text-align:center;margin-top:2rem">
+            <button id="loadMoreBtn" class="magnetic-btn" style="padding:.8rem 2.5rem;font-size:.95rem">Cargar más productos</button>
+        </div>
+    </section>
+
+    <!-- Wave Divider -->
+    <div class="wave-divider">
+        <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="wave-path" d="M0,40 C150,80 350,0 600,40 C850,80 1050,0 1200,40 L1200,80 L0,80 Z"></path>
+        </svg>
+    </div>
+
+
+
+    <!-- Footer -->
+    <footer id="contact">
+        <div class="footer-content">
+            <div class="footer-brand">
+                <div class="section-counter reveal-text"><span>//</span><span>CONTACTO</span><span>004</span></div>
+                <span class="section-label reveal-text">Contacto</span>
+                <h2 class="reveal-text">Mimo<span class="accent">!</span></h2>
+                <p class="reveal-text">Tu destino para la tecnología de mañana, hoy.</p>
+            </div>
+            <div class="footer-links">
+                <h4>Contacto</h4>
+                <a href="mailto:mimo.la.tienda@gmail.com">mimo.la.tienda@gmail.com</a>
+                <a href="https://wa.me/542634478522" target="_blank">+54 2634 478522</a>
+            </div>
+            <div class="footer-links">
+                <h4>Medios de pago</h4>
+                <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem;max-width:220px">
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#vG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="9" y="22" font-family="Arial,sans-serif" font-weight="800" font-size="11" fill="white" letter-spacing=".5">VISA</text><defs><linearGradient id="vG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#1a1f71"/><stop offset="100%" stop-color="#2a3fa8"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="#eb001b"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><ellipse cx="26" cy="20" rx="10" ry="10" fill="#f79e1b" opacity=".85"/><ellipse cx="34" cy="20" rx="10" ry="10" fill="#eb001b" opacity=".45"/></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#aeG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="6" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="9" fill="white" letter-spacing=".3">AMEX</text><defs><linearGradient id="aeG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#2e77bc"/><stop offset="100%" stop-color="#4a9ce0"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#cbG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="7" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="8.5" fill="white">CABAL</text><defs><linearGradient id="cbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#0d4a8a"/><stop offset="100%" stop-color="#1a6bb5"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#njG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="5" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="8.5" fill="white">NARANJA</text><defs><linearGradient id="njG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#ee7b2b"/><stop offset="100%" stop-color="#f5a623"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#dbG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="6" y="22" font-family="Arial,sans-serif" font-weight="600" font-size="7.5" fill="white">DÉBITO</text><defs><linearGradient id="dbG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#444"/><stop offset="100%" stop-color="#666"/></linearGradient></defs></svg>
+                    <svg class="payment-card" viewBox="0 0 60 38"><rect width="60" height="38" rx="5" fill="url(#mpG)"/><circle cx="48" cy="8" r="3" fill="#ffd700" opacity=".65"/><line x1="8" y1="26" x2="52" y2="26" stroke="rgba(255,255,255,.3)" stroke-width=".6"/><line x1="8" y1="28" x2="48" y2="28" stroke="rgba(255,255,255,.2)" stroke-width=".5"/><line x1="8" y1="30" x2="44" y2="30" stroke="rgba(255,255,255,.15)" stroke-width=".4"/><text x="6" y="22" font-family="Arial,sans-serif" font-weight="700" font-size="9" fill="white">MP</text><defs><linearGradient id="mpG" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00b5e2"/><stop offset="100%" stop-color="#00e5ff"/></linearGradient></defs></svg>
+                </div>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p style="margin-bottom:.5rem">&copy; 2026 Mimo! Tienda de Tecnología. Todos los derechos reservados.</p>
+            <p style="font-size:.85rem;color:var(--text-secondary);line-height:1.6;max-width:700px;margin:0 auto">
+                🛡️ <strong>Botón de arrepentimiento:</strong> Tenés 10 días desde que recibís el producto para devolverlo. 
+                Contactanos por <a href="https://wa.me/542634478522" style="color:var(--accent-color)">WhatsApp</a> 
+                o email a <a href="mailto:mimo.la.tienda@gmail.com" style="color:var(--accent-color)">mimo.la.tienda@gmail.com</a> 
+                y te guiamos en el proceso. El producto debe estar sin uso y en su empaque original. 
+                El costo de envío de la devolución está a cargo del comprador, salvo que el producto tenga falla de fábrica.
+            </p>
+        </div>
+    </footer>
+    </div>
+    </div>
+
+    <!-- Cart Sidebar -->
+    <div class="cart-overlay" id="cartOverlay"></div>
+    <div class="cart-sidebar" id="cartSidebar">
+        <div class="cart-header">
+            <h2>Tu Carrito</h2>
+            <button class="cart-close" id="cartClose">&times;</button>
+        </div>
+        <div class="cart-items" id="cartItems">
+            <div class="empty-cart">Tu carrito está vacío</div>
+        </div>
+        <div class="cart-footer">
+            <div class="cart-total">
+                <span>Total:</span>
+                <span id="cartTotalValue">$0.00</span>
+            </div>
+            <button class="checkout-btn magnetic-btn" id="checkoutBtn">Ir a Pagar</button>
+        </div>
+    </div>
+
+    <!-- Product Detail Modal -->
+    <div class="modal-overlay" id="productModal">
+        <button class="modal-nav modal-prev" id="modalPrev" aria-label="Producto anterior">‹</button>
+        <button class="modal-nav modal-next" id="modalNext" aria-label="Producto siguiente">›</button>
+        <div class="modal-content">
+            <button class="modal-close" id="modalClose">&times;</button>
+            <div class="modal-body">
+                <div class="modal-gallery">
+                    <div class="modal-main-image"><img src="" alt="Producto" id="modalMainImg"></div>
+                    <div class="modal-thumbs" id="modalThumbs"></div>
+                </div>
+                <div class="modal-details">
+                    <span class="modal-category" id="modalCategory"></span>
+                    <h2 id="modalTitle"></h2>
+                    <p class="modal-price" id="modalPrice"></p>
+                    <p class="modal-description" id="modalDescription"></p>
+                    <button class="modal-add-cart magnetic-btn">Agregar al Carrito</button>
+                </div>
+            </div>
+            <!-- Reviews Section -->
+            <div class="modal-reviews-section" id="modalReviewsSection">
+                <div class="reviews-header">
+                    <h3>⭐ Opiniones de clientes <span id="modalReviewCount" style="color:var(--text-secondary);font-size:.9rem;font-weight:400"></span></h3>
+                    <button type="button" class="review-toggle-btn magnetic-btn" id="toggleReviewForm">Dejar mi reseña</button>
+                </div>
+                <div class="review-form-container" id="reviewFormContainer" style="display:none;">
+                    <form id="publicReviewForm">
+                        <div class="review-form-row">
+                            <input type="text" id="reviewUserName" placeholder="Tu nombre (opcional)" maxlength="40">
+                            <div class="star-picker" id="starPicker">
+                                <span class="pick-star" data-star="1">★</span>
+                                <span class="pick-star" data-star="2">★</span>
+                                <span class="pick-star" data-star="3">★</span>
+                                <span class="pick-star" data-star="4">★</span>
+                                <span class="pick-star" data-star="5">★</span>
+                            </div>
+                        </div>
+                        <textarea id="reviewComment" placeholder="Contanos tu experiencia con este producto..." rows="3" maxlength="500"></textarea>
+                        <button type="submit" class="submit-review-btn magnetic-btn">Enviar reseña</button>
+                    </form>
+                </div>
+                <div id="modalReviewsList" class="reviews-list"></div>
+                <p id="modalReviewsEmpty" style="display:none;text-align:center;color:var(--text-secondary);font-size:.9rem;padding:1rem 0;">Aún no hay reseñas. ¡Sé el primero en opinar!</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Back to Top Button -->
+    <button class="back-to-top" id="backToTop" aria-label="Volver arriba">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M12 19V5M5 12l7-7 7 7"/></svg>
+    </button>
+
+    <!-- Floating WhatsApp -->
+    <a href="https://wa.me/542634478522" target="_blank" class="whatsapp-float" aria-label="Escribinos por WhatsApp" rel="noopener">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.608.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+    </a>
+
+    <!-- Mobile Bottom Navbar -->
+    <nav class="mobile-nav" id="mobileNav">
+        <a href="#home" class="mobile-nav-item active" data-section="home">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-4 0h4"/></svg>
+            <span>Inicio</span>
+        </a>
+        <a href="#carousel" class="mobile-nav-item" data-section="carousel" data-instant>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg>
+            <span>Ofertas</span>
+        </a>
+        <a href="#products" class="mobile-nav-item" data-section="products">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+            <span>Productos</span>
+        </a>
+        <a href="#contact" class="mobile-nav-item" data-section="contact">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span>Contacto</span>
+        </a>
+        <button class="mobile-nav-item mobile-cart-btn" id="mobileCartBtn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 100 4 2 2 0 000-4z"/></svg>
+            <span class="mobile-cart-count" id="mobileCartCount">0</span>
+            <span>Carrito</span>
+        </button>
+    </nav>
+
+    <!-- Checkout Form Modal -->
+    <div class="modal-overlay" id="checkoutModal">
+        <div class="modal-content checkout-modal-content">
+            <button class="modal-close" id="checkoutModalClose">&times;</button>
+            <div class="checkout-form-container">
+                <h2>Detalles de Envío y Facturación</h2>
+                <p class="checkout-subtitle">Completá tus datos para procesar el pedido con Mercado Pago y coordinar con el proveedor.</p>
+                <form id="checkoutForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkoutName">Nombre Completo *</label>
+                            <input type="text" id="checkoutName" required placeholder="Juan Pérez">
+                        </div>
+                        <div class="form-group">
+                            <label for="checkoutDni">DNI / CUIL *</label>
+                            <input type="text" id="checkoutDni" required placeholder="12345678">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkoutPhone">Teléfono de Contacto *</label>
+                            <input type="tel" id="checkoutPhone" required placeholder="11 2345 6789">
+                        </div>
+                        <div class="form-group">
+                            <label for="checkoutEmail">Correo Electrónico *</label>
+                            <input type="email" id="checkoutEmail" required placeholder="juan@email.com">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="checkoutProvince">Provincia *</label>
+                            <select id="checkoutProvince" required>
+                                <option value="" disabled selected>Selecciona tu provincia</option>
+                                <option value="Buenos Aires">Buenos Aires</option>
+                                <option value="Capital Federal">Capital Federal (CABA)</option>
+                                <option value="Catamarca">Catamarca</option>
+                                <option value="Chaco">Chaco</option>
+                                <option value="Chubut">Chubut</option>
+                                <option value="Córdoba">Córdoba</option>
+                                <option value="Corrientes">Corrientes</option>
+                                <option value="Entre Ríos">Entre Ríos</option>
+                                <option value="Formosa">Formosa</option>
+                                <option value="Jujuy">Jujuy</option>
+                                <option value="La Pampa">La Pampa</option>
+                                <option value="La Rioja">La Rioja</option>
+                                <option value="Mendoza">Mendoza</option>
+                                <option value="Misiones">Misiones</option>
+                                <option value="Neuquén">Neuquén</option>
+                                <option value="Río Negro">Río Negro</option>
+                                <option value="Salta">Salta</option>
+                                <option value="San Juan">San Juan</option>
+                                <option value="San Luis">San Luis</option>
+                                <option value="Santa Cruz">Santa Cruz</option>
+                                <option value="Santa Fe">Santa Fe</option>
+                                <option value="Santiago del Estero">Santiago del Estero</option>
+                                <option value="Tierra del Fuego">Tierra del Fuego</option>
+                                <option value="Tucumán">Tucumán</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="checkoutCity">Localidad *</label>
+                            <input type="text" id="checkoutCity" required placeholder="Mar del Plata">
+                        </div>
+                    </div>
+                    
+                    <!-- VIA CARGO WARNING -->
+                    <div style="margin: 1rem 0; padding: 1rem; background: rgba(255, 165, 2, 0.1); border-left: 4px solid #ffa502; border-radius: 8px;">
+                        <p style="margin: 0; font-size: 0.9rem; color: #ffa502; font-weight: 600;">⚠️ Información importante sobre envíos</p>
+                        <p style="margin: 0.3rem 0 0 0; font-size: 0.85rem; color: #dcdde1; line-height: 1.4;">
+                            Para envíos a todo el país mediante <strong>Vía Cargo</strong>, existe un recargo adicional que deberá ser abonado por el cliente en la sucursal correspondiente al momento de retirar el producto.
+                        </p>
+                    </div>
+
+                    <div id="shippingEstimate" style="display:none;padding:.6rem 1rem;background:rgba(0,240,255,.05);border:1px solid rgba(0,240,255,.15);border-radius:10px;margin-bottom:1rem;font-size:.9rem;color:var(--text-secondary)">
+                        <span>🚚 Envío estimado: </span><strong id="shippingCostDisplay" style="color:var(--accent-color)">$0</strong>
+                        <span style="font-size:.8rem;opacity:.7"> (según provincia y peso del pedido)</span>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group" style="flex: 2;">
+                            <label for="checkoutAddress">Dirección Completa (Calle, Número, Piso/Depto) *</label>
+                            <input type="text" id="checkoutAddress" required placeholder="Av. Colón 1234, 4° B">
+                        </div>
+                        <div class="form-group">
+                            <label for="checkoutZip">Código Postal *</label>
+                            <input type="text" id="checkoutZip" required placeholder="7600">
+                        </div>
+                    </div>
+                    <div class="shipping-warning">
+                        <span class="shipping-warning-icon">⚠️</span>
+                        <div class="shipping-warning-text">
+                            <strong>Importante:</strong> Los envíos al interior del país se realizan a través de empresas de cargo. El cliente deberá abonar el flete correspondiente al momento de retirar el producto en la sucursal de la empresa elegida.
+                        </div>
+                    </div>
+                    <button type="submit" class="checkout-submit-btn magnetic-btn" id="confirmPaymentBtn">Confirmar y Continuar al Pago</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollSmoother.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/EffectComposer.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/RenderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/ShaderPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/postprocessing/UnrealBloomPass.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/CopyShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/LuminosityHighPassShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/shaders/GammaCorrectionShader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Mimo! - Panel de Administración</title>
+    <meta name="description" content="Panel de administración de Mimo! Tienda de Tecnología.">
+    <meta name="robots" content="noindex, nofollow"> 
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/favicon.svg">
+    <meta name="theme-color" content="#0a0a1a">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="admin.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@400;700;900&family=Space+Grotesk:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="admin-login">
+        <div class="login-card tilt-card">
+            <h2 class="reveal-text">Mimo<span class="accent">!</span> Admin</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem;">Iniciá sesión con tu cuenta de Google autorizada para acceder al panel de administración.</p>
+            <button id="loginBtn" class="magnetic-btn" style="display: flex; align-items: center; justify-content: center; gap: 0.7rem; width: 100%; padding: 1rem;">
+                <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+                Iniciar sesión con Google
+            </button>
+            <p id="loginError" class="error-msg"></p>
+        </div>
+    </div>
+
+    <!-- Dashboard -->
+    <div id="dashboard" class="dashboard hidden">
+        <header class="admin-header">
+            <h2>Panel de Control</h2>
+            <div class="header-actions">
+                <button id="migrateBtn" class="magnetic-btn outline" style="display: none;">Cargar Catálogo Inicial</button>
+                <button id="googleSettingsBtn" class="magnetic-btn outline" title="Configurar Google API" style="padding: 0.6rem 1rem; background: transparent; border: 1px solid var(--surface-border); color: var(--text-secondary);">⚙️ Google API</button>
+                <button id="logoutBtn" class="magnetic-btn">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <div class="admin-tabs">
+            <button class="tab-btn active" data-tab="tab-products">📦 Productos</button>
+            <button class="tab-btn" data-tab="tab-orders">📋 Pedidos y Estadísticas</button>
+            <button class="tab-btn" data-tab="tab-shipping">🚚 Tarifas de Envío</button>
+            <button class="tab-btn" data-tab="tab-reviews">⭐ Reseñas</button>
+        </div>
+
+        <!-- TAB CONTENT: PRODUCTS -->
+        <div id="tab-products" class="tab-content">
+            <!-- Cost Calculator Section -->
+            <div class="calculator-card">
+                <div class="calculator-header" id="toggleCalcBtn">
+                    <h3>🧮 Calculadora de Costos e Importación (Dropshipping)</h3>
+                    <span class="calc-arrow" id="calcArrow">▼</span>
+                </div>
+                <div class="calculator-body hidden" id="calculatorBody">
+                    <div class="calc-grid">
+                        <div class="calc-input-section">
+                            <div class="calc-form-group">
+                                <label for="calcCurrency">Moneda del Proveedor</label>
+                                <select id="calcCurrency" class="calc-input">
+                                    <option value="USD">Dólares (USD)</option>
+                                    <option value="ARS">Pesos (ARS)</option>
+                                </select>
+                            </div>
+                            <div class="calc-form-group">
+                                <label for="calcCost">Costo del Proveedor</label>
+                                <input type="number" id="calcCost" class="calc-input" value="10" step="0.01">
+                            </div>
+                            <div class="calc-form-group" id="usdRateGroup">
+                                <label for="calcUsdRate">Tipo de Cambio (USD ➔ ARS)</label>
+                                <div class="usd-rate-wrapper">
+                                    <input type="number" id="calcUsdRate" class="calc-input" value="1000" step="1">
+                                    <button type="button" id="fetchRateBtn" class="fetch-btn">🔄 API</button>
+                                </div>
+                                <small id="rateSource" class="rate-source-info">Cargando cotización...</small>
+                            </div>
+                            <div class="calc-form-group">
+                                <label for="calcShipping">Costo de Envío del Proveedor (ARS)</label>
+                                <input type="number" id="calcShipping" class="calc-input" value="4000" step="100">
+                            </div>
+                            <div class="calc-form-group">
+                                <label for="calcProfit">Margen de Ganancia Deseado (%)</label>
+                                <input type="number" id="calcProfit" class="calc-input" value="30" step="1">
+                            </div>
+                        </div>
+                        
+                        <div class="calc-result-section">
+                            <div class="result-box">
+                                <span class="result-label">Costo Neto Proveedor + Envío</span>
+                                <span class="result-value" id="resNetCost">$0.00 ARS</span>
+                            </div>
+                            <div class="result-box">
+                                <span class="result-label">Comisión Mercado Pago (6.5%)</span>
+                                <span class="result-value" id="resMpFee">$0.00 ARS</span>
+                            </div>
+                            <div class="result-box highlighted">
+                                <span class="result-label">Precio Sugerido de Venta en la Web</span>
+                                <span class="result-value" id="resSellPrice">$0.00 ARS</span>
+                            </div>
+                            <div class="result-box success-box">
+                                <span class="result-label">Tu Ganancia Neta Estimada</span>
+                                <span class="result-value" id="resNetProfit">$0.00 ARS</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Active Products -->
+            <main class="admin-main" style="padding:0; margin:0;">
+                <div class="toolbar">
+                    <h3>Tus Productos Activos</h3>
+                    <div style="display: flex; gap: 0.6rem; flex-wrap: wrap; align-items: center;">
+                        <input type="text" id="adminSearchInput" placeholder="🔍 Buscar producto..." style="padding:.5rem .8rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;min-width:180px">
+                        <select id="adminCategoryFilter" style="padding:.5rem .8rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
+                            <option value="all">Todas</option>
+                        </select>
+                        <select id="adminStatusFilter" style="padding:.5rem .8rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
+                            <option value="all">Todos</option>
+                            <option value="active">🟢 Activos</option>
+                            <option value="paused">🔴 Pausados</option>
+                        </select>
+                        <button id="reloadBtn" class="magnetic-btn" style="background: transparent; border: 1px solid var(--surface-border); color: var(--text-secondary); padding:.5rem 1rem;font-size:.85rem">🔄 Recargar</button>
+                        <button id="addProductBtn" class="magnetic-btn" style="padding:.5rem 1rem;font-size:.85rem">+ Nuevo</button>
+                    </div>
+                </div>
+
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Imagen</th>
+                                <th>Nombre</th>
+                                <th>Categoría</th>
+                                <th>Precio</th>
+                                <th>Oferta</th>
+                                <th>Stock</th>
+                                <th>Peso</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="adminProductList">
+                            <!-- Products will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </main>
+        </div>
+
+        <!-- TAB CONTENT: ORDERS -->
+        <div id="tab-orders" class="tab-content hidden">
+            <!-- Stats Section -->
+            <div class="stats-card" style="background:var(--surface-color);border:1px solid var(--surface-border);border-radius:15px;padding:1.5rem;margin-bottom:1.5rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:1rem">
+                    <h3 style="margin:0">📊 Estadísticas de Ventas</h3>
+                    <button id="refreshStatsBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Actualizar</button>
+                </div>
+                <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;margin-top:1rem">
+                    <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
+                        <div style="font-size:1.8rem;font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-family:'Space Grotesk',sans-serif" id="statTotalRevenue">$0</div>
+                        <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Total Facturado</div>
+                    </div>
+                    <div style="background:rgba(0,240,255,.05);border-radius:10px;padding:1rem;text-align:center">
+                        <div style="font-size:1.8rem;font-weight:800;color:var(--accent-color);font-family:'Space Grotesk',sans-serif" id="statTotalOrders">0</div>
+                        <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Totales</div>
+                    </div>
+                    <div style="background:rgba(46,213,115,.05);border-radius:10px;padding:1rem;text-align:center">
+                        <div style="font-size:1.8rem;font-weight:800;color:#2ed573;font-family:'Space Grotesk',sans-serif" id="statPaidOrders">0</div>
+                        <div style="color:var(--text-secondary);font-size:.8rem;margin-top:.3rem">Pedidos Pagados</div>
+                    </div>
+                </div>
+                <div style="margin-top:1.5rem">
+                    <h4 style="color:var(--text-secondary);font-size:.9rem;margin-bottom:.8rem">🏆 Top 10 Más Vendidos</h4>
+                    <div id="topProductsList" style="display:flex;flex-direction:column;gap:.4rem"></div>
+                </div>
+            </div>
+
+            <!-- Orders Management -->
+            <div class="admin-main" style="margin-top:0;padding-top:0;padding-left:0;padding-right:0;">
+                <div class="toolbar">
+                    <h3>📦 Gestión de Pedidos</h3>
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+                        <button id="reloadOrdersBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;border-radius:8px;font-size:.85rem">🔄 Recargar</button>
+                        <select id="orderStatusFilter" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
+                            <option value="all">Todos los estados</option>
+                            <option value="pending">🟡 Pendientes</option>
+                            <option value="paid">🟢 Pagados</option>
+                            <option value="shipped">🔵 Enviados</option>
+                            <option value="delivered">✅ Entregados</option>
+                            <option value="cancelled">🔴 Cancelados</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Cliente</th>
+                                <th>Total</th>
+                                <th>Productos</th>
+                                <th>Provincia</th>
+                                <th>Fecha</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ordersList"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB CONTENT: SHIPPING -->
+        <div id="tab-shipping" class="tab-content hidden">
+            <!-- Shipping Rates -->
+            <div class="admin-main" style="margin-top:0;padding-top:0;padding-left:0;padding-right:0;">
+                <div class="toolbar">
+                    <h3>🚚 Tarifas de Envío por Provincia</h3>
+                </div>
+                <div class="table-container">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Provincia</th>
+                                <th>Costo Base ($)</th>
+                                <th>Costo por kg ($)</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody id="shippingRatesBody"></tbody>
+                    </table>
+                </div>
+                <div style="display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap">
+                    <input type="text" id="newRateProvince" placeholder="Nueva provincia" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;flex:1;min-width:150px">
+                    <input type="number" id="newRateBase" placeholder="Costo base $" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:130px" step="100">
+                    <input type="number" id="newRatePerKg" placeholder="$ por kg" style="padding:.6rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;width:120px" step="50">
+                    <button id="addRateBtn" class="magnetic-btn" style="padding:.6rem 1.5rem">Agregar</button>
+                </div>
+                <p style="color:var(--text-secondary);font-size:.85rem;margin-top:.5rem">Las tarifas se usan en el checkout. Tip: Podés agregar una provincia con el nombre "General" para que funcione como tarifa base para cualquier provincia que no hayas configurado individualmente.</p>
+            </div>
+        </div>
+        <!-- TAB CONTENT: REVIEWS -->
+        <div id="tab-reviews" class="tab-content hidden">
+            <div class="admin-main" style="margin-top:0;padding-top:0;padding-left:0;padding-right:0;">
+                <div class="toolbar">
+                    <h3>⭐ Reseñas de Clientes</h3>
+                    <div style="display:flex;gap:.5rem;flex-wrap:wrap;align-items:center">
+                        <select id="adminReviewsProductSelect" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;min-width:250px">
+                            <option value="">Seleccioná un producto...</option>
+                        </select>
+                        <button id="adminReviewsRefreshBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;font-size:.85rem">🔄 Recargar</button>
+                        <button id="adminRecalcAllBtn" class="magnetic-btn" style="background:transparent;border:1px solid #ffd700;color:#ffd700;padding:.5rem 1rem;font-size:.85rem">♻️ Recalcular todos</button>
+                    </div>
+                </div>
+                <div id="adminReviewsTabList" style="padding:0 1rem 1rem;display:flex;flex-direction:column;gap:.6rem">
+                    <p style="color:var(--text-secondary);text-align:center;padding:2rem">Seleccioná un producto para ver sus reseñas.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Removed Google API Settings Modal -->
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="admin-modal-content">
+            <h3 style="margin-bottom:1rem">📋 Detalle del Pedido</h3>
+            <div id="orderDetailContent"></div>
+            <div class="form-actions" style="margin-top:1.5rem">
+                <button type="button" id="closeOrderModalBtn" class="magnetic-btn outline">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Product Modal -->
+    <div class="modal-overlay" id="adminModal">
+        <div class="admin-modal-content">
+            <h3 id="modalTitle">Agregar Producto</h3>
+            <form id="productForm">
+                <input type="hidden" id="prodId">
+                <div class="form-group">
+                    <label>Nombre del Producto</label>
+                    <input type="text" id="prodName" required>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select id="prodCategory" required>
+                        <option value="televisores">Televisores</option>
+                        <option value="celulares">Celulares</option>
+                        <option value="tvbox">TV Box</option>
+                        <option value="proyectores">Proyectores</option>
+                        <option value="parlantes">Parlantes</option>
+                        <option value="auriculares">Auriculares</option>
+                        <option value="gaming">Gaming</option>
+                        <option value="cocinas">Cocinas</option>
+                        <option value="calefaccion">Calefacción</option>
+                        <option value="climatizacion">Climatización</option>
+                        <option value="ventilacion">Ventilación</option>
+                        <option value="herramientas">Herramientas</option>
+                        <option value="belleza">Belleza</option>
+                        <option value="bicicletas">Bicicletas</option>
+                        <option value="movilidad">Movilidad</option>
+                        <option value="hogar-muebles">Hogar y Muebles</option>
+                        <option value="bano">Baño</option>
+                        <option value="decoracion">Decoración</option>
+                        <option value="iluminacion-gadgets">Iluminación</option>
+                        <option value="exteriores">Exteriores</option>
+                        <option value="limpieza">Limpieza</option>
+                        <option value="gadgets">Gadgets</option>
+                        <option value="cargadores-accesorios">Cargadores</option>
+                        <option value="relojes-fundas">Relojes y Fundas</option>
+                    </select>
+                </div>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Costo Proveedor</label>
+                            <div style="display:flex;gap:0.5rem;align-items:center">
+                                <input type="number" id="prodCost" step="0.01" value="0" style="flex:1">
+                                <select id="prodCurrency" style="padding:.5rem .6rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;min-width:80px">
+                                    <option value="ARS">$ ARS</option>
+                                    <option value="USD">USD</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Margen Ganancia (%)</label>
+                            <input type="number" id="prodMargin" step="1" value="30">
+                        </div>
+                    </div>
+                    <p style="color:var(--text-secondary); font-size:0.85rem; margin-top:-0.5rem; margin-bottom:1rem;">
+                        El Precio Regular se calculará automáticamente con tu margen + <strong style="color:#00f0ff;">6.49% MP</strong> y redondeo a múltiplos de $100. 
+                        <strong style="color:#2ed573; margin-left:0.5rem;" id="prodProfitDisplay">Ganancia: $0 (0%)</strong><br>
+                        <em>Nota: El costo de envío (de Gratis en CABA hasta $25.000) se cobra aparte.</em>
+                    </p>
+                    <div class="form-group-row">
+                        <div class="form-group">
+                            <label>Precio Regular Calculado ($)</label>
+                            <input type="number" id="prodPrice" step="0.01" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Precio Oferta ($) (Opcional)</label>
+                            <input type="number" id="prodOffer" step="0.01">
+                        </div>
+                        <div class="form-group" style="min-width:100px">
+                            <label>Stock</label>
+                            <input type="number" id="prodStock" min="0" step="1" value="0">
+                        </div>
+                        <div class="form-group" style="min-width:100px">
+                            <label>Peso (kg)</label>
+                            <input type="number" id="prodWeight" min="0" step="0.1" value="0.5">
+                        </div>
+                    </div>
+                <div class="form-group">
+                    <label>Etiqueta (Ej: -30%, Más Vendido)</label>
+                    <input type="text" id="prodBadge">
+                </div>
+                <div class="form-group">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                        <label style="margin: 0;">Descripción Corta</label>
+                        <button type="button" id="generateAIBtn" class="magnetic-btn" style="background: linear-gradient(135deg, #00f0ff, #8a2be2); border: none; color: #fff; font-weight: bold; border-radius: 8px; padding: 0.4rem 0.8rem; cursor: pointer; font-size: 0.8rem; display: flex; align-items: center; gap: 0.4rem;">
+                            <span>✨ Generar con IA</span>
+                        </button>
+                    </div>
+                    <textarea id="prodDesc" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Imagen del Producto</label>
+                    <div style="display: flex; gap: 0.8rem; align-items: center; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px; display: flex; align-items: center; gap: 0.5rem;">
+                            <input type="text" id="prodImg" placeholder="URL de la imagen (o sube una)" style="width: 100%;">
+                            <button type="button" id="addImgUrlBtn" class="magnetic-btn" style="background: var(--primary); border: none; color: #000; font-weight: bold; border-radius: 8px; padding: 0.6rem 1rem; cursor: pointer; font-size: 0.85rem; white-space: nowrap;" title="Agregar URL">+ Agregar URL</button>
+                            <button type="button" id="clearImgBtn" class="magnetic-btn" style="background: rgba(255,50,50,0.1); border: 1px solid #ff4757; color: #ff4757; border-radius: 8px; padding: 0.6rem 0.8rem; cursor: pointer; font-size: 1.2rem; line-height: 1; display: none;" title="Limpiar todo">&times;</button>
+                        </div>
+                        <span style="color: var(--text-secondary); font-size: 0.9rem;">o</span>
+                        <label for="prodImgFile" class="magnetic-btn" style="padding: 0.8rem 1.5rem; background: var(--surface-border); border: 1px solid var(--surface-border); color: #fff; border-radius: 8px; cursor: pointer; font-size: 0.85rem; font-weight: bold; text-align: center; white-space: nowrap; display: inline-block;">
+                            Subir desde PC/Móvil
+                        </label>
+                        <input type="file" id="prodImgFile" accept="image/*" multiple style="display: none;">
+                    </div>
+                    <small style="color: var(--text-secondary); margin-top: 0.25rem; font-size: 0.75rem;">Puedes ingresar un enlace directo o seleccionar archivos de tu dispositivo. Se permiten múltiples imágenes.</small>
+                    <div id="imgPreviewContainer" style="margin-top: 10px; display: none; align-items: center; gap: 10px; flex-wrap: wrap;">
+                        <span style="font-size: 0.85rem; margin-right: 5px;"></span>
+                        <!-- dynamic images will be inserted here -->
+                    </div>
+
+                    <!-- Image Search Section -->
+                    <div style="margin-top: 1rem; border-top: 1px solid var(--surface-border); padding-top: 1rem;">
+                        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem;">
+                            <button type="button" id="searchGoogleImagesBtn" class="magnetic-btn" style="background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color); padding: 0.5rem 1rem; border-radius: 8px; font-size: 0.8rem; cursor: pointer;">
+                                🌐 Buscar en Google Images
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group" style="border-top:1px solid var(--surface-border);padding-top:1rem;margin-top:.5rem">
+                    <div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="adminReviewsToggle">
+                        <label style="cursor:pointer;font-weight:600">⭐ Reseñas <span id="adminReviewCount" style="color:var(--text-secondary);font-weight:400">(0)</span></label>
+                        <span id="adminReviewsArrow" style="color:var(--text-secondary);transition:transform .3s">▶</span>
+                    </div>
+                    <div id="adminReviewsPanel" style="display:none;margin-top:.8rem">
+                        <div id="adminReviewsList" style="max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:.6rem;padding:.3rem"></div>
+                        <div id="adminReviewsEmpty" style="text-align:center;color:var(--text-secondary);font-size:.85rem;padding:1rem;display:none">Sin reseñas</div>
+                    </div>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="prodFeatured">
+                    <label for="prodFeatured">Destacar en el Carrusel de Inicio</label>
+                </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="prodActive" checked>
+                    <label for="prodActive">Producto Activo (visible en la tienda)</label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="magnetic-btn outline">Cancelar</button>
+                    <button type="submit" id="saveBtn" class="magnetic-btn">Guardar Producto</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="admin.js"></script>
+</body>
+</html>
