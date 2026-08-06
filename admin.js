@@ -350,6 +350,8 @@ function openModal(id = null) {
     document.getElementById('prodImg').dispatchEvent(new Event('input'));
     // Update profit display
     document.getElementById('prodPrice').dispatchEvent(new Event('input'));
+    // Update live cost conversion (USD → ARS)
+    updateCostARSDisplay();
 }
 
 form.addEventListener('submit', async (e) => {
@@ -419,20 +421,49 @@ form.addEventListener('submit', async (e) => {
 
 // ─── CURRENCY CONVERSION ────────────────────────────────
 let usdRateARS = null;
+let usdRateFetchedAt = 0;
+const USD_REFRESH_MS = 10 * 60 * 1000; // recargar la cotización cada 10 min
+
 async function fetchUsdRate() {
     try {
         const resp = await fetch('https://dolarapi.com/v1/dolares/blue');
         const data = await resp.json();
-        if (data && data.venta) usdRateARS = data.venta;
+        if (data && data.venta) {
+            usdRateARS = data.venta;
+            usdRateFetchedAt = Date.now();
+            updateCalculatedPrice();
+        }
     } catch(e) { /* ignore */ }
 }
 fetchUsdRate();
+setInterval(() => {
+    if (Date.now() - usdRateFetchedAt > USD_REFRESH_MS) fetchUsdRate();
+}, 60 * 1000);
 
 function getCostInARS() {
     const cost = parseFloat(document.getElementById('prodCost').value) || 0;
     const currency = document.getElementById('prodCurrency').value;
     if (currency === 'USD' && usdRateARS) return cost * usdRateARS;
     return cost;
+}
+
+function updateCostARSDisplay() {
+    const el = document.getElementById('prodCostARS');
+    if (!el) return;
+    const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+    const currency = document.getElementById('prodCurrency').value;
+    if (currency === 'USD' && cost > 0) {
+        if (usdRateARS) {
+            const ars = cost * usdRateARS;
+            el.textContent = `= $${fmt(Math.round(ars))} ARS (costo en pesos, Dólar Blue $${fmt(Math.round(usdRateARS))})`;
+            el.style.color = '#2ed573';
+        } else {
+            el.textContent = 'Consultando cotización del dólar...';
+            el.style.color = 'var(--text-secondary)';
+        }
+    } else {
+        el.textContent = '\u00A0';
+    }
 }
 
 // Auto-calculate price
@@ -450,6 +481,7 @@ function updateCalculatedPrice() {
     const currency = document.getElementById('prodCurrency').value;
     const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
     if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
+    updateCostARSDisplay();
 }
 document.getElementById('prodCost').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodMargin').addEventListener('input', updateCalculatedPrice);
@@ -707,7 +739,6 @@ const calcCurrency = document.getElementById('calcCurrency');
 const calcCost = document.getElementById('calcCost');
 const calcUsdRate = document.getElementById('calcUsdRate');
 const fetchRateBtn = document.getElementById('fetchRateBtn');
-const calcShipping = document.getElementById('calcShipping');
 const calcProfit = document.getElementById('calcProfit');
 const usdRateGroup = document.getElementById('usdRateGroup');
 
@@ -735,7 +766,7 @@ if (toggleCalcBtn && calculatorBody) {
     });
 
     // Event listeners for recalculation
-    [calcCost, calcUsdRate, calcShipping, calcProfit].forEach(input => {
+    [calcCost, calcUsdRate, calcProfit].forEach(input => {
         input.addEventListener('input', calculateCosts);
     });
 
@@ -773,12 +804,11 @@ if (toggleCalcBtn && calculatorBody) {
     function calculateCosts() {
         const cost = parseFloat(calcCost.value) || 0;
         const rate = parseFloat(calcUsdRate.value) || 1;
-        const shipping = parseFloat(calcShipping.value) || 0;
         const margin = parseFloat(calcProfit.value) || 0;
 
         // Convert cost to ARS if USD is selected
         const costInArs = calcCurrency.value === 'USD' ? cost * rate : cost;
-        const netCost = costInArs + shipping;
+        const netCost = costInArs;
 
         // Calculate Sell Price: NetCost * (1 + Margin%) / (1 - MercadoPagoFee%)
         const mpFeeRate = 0.065;
@@ -909,8 +939,8 @@ document.getElementById('refreshStatsBtn').addEventListener('click', loadStats);
 loadStats();
 
 // ─── ORDER MANAGEMENT ─────────────────────────────────────
-const statusLabels = { pending:'🟡 Pendiente', paid:'🟢 Pagado', shipped:'🔵 Enviado', delivered:'✅ Entregado', cancelled:'🔴 Cancelado' };
-const statusFlow = { pending:['paid','cancelled'], paid:['shipped','cancelled'], shipped:['delivered','cancelled'], delivered:[], cancelled:[] };
+const statusLabels = { initiated:'⚪ Iniciado', pending:'🟡 Pendiente', paid:'🟢 Pagado', shipped:'🔵 Enviado', delivered:'✅ Entregado', cancelled:'🔴 Cancelado' };
+const statusFlow = { initiated:['paid','cancelled'], pending:['paid','cancelled'], paid:['shipped','cancelled'], shipped:['delivered','cancelled'], delivered:[], cancelled:[] };
 
 async function loadOrders(filter = 'all') {
     const tbody = document.getElementById('ordersList');
@@ -935,7 +965,7 @@ async function loadOrders(filter = 'all') {
                 <td>${(o.cart || []).reduce((s, i) => s + i.qty, 0)} items</td>
                 <td>${o.customer?.province || o.shippingProvince || '—'}</td>
                 <td style="font-size:.85rem;white-space:nowrap">${date}</td>
-                <td><span style="display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.8rem;background:${o.status === 'paid' ? 'rgba(46,213,115,.15)' : o.status === 'shipped' ? 'rgba(0,240,255,.15)' : o.status === 'delivered' ? 'rgba(46,213,115,.1)' : o.status === 'cancelled' ? 'rgba(255,71,87,.15)' : 'rgba(255,193,7,.15)'};color:${o.status === 'paid' ? '#2ed573' : o.status === 'shipped' ? '#00f0ff' : o.status === 'delivered' ? '#2ed573' : o.status === 'cancelled' ? '#ff4757' : '#ffc107'}">${statusLabels[o.status] || o.status}</span></td>
+                <td><span style="display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.8rem;background:${o.status === 'paid' ? 'rgba(46,213,115,.15)' : o.status === 'shipped' ? 'rgba(0,240,255,.15)' : o.status === 'delivered' ? 'rgba(46,213,115,.1)' : o.status === 'cancelled' ? 'rgba(255,71,87,.15)' : o.status === 'initiated' ? 'rgba(255,255,255,.05)' : 'rgba(255,193,7,.15)'};color:${o.status === 'paid' ? '#2ed573' : o.status === 'shipped' ? '#00f0ff' : o.status === 'delivered' ? '#2ed573' : o.status === 'cancelled' ? '#ff4757' : o.status === 'initiated' ? '#888' : '#ffc107'}">${statusLabels[o.status] || o.status}</span></td>
                 <td>
                     <button class="action-btn view-order-btn" data-id="${id}" title="Ver detalle">👁️</button>
                     ${(statusFlow[o.status] || []).map(next => `<button class="action-btn status-btn" data-id="${id}" data-next="${next}" title="Marcar como ${statusLabels[next]}">${next === 'cancelled' ? '❌' : next === 'paid' ? '💳' : next === 'shipped' ? '📦' : '✅'}</button>`).join('')}

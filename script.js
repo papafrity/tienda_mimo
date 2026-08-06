@@ -148,6 +148,43 @@ document.addEventListener('DOMContentLoaded', () => {
     function offerVal(p) { return p.offerPrice != null ? p.offerPrice : p.price; }
     function hasOffer(p) { return p.offerPrice != null && p.offerPrice !== p.price; }
 
+    // ─── PRECIOS DINÁMICOS CON DÓLAR ─────────────────
+    // Los productos con costCurrency = 'USD' recalculan su precio en ARS
+    // automáticamente con el dólar blue del momento (misma fórmula del admin).
+    const MP_FEE = 0.0649;
+    let usdRateARS = null;
+
+    function roundPrice(v) { return v < 100 ? v : Math.ceil(v / 100) * 100; }
+
+    function calcPriceFromUSD(costUSD, margin) {
+        const costARS = costUSD * (usdRateARS || 0);
+        if (!costARS) return null;
+        const basePrice = costARS * (1 + (margin / 100));
+        return roundPrice(basePrice * (1 + MP_FEE));
+    }
+
+    function applyDynamicPrices() {
+        let changed = false;
+        products.forEach(p => {
+            if (p.costCurrency === 'USD' && p.cost > 0 && usdRateARS) {
+                const dynamicPrice = calcPriceFromUSD(p.cost, p.margin || 30);
+                if (dynamicPrice != null) {
+                    p.price = dynamicPrice;
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+
+    async function fetchUsdRate() {
+        try {
+            const resp = await fetch('https://dolarapi.com/v1/dolares/blue');
+            const data = await resp.json();
+            if (data && data.venta) usdRateARS = data.venta;
+        } catch(e) { /* ignore */ }
+    }
+
     function renderStarsHtml(rating) {
         const r = Math.round((rating || 0) * 2) / 2;
         let html = '';
@@ -266,11 +303,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchProducts() {
         try {
+            await fetchUsdRate();
             const querySnapshot = await db.collection("products").get();
             products = [];
             querySnapshot.forEach((doc) => {
                 products.push({ id: doc.id, ...doc.data() });
             });
+            applyDynamicPrices();
             if (products.length === 0) {
                 showEmptyProductsMessage();
             } else {
@@ -280,6 +319,15 @@ document.addEventListener('DOMContentLoaded', () => {
             initDynamicEvents();
             initCarouselLogic();
             initProductFiltersAndModals();
+
+            // Recalcular precios cada 10 min con el dólar del momento
+            setInterval(async () => {
+                await fetchUsdRate();
+                if (applyDynamicPrices()) {
+                    renderProducts();
+                    renderCarousel();
+                }
+            }, 10 * 60 * 1000);
         } catch(e) {
             console.error("Error fetching products", e);
             showProductsError(e.message);
@@ -1052,7 +1100,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         price: Number(offerVal(item)),
                         qty: item.qty
                     })),
-                    status: 'pending',
+                    status: 'initiated',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     total: cart.reduce((sum, item) => sum + (Number(offerVal(item)) * item.qty), 0),
                     shippingCost: shippingCost,

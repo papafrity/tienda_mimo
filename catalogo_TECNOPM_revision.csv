@@ -1,0 +1,142 @@
+PÁGINA | NOMBRE (mi interpretación) | PRECIOS DETECTADOS | CONFIANZA | PRODUCTO EXISTENTE RELACIONADO | ACCIÓN PROPUESTA
+1 | Portada | - | - | - | Ignorar
+2 | Info pagos | - | - | - | Ignorar
+3 | Info envíos | - | - | - | Ignorar
+4 | Info envíos | - | - | - | Ignorar
+5 | TV Box (surtido) | 3x13 / 5x13 / 10x12 / 50x11 / 100x10.5 USD | MEDIA | TV Box 4K MXQ Pro (13 USD) | Confirmar nombre
+6 | TV Box MXQ | 3x13 / 5x13 / 10x12 / 100x10.5 USD | MEDIA | TV Box 4K MXQ Pro (13) / 8K MXQ Pro 5G (18) | Confirmar modelo
+7 | TV Stick | 1x22 / 3x19 / 10x18 / 50x17.5 USD | ALTA | TV Stick 4K Android (22) | Actualizar precio
+8 | Watch | 1x22 / 3x19 / 10x18 / 50x17.5 USD | MEDIA | Watch OM / TV Watch 4K (22) | Confirmar
+9 | Watch | 1x22 / 3x19 / 10x18 / 50x17.5 USD | MEDIA | Watch OM Full HD Streaming (22) | Confirmar
+10 | Proyector Gamer | 1x48 / 3x47 / 5x46 / 10x45 USD | MEDIA | Proyector Gamer Nuvoh (52) / Genérico (45) | Confirmar
+11 | Proyector Y300 PRO | 1x35 / 3x34 / 5x33 / 10x31 / 20x31 USD | ALTA | Proyector HY300 Ultra HD (35) | Actualizar precio
+12 | Proyector | 1x18 USD | BAJA | ? | Completar nombre
+13 | Auricular/otro | 1x26 aprox | BAJA | ? | Completar nombre
+14 | Proyector | 1x32 / 2x30.5 / 10x28.5 USD | BAJA | ? | Completar nombre
+15 | ? | 1x26490 / 10x25300 PESOS | BAJA | ? | Completar nombre
+16 | ? (WEAUCO 670?) | 1x26490 PESOS | BAJA | ? | Completar nombre
+17 | ? | 1x65 / 10x60 USD | BAJA | ? | Completar nombre
+18 | ? | 1x15 / 5x14.5 USD | BAJA | ? | Completar nombre
+19 | Teclado | 1x4.3 / 2x4.10 / 5x4 / 10x3.9 USD | MEDIA | Teclado Noga NKB780TI (4.3) | Actualizar precio
+20 | Game Stick/Retro | 1x14 / 3x13.5 / 5x13 / 10x12 USD | MEDIA | Consola Retro (21-32) | Confirmar
+21 | ? | 1x16 / 3x15.5 / 10x15 USD | BAJA | ? | Completar nombre
+22 | ? | 1x15.5 / 3x15 USD | BAJA | ? | Completar nombre
+23 | Combo Teclado+Mouse | 1x9 / 2x8.9 / 3x8.7 / 5x8.5 USD | MEDIA | Teclado + Mouse Noga 95900 BT (9) | Actualizar precio
+24 | MOUSE INALAMBRICO | 1x4.2 USD | ALTA | ? | Crear o mapear
+25 | ? | - | BAJA | ? | Completar nombre
+26 | ? (Gaming) | 1x300 USD | BAJA | Consola Retro RS5 (32)? | Completar nombre
+27 | ? | 1x32 / 3x31 / 5x30 / 10x29.5 USD | BAJA | ? | Completar nombre
+28 | ? | 1x24 USD | BAJA | Game Stick (24) | Completar nombre
+29 | ? | 1x24 USD | BAJA | ? | Completar nombre
+30 | Cámara | 3x23 / 5x22 / 10x21 / 20x20 / 30x19 USD | MEDIA | Cámaras Foco 360 (14) | Confirmar
+31 | ? | 1x18000 / 10x17500 ARS | BAJA | ? | Completar nombre
+32 | ? | 1x16 / 3x18.8 / 5x18 / 10x14.5 / 20x13.5 USD | BAJA | ? | Completar nombre
+33 | CAMARA | 1x23 / 3x23 / 5x22.5 / 10x22 / 30x21 USD | MEDIA | ? | Confirmar nombre
+34 | XBOX (consola) | 1x20 USD | MEDIA | ? | Completar nombre
+35 | ? | 1x50 USD | BAJA | ? | Completar nombre
+36 | ? | 1x45 USD | BAJA | ? | Completar nombre
+37 | ? | 1x145000 PESOS | BAJA | ? | Completar nombre
+38 | ? (volante) | 1x75000 PESOS | MEDIA | Volante ST VO6 Noga (75000) | Confirmar
+39 | Notebook Enova N4020 | 1x290000 / 2x285000 / 3x280000 PESOS | ALTA | Notebook Enova 14 Celeron N4020 (290000) | Actualizar precio
+40 | Tablet Enova Tab10 | 1 unidad sola 140000 PESOS | ALTA | Tablet Enova Tab10 (140000) | Actualizar precio
+41 | Tablet | 1 unidad sola 120 USD | MEDIA | ? | Completar nombre
+42 | Tablet TCL | 1 unidad sola 175 USD | ALTA | Tablet TCL NxtPaper 11 (175) | Actualizar precio
+43 | Cables | 3x3.5 / 5x3.2 / 10x3 / 30x2.9 USD | MEDIA | Cable Lightning (3.5) | Confirmar
+44 | Cables | 10x1.7 / 30x1.6 / 50x1.5 / 100x1.4 USD | MEDIA | Cable USB-A a Lightning 2m (1.7) | Confirmar
+45 | ADAPTADOR | 1x16 / 5x15 / 100x14 USD | MEDIA | Adaptador Apple Original 20W (16) | Confirmar
+46 | BATTERY PACK | 1x8 / 30x7.5 / 100x7 USD | ALTA | Battery Pack MagSafe iPhone (8) | Actualizar precio
+47 | ? | 5x6 / 10x6 / 30x5.5 USD | BAJA | ? | Completar nombre
+48 | Fundas/Case | 3x3 / 5x2.8 / 10x2.6 / 30x2.4 / 100x2.2 / 200x2 USD | MEDIA | Creative Case (2.2) | Confirmar
+49 | ? | 1x10 / 3x9.5 / 5x9 / 10x8.5 USD | BAJA | ? | Completar nombre
+50 | Smart Bracelet SAMSUNG | 1x12 / 3x11.5 / 5x11 / 10x10.5 USD | MEDIA | Smart Bracelet (6) | Confirmar
+51 | ? | 1x12 / 100x10 USD | BAJA | ? | Completar nombre
+52 | Auricular NOGA | 1x8 / 5x7.8 USD | MEDIA | Noga ABTWINS49 (8) / Noga 922 (13.8) | Confirmar
+53 | Auriculares | 1x4.5 / 10x4.4 / 20x4.2 / 50x4 / 100x3.8 USD | MEDIA | Auriculares A6S/E6S/M10 (4.5) | Confirmar
+54 | Auriculares | 1x4.5 / 10x4.4 / 20x4.2 / 50x4 / 100x3.8 USD | MEDIA | Auriculares (4.5) | Confirmar
+55 | inPods 12 Simple | 1x2 USD | ALTA | Auriculares InPods 12 Simple (4.5) | Confirmar precio
+56 | Auriculares | 1x4.5 / 10x4.4 / 20x4.2 / 50x4 / 100x3.8 USD | MEDIA | Auriculares (4.5) | Confirmar
+57 | Auriculares | 1x4.5 / 10x4.4 / 20x4.2 / 50x4 / 100x3.8 USD | MEDIA | Auriculares (4.5) | Confirmar
+58 | Auriculares | 1x4.5 / 10x4.4 / 20x4.2 / 50x4 / 100x3.8 USD | MEDIA | Auriculares (4.5) | Confirmar
+59 | AirPods MAX | 1x14.5 / 3x14 / 5x13.5 / 10x13 USD | ALTA | AirPods Max (14.5) | Actualizar precio
+60 | STROMBERG ANC | 1x36 USD | MEDIA | ? | Completar nombre
+61 | ARIS Wireless Headset | 1x10 USD | MEDIA | ? | Completar nombre
+62 | ? | 1x8 USD | BAJA | ? | Completar nombre
+63 | ARIS | 2x19 / 5x18.3 / 10x17.8 USD | MEDIA | ? | Completar nombre
+64 | ARIS | 1x10 / 3x9.6 / 5x9.44 / 10x9.2 / 50x8.8 USD | MEDIA | ? | Completar nombre
+65 | ARIS | 1x12.5 / 3x12 / 5x11.8 / 10x11.5 / 50x11 USD | MEDIA | ? | Completar nombre
+66 | ARIS | 1x12.5 / 3x12 / 5x11.8 / 10x11.5 / 50x11 USD | MEDIA | ? | Completar nombre
+67 | ARIS | 1x13 / 3x12.5 / 5x12.2 / 10x11.8 USD | MEDIA | ? | Completar nombre
+68 | ARIS | 1x13 / 3x12.5 / 5x12 / 10x11.5 USD | MEDIA | ? | Completar nombre
+69 | ? | 1x11000 ARS | BAJA | ? | Completar nombre
+70 | Noga NGV-400 (ON-400) | 1x6.5 / 2x6.4 / 5x6.1 USD | ALTA | Noga NGV-400 Voice (6.5) | Actualizar precio
+71 | ? | 1x22 / 2x21.5 / 5x20.7 / 10x20 USD | BAJA | ? | Completar nombre
+72 | ? | 1x22 / 3x21 USD | BAJA | ? | Completar nombre
+73 | Reloj H20 | 3x17 / 5x16.5 USD | ALTA | Reloj H20 + AirPods Pro (17) | Actualizar precio
+74 | Reloj | 3x17 / 5x16.5 / 10x16 / 30x15.5 USD | MEDIA | Reloj H37 (17)? | Confirmar
+75 | BAFLE | 385000 PESOS | ALTA | Torre Ken Brown Bafle Monster 12 (385000) | Actualizar precio
+76 | CAJA (bafle?) | - | BAJA | ? | Completar nombre
+77 | ? | - | BAJA | ? | Completar nombre
+78 | ? | 1x80000 ARS | BAJA | ? | Completar nombre
+79 | DAIHATSU | 1x108 USD | MEDIA | ? | Completar nombre
+80 | JBL 120 | 1x720000 PESOS | ALTA | JBL 120 Original (720000) | Actualizar precio
+81 | JBL GO4 | 1x42 / 3x41 / 5x40 / 10x38 / 20x38 USD | ALTA | JBL GO4 Original (42) | Actualizar precio
+82 | JBL | 1x38 / 3x37 / 5x36 / 10x35 / 20x34 USD | MEDIA | JBL GO4 Pro (10)? | Confirmar
+83 | JBL | 1x36 / 3x35 / 10x33 USD | ALTA | JBL Clip 4 Original (36) | Actualizar precio
+84 | SONY | 240000 ARS C/U | ALTA | ? | Completar nombre
+85 | ? | 1x60 USD C/U | BAJA | ? | Completar nombre
+86 | ? | 1x39 USD | BAJA | ? | Completar nombre
+87 | ? | 1x22 / 3x21.5 / 5x21 / 10x20.5 USD | BAJA | ? | Completar nombre
+88 | ? | 1x19 / 3x18.5 / 5x18 / 10x17.5 USD | BAJA | ? | Completar nombre
+89 | ? | 1x22 / 3x21.5 / 5x21 / 20x20 USD | BAJA | ? | Completar nombre
+90 | ? | 1x21 / 3x20.5 / 5x20 / 10x19 / 20x18.5 USD | BAJA | ? | Completar nombre
+91 | Parlante NOGA-P78 | 1x5.6 / 3x5.5 / 10x5.4 USD | ALTA | Noga P78 (5.6) | Actualizar precio
+92 | ? | 1x19 / 30x18 / 100x17 USD | BAJA | ? | Completar nombre
+93 | ? | 1x19 / 30x18 / 100x17 USD | BAJA | ? | Completar nombre
+94 | ? | 3x13 / 5x12.5 USD | BAJA | ? | Completar nombre
+95 | ? | 1x10 / 50x9.5 / 100x9 USD | BAJA | ? | Completar nombre
+96 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL Sneaky (8) / Charger Mini (8) | Confirmar
+97 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL (8) | Confirmar
+98 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL (8) | Confirmar
+99 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL (8) | Confirmar
+100 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL (8) | Confirmar
+101 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL (8) | Confirmar
+102 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL (8) | Confirmar
+103 | Parlantes JBL | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | MEDIA | JBL (8) | Confirmar
+104 | PARLANTES JBL SNEARY | 3x8 / 5x7.8 / 20x7.5 / 50x6.7 USD | ALTA | JBL Sneaky (8) | Actualizar precio
+105 | ? | 1x10 / 3x9.5 / 5x9 / 10x8.5 / 20x8 USD | BAJA | ? | Completar nombre
+106 | ? | 1x12 / 3x11.5 / 5x11 / 10x10.5 USD | BAJA | ? | Completar nombre
+107 | RCB | 1x7 / 3x6.5 / 5x6 / 10x5.5 / 30x5 USD | MEDIA | ? | Completar nombre
+108 | RCB | 1x10 / 3x9.5 / 5x9 / 10x8.5 USD | MEDIA | ? | Completar nombre
+109 | ? | 1x12 / 3x11.5 / 5x11 / 10x10.5 / 20x10 USD | BAJA | ? | Completar nombre
+110 | ? | 1x12 USD | BAJA | ? | Completar nombre
+111 | ? | 1x17 USD | BAJA | ? | Completar nombre
+112 | ? | 10x6 / 30x5.5 USD | BAJA | ? | Completar nombre
+113 | ? | 1x20 USD | BAJA | ? | Completar nombre
+114 | T800 Ultra 2 (7 mallas) | 1x6 USD | MEDIA | T800 Ultra 2 (7 mallas) (12) | Confirmar precio
+115 | ? | 1x9 / 5x8.5 USD | BAJA | ? | Completar nombre
+116 | Mini Watch i10 | 1x3 USD | MEDIA | Mini Watch i10 (6) | Confirmar precio
+117 | PEDIDO SURTIDO | - | - | - | Ignorar
+118 | Monopatín Daihatsu VIOO | 1x580000 / 3x550000 PESOS | ALTA | Monopatín VIOO 350W (575000) | Actualizar precio
+119 | Monopatín Daihatsu VIOO | 1x580000 / 3x550000 PESOS | ALTA | Monopatín VIOO (575000) | Actualizar precio
+120 | Monopatín VIO2 | 1x770000 PESOS | ALTA | Monopatín VIO2 350W (737000) | Actualizar precio
+121 | Monopatín VIO1 | 1x900000 PESOS | ALTA | Monopatín VIO1 350W (605000) | Confirmar precio
+122 | Monopatín V301/V300 | 1x1800000 / 3x1770000 PESOS | ALTA | Monopatín V300 800W (1320000) / V301 (1705000) | Actualizar precio
+123 | FUNDAS IPHONE SILICON CASE | 20x30 / 40x60 / 100x150 / 200x260 USD | ALTA | Fundas iPhone Silicon Case pack 20u (30) | Actualizar precio
+124 | Fundas Android | 10x3 / 20x2.5 / 30x2.3 / 50x2 / 100x1.8 / 200x1.6 USD | MEDIA | Fundas Android Silicona (1.25) | Confirmar
+125 | Fundas Space | 10x1.6 / 20x1.4 / 30x1.3 / 50x1.2 / 100x1.1 / 200x1 USD | ALTA | Fundas iPhone Transparente Space (1.6) | Actualizar precio
+126 | Fundas Android | 10x1.25 / 20x1.2 / 50x1.1 / 100x1 / 200x1.4 / 500x0.9 USD | MEDIA | Fundas Android Silicona (1.25) | Confirmar
+127 | Fundas surtido | 10x2.2 / 30x1.8 / 50x1.5 / 100x1.4 / 500x1.3 USD | MEDIA | Creative Case (2.2) | Confirmar
+128 | Fundas surtido | 10x2.2 / 20x2 / 30x1.8 / 50x1.5 / 100x1.4 / 500x1.3 USD | MEDIA | Creative Case (2.2) | Confirmar
+129 | Fundas CASE | 100x1.6 / 500x1.5 USD | MEDIA | Fundas Fashion Case (3) | Confirmar
+130 | Fundas liquidación | 0.99 USD C/U | MEDIA | Liquidación Fundas Poco (0.99) | Confirmar
+131 | PEDIDO SURTIDO | - | - | - | Ignorar
+132 | ? | 1x6 USD | BAJA | ? | Completar nombre
+133 | ? | 10x5.5 / 20x4.5 / 100x4 USD | BAJA | ? | Completar nombre
+134 | ? | 3x15 / 5x14.5 / 10x14 / 20x13.5 / 50x13 / 100x12.5 USD | BAJA | ? | Completar nombre
+135 | ? | 1x17 / 3x16.5 / 5x16 / 10x15 USD | BAJA | ? | Completar nombre
+136 | GEEK (bar?) | 10x8 / 20x7.5 USD | MEDIA | ? | Completar nombre
+137 | GEEK | 10x8 / 20x7.5 / 20x7 / 100x6.5 USD | MEDIA | ? | Completar nombre
+138 | GEEK | - | MEDIA | ? | Completar nombre
+139 | GEEK | 10x8 / 20x7.5 / 20x7 / 100x6.5 USD | MEDIA | ? | Completar nombre
+140 | GEEK | 10x8 / 20x7.5 / 20x7 / 100x6.5 USD | MEDIA | ? | Completar nombre
+141 | ? | 5x11 / 10x10 / 15x9 / 30x8 USD | BAJA | ? | Completar nombre
