@@ -64,8 +64,18 @@ module.exports = async (req, res) => {
 
         // Estructurar el detalle del pedido para el correo
         let itemsHtml = '';
+        let totalCostARS = 0;
+        let totalProfit = 0;
         orderDetails.cart.forEach(item => {
-            itemsHtml += `<li><strong>${item.name}</strong> x${item.qty} - $${fmt(item.price * item.qty)}</li>`;
+            const subtotal = Number(item.price) * item.qty;
+            const costItem = Number(item.costARS || 0) * item.qty;
+            const profitItem = subtotal - costItem;
+            totalCostARS += costItem;
+            totalProfit += profitItem;
+            const costLabel = item.costCurrency === 'USD'
+                ? `US$${fmt(Number(item.cost) * item.qty)} (≈ $${fmt(Math.round(costItem))} ARS)`
+                : `$${fmt(costItem)} ARS`;
+            itemsHtml += `<li><strong>${item.name}</strong> x${item.qty} - Venta: $${fmt(subtotal)} | Costo prov.: ${costLabel} | Ganancia: $${fmt(Math.round(profitItem))}</li>`;
         });
 
         // HTML para el email que recibe el administrador (Proveedor)
@@ -91,6 +101,10 @@ module.exports = async (req, res) => {
                     ${itemsHtml}
                 </ul>
                 <h3 style=\"color: #2ed573;\">Total Cobrado: $${fmt(orderDetails.total)}</h3>
+                <div style=\"margin-top: 15px; padding: 12px; background: rgba(168,85,247,0.1); border-left: 4px solid #a855f7; border-radius: 4px;\">
+                    <p style=\"margin: 0 0 4px 0; font-weight: bold; color: #a855f7;\">Resumen para vos (no se muestra al cliente):</p>
+                    <p style=\"margin: 0; color: #8c9ba5; font-size: 0.95rem;\">Costo proveedor total: $${fmt(Math.round(totalCostARS))} ARS · Ganancia estimada: $${fmt(Math.round(totalProfit))} ARS</p>
+                </div>
                 
                 <div style=\"margin-top: 30px; padding: 15px; background: rgba(46,213,115,0.1); border-left: 4px solid #2ed573; border-radius: 4px;\">
                     <p style=\"margin: 0; font-weight: bold; color: #2ed573;\">Instrucciones para Dropshipping:</p>
@@ -122,7 +136,7 @@ module.exports = async (req, res) => {
 
         // Notificación por Telegram (no debe bloquear flujo de compra)
         try {
-            const notifText = `Nueva venta - Orden #${orderId} - Cliente: ${orderDetails.customer.name} - Total: $${fmt(orderDetails.total)} - Items: ${orderDetails.cart.map(i => i.name).join(', ')}`;
+            const notifText = `Nueva venta - Orden #${orderId} - Cliente: ${orderDetails.customer.name} - Total: $${fmt(orderDetails.total)} - Costo prov.: $${fmt(Math.round(totalCostARS))} - Ganancia est.: $${fmt(Math.round(totalProfit))} - Items: ${orderDetails.cart.map(i => i.name).join(', ')}`;
             await telegramNotifier.notify(notifText);
         } catch (err) {
             console.error('Telegram notification failed:', err && err.message ? err.message : err);

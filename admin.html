@@ -317,10 +317,10 @@
                             <label>Costo Proveedor</label>
                             <div style="display:flex;gap:0.5rem;align-items:center">
                                 <input type="number" id="prodCost" step="0.01" value="0" style="flex:1; min-width:0">
-                                <select id="prodCurrency" class="currency-select" title="Moneda del costo del proveedor">
-                                    <option value="ARS">$ ARS</option>
-                                    <option value="USD">USD</option>
-                                </select>
+                                <button type="button" id="prodCurrency" class="currency-select" data-currency="ARS" title="Tocá para cambiar la moneda del costo proveedor (ARS ↔ USD)">
+                                    <span class="currency-symbol">$</span>
+                                    <span id="prodCurrencyLabel">ARS</span>
+                                </button>
                             </div>
                             <small id="prodCostARS" style="color:var(--text-secondary);font-size:0.75rem;">&nbsp;</small>
                         </div>

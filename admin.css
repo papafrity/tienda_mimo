@@ -78,11 +78,44 @@ body, body * { cursor: auto !important; }
 select option { background: #fff; color: #000; }
 .form-group .currency-select {
     width: auto;
-    min-width: 72px;
+    min-width: 82px;
     max-width: 90px;
     flex: 0 0 82px;
-    padding: 0.8rem 0.4rem !important;
+    padding: 0.7rem 0.4rem !important;
     text-align: center;
+    background: var(--surface-color);
+    border: 1px solid var(--primary);
+    border-radius: 8px;
+    color: var(--primary);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    font-weight: bold;
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.3rem;
+    transition: all 0.2s ease;
+    user-select: none;
+}
+.form-group .currency-select:hover {
+    background: rgba(0, 240, 255, 0.1);
+    transform: scale(1.05);
+}
+.form-group .currency-select:active {
+    transform: scale(0.95);
+}
+.form-group .currency-select .currency-symbol {
+    font-weight: normal;
+    opacity: 0.8;
+}
+.form-group .currency-select[data-currency="USD"] {
+    color: #2ed573;
+    border-color: #2ed573;
+}
+.form-group .currency-select[data-currency="USD"]:hover {
+    background: rgba(46, 213, 115, 0.1);
 }
 .checkbox-group { flex-direction: row; align-items: center; justify-content: flex-start; gap: 1rem; }
 .checkbox-group input { width: 20px; height: 20px; accent-color: var(--primary); }

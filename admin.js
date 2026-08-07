@@ -283,7 +283,8 @@ function openModal(id = null) {
     form.reset();
     document.getElementById('prodId').value = '';
     document.getElementById('prodCost').value = '0';
-    document.getElementById('prodCurrency').value = 'ARS';
+    document.getElementById('prodCurrency').dataset.currency = 'ARS';
+    document.getElementById('prodCurrencyLabel').textContent = 'ARS';
     document.getElementById('prodMargin').value = '30';
     document.getElementById('modalTitle').textContent = 'Agregar Producto';
     
@@ -302,7 +303,8 @@ function openModal(id = null) {
             document.getElementById('prodName').value = p.name;
             document.getElementById('prodCategory').value = p.category;
             document.getElementById('prodCost').value = p.cost || 0;
-            document.getElementById('prodCurrency').value = p.costCurrency || 'ARS';
+            document.getElementById('prodCurrency').dataset.currency = p.costCurrency || 'ARS';
+            document.getElementById('prodCurrencyLabel').textContent = p.costCurrency || 'ARS';
             document.getElementById('prodMargin').value = p.margin || 30;
             document.getElementById('prodPrice').value = p.price;
             document.getElementById('prodOffer').value = p.offerPrice || '';
@@ -385,7 +387,7 @@ form.addEventListener('submit', async (e) => {
         category: document.getElementById('prodCategory').value,
         price: (() => { const v = parseFloat(document.getElementById('prodPrice').value) || 0; return v < 100 ? v : Math.ceil(v / 100) * 100; })(),
         cost: parseFloat(document.getElementById('prodCost').value) || 0,
-        costCurrency: document.getElementById('prodCurrency').value || 'ARS',
+        costCurrency: document.getElementById('prodCurrency').dataset.currency || 'ARS',
         margin: parseInt(document.getElementById('prodMargin').value) || 0,
         offerPrice: document.getElementById('prodOffer').value ? (() => { const v = parseFloat(document.getElementById('prodOffer').value) || 0; return v < 100 ? v : Math.ceil(v / 100) * 100; })() : null,
         badge: document.getElementById('prodBadge').value,
@@ -440,9 +442,13 @@ setInterval(() => {
     if (Date.now() - usdRateFetchedAt > USD_REFRESH_MS) fetchUsdRate();
 }, 60 * 1000);
 
+function getCostCurrency() {
+    return document.getElementById('prodCurrency').dataset.currency || 'ARS';
+}
+
 function getCostInARS() {
     const cost = parseFloat(document.getElementById('prodCost').value) || 0;
-    const currency = document.getElementById('prodCurrency').value;
+    const currency = getCostCurrency();
     if (currency === 'USD' && usdRateARS) return cost * usdRateARS;
     return cost;
 }
@@ -451,7 +457,7 @@ function updateCostARSDisplay() {
     const el = document.getElementById('prodCostARS');
     if (!el) return;
     const cost = parseFloat(document.getElementById('prodCost').value) || 0;
-    const currency = document.getElementById('prodCurrency').value;
+    const currency = getCostCurrency();
     if (currency === 'USD' && cost > 0) {
         if (usdRateARS) {
             const ars = cost * usdRateARS;
@@ -478,14 +484,20 @@ function updateCalculatedPrice() {
     
     const profit = finalPrice - costARS;
     const display = document.getElementById('prodProfitDisplay');
-    const currency = document.getElementById('prodCurrency').value;
+    const currency = getCostCurrency();
     const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
     if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
     updateCostARSDisplay();
 }
 document.getElementById('prodCost').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodMargin').addEventListener('input', updateCalculatedPrice);
-document.getElementById('prodCurrency').addEventListener('change', updateCalculatedPrice);
+document.getElementById('prodCurrency').addEventListener('click', () => {
+    const btn = document.getElementById('prodCurrency');
+    const next = btn.dataset.currency === 'USD' ? 'ARS' : 'USD';
+    btn.dataset.currency = next;
+    document.getElementById('prodCurrencyLabel').textContent = next;
+    updateCalculatedPrice();
+});
 
 // Also update profit display if user manually edits the final price
 document.getElementById('prodPrice').addEventListener('input', () => {
@@ -493,7 +505,7 @@ document.getElementById('prodPrice').addEventListener('input', () => {
     const finalPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
     const profit = finalPrice - costARS;
     const display = document.getElementById('prodProfitDisplay');
-    const currency = document.getElementById('prodCurrency').value;
+    const currency = getCostCurrency();
     const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
     if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
 });
@@ -1088,21 +1100,31 @@ if (generateAIBtn) {
         generateAIBtn.style.opacity = '0.7';
 
         try {
-            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción muy concisa y comercial para el producto "${prodName}" de la categoría "${prodCategory}".
-MUY IMPORTANTE: Da SOLO las características más importantes y resumidas. La descripción DEBE estar dividida en partes fáciles de leer, separadas por un doble salto de línea.
-No uses emojis. Usa un punto negro (•) al inicio de cada característica para crear una lista limpia y muy breve.
-No uses formato Markdown (no uses asteriscos ** ni símbolos raros) ya que será texto plano.
+            // Precio de oferta opcional para mencionarlo en la descripción
+            const prodOffer = document.getElementById('prodOffer').value.trim();
+            const offerHint = prodOffer
+                ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
+                : '';
 
-Usa una estructura similar a este ejemplo dependiendo de lo que aplique al producto:
-• Pantalla: LED de 43 pulgadas con resolución Full HD...
+            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción muy concisa y comercial para el producto "${prodName}" de la categoría "${prodCategory}".${offerHint}
 
-• Diseño: Estructura Frameless (sin marcos)...
+REGLAS FUNDAMENTALES:
+1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
+2. Da SOLO las 4 a 5 características más importantes, en bullets muy breves.
+3. Separá cada bullet con un doble salto de línea para que se lea fácil.
+4. No uses emojis ni formato Markdown (no asteriscos ** ni símbolos raros). Todo texto plano.
+5. Terminá cada bullet en punto. No dejes espacios "..." ni textos entre corchetes como "[detalle...]".
 
-• Rendimiento: Procesador de última generación...
+Usá estos atributos clave según la categoría del producto (solo los que apliquen):
+- Auriculares / parlantes: tipo, cancelación de ruido (solo si está confirmado), batería, conectividad, resistencia al agua.
+- Teclados / mouse / periféricos: tipo (inalámbrico/cableado), conexión, batería o pilas, compatibilidad, diseño.
+- Smartwatches / relojes: pantalla, batería, sensores, resistencia al agua, compatibilidad con celulares.
+- TVs / monitores: tamaño, resolución, tipo de panel, conectividad, smart.
+- Celulares / tablets: pantalla, batería, cámara, almacenamiento, procesador.
+- Cocinas / heladeras / electrodomésticos: capacidad, tipo, eficiencia energética, funciones, dimensiones.
+- Otro: elegí los 4-5 atributos más relevantes del producto.
 
-• Batería / Energía: [detalle...]
-
-• Conectividad: [detalle...]`;
+Formato de cada bullet: "• Atributo: detalle breve". No inventes atributos.`;
             
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
                 method: 'POST',

@@ -1094,12 +1094,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Save pending order to Firestore
                 const orderRef = await db.collection('orders').add({
                     customer: customer,
-                    cart: cart.map(item => ({
-                        id: item.id,
-                        name: item.name,
-                        price: Number(offerVal(item)),
-                        qty: item.qty
-                    })),
+                    cart: cart.map(item => {
+                        const p = products.find(x => x.id === item.id);
+                        const costCurrency = (p && p.costCurrency) || 'ARS';
+                        const cost = (p && p.cost) || 0;
+                        const costARS = costCurrency === 'USD' ? cost * (usdRateARS || 0) : cost;
+                        return {
+                            id: item.id,
+                            name: item.name,
+                            price: Number(offerVal(item)),
+                            qty: item.qty,
+                            cost: cost,
+                            costCurrency: costCurrency,
+                            costARS: costARS,
+                            margin: (p && p.margin) || 0
+                        };
+                    }),
                     status: 'initiated',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     total: cart.reduce((sum, item) => sum + (Number(offerVal(item)) * item.qty), 0),
