@@ -1110,21 +1110,21 @@ if (generateAIBtn) {
 
 REGLAS FUNDAMENTALES:
 1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
-2. Da SOLO las 4 a 5 características más importantes, en bullets muy breves.
-3. Separá cada bullet con un doble salto de línea para que se lea fácil.
+2. Incluí TODAS las características relevantes del producto (cuántas más tenga, más larga será la descripción). No limites la cantidad: un producto con muchos specs debe describirlos casi todos.
+3. Separá cada característica con un doble salto de línea para que se lea fácil.
 4. No uses emojis ni formato Markdown (no asteriscos ** ni símbolos raros). Todo texto plano.
 5. Terminá cada bullet en punto. No dejes espacios "..." ni textos entre corchetes como "[detalle...]".
 
-Usá estos atributos clave según la categoría del producto (solo los que apliquen):
-- Auriculares / parlantes: tipo, cancelación de ruido (solo si está confirmado), batería, conectividad, resistencia al agua.
-- Teclados / mouse / periféricos: tipo (inalámbrico/cableado), conexión, batería o pilas, compatibilidad, diseño.
-- Smartwatches / relojes: pantalla, batería, sensores, resistencia al agua, compatibilidad con celulares.
-- TVs / monitores: tamaño, resolución, tipo de panel, conectividad, smart.
-- Celulares / tablets: pantalla, batería, cámara, almacenamiento, procesador.
-- Cocinas / heladeras / electrodomésticos: capacidad, tipo, eficiencia energética, funciones, dimensiones.
-- Otro: elegí los 4-5 atributos más relevantes del producto.
+Usá estos atributos clave según la categoría del producto (describí todos los que apliquen, y agregá otros que veas):
+- Auriculares / parlantes: tipo, cancelación de ruido (solo si está confirmado), batería, conectividad, resistencia al agua, controles, códec de audio.
+- Teclados / mouse / periféricos: tipo (inalámbrico/cableado), conexión, batería o pilas, compatibilidad, diseño, switches, retroiluminación.
+- Smartwatches / relojes: pantalla, batería, sensores, resistencia al agua, compatibilidad con celulares, funciones de salud.
+- TVs / monitores: tamaño, resolución, tipo de panel, conectividad, smart, tasa de refresco, HDR.
+- Celulares / tablets: pantalla, batería, cámara, almacenamiento, procesador, conectividad, carga.
+- Cocinas / heladeras / electrodomésticos: capacidad, tipo, eficiencia energética, funciones, dimensiones, materiales.
+- Otro: describí todos los atributos relevantes del producto, cuantos más haya.
 
-Formato de cada bullet: "• Atributo: detalle breve". No inventes atributos.`;
+Formato de cada bullet: "• Atributo: detalle completo". No inventes atributos.`;
             
             const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
                 method: 'POST',
