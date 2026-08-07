@@ -1201,6 +1201,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span>`
                 : `$${fmt(offerVal(p))}`;
             mDesc.textContent = p.description || '';
+            const descWrap = document.getElementById('modalDescWrap');
+            const descToggle = document.getElementById('modalDescToggle');
+            // Reiniciar estado: recortar si la descripción supera el alto visible
+            descWrap.classList.remove('collapsed');
+            descWrap.classList.toggle('has-more', mDesc.scrollHeight > 150);
+            if (mDesc.scrollHeight > 150) {
+                descWrap.classList.add('collapsed');
+                descToggle.textContent = 'Ver más';
+            }
             
             let imgs;
             try { imgs = p.fullImages ? JSON.parse(p.fullImages) : null; } catch(e) { imgs = null; }
@@ -1560,6 +1569,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const newModal = liveModal.cloneNode(true);
         liveModal.parentNode.replaceChild(newModal, liveModal);
         newModal.addEventListener('click', e => { if (e.target === newModal || e.target.closest('#modalClose')) { closeM(); } });
+
+        // "Ver más" en la descripción del modal: expande/colapsa con fade
+        const descToggle = document.getElementById('modalDescToggle');
+        if (descToggle) {
+            descToggle.addEventListener('click', () => {
+                const wrap = document.getElementById('modalDescWrap');
+                const isCollapsed = wrap.classList.contains('collapsed');
+                wrap.classList.toggle('collapsed');
+                descToggle.textContent = isCollapsed ? 'Ver menos' : 'Ver más';
+            });
+        }
         } catch(e) { console.error('Error en initProductFiltersAndModals:', e); }
     }
     
