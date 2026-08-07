@@ -1141,6 +1141,9 @@ Formato de cada bullet: "• Atributo: detalle completo". No inventes atributos.
             });
 
             if (!response.ok) {
+                if (response.status === 429) {
+                    throw new Error('Se alcanzó el límite diario de Gemini. Esperá unos minutos (límite por minuto) o volvé mañana (límite diario).');
+                }
                 if (response.status === 400 || response.status === 403) {
                     throw new Error('API Key inválida o sin permisos.');
                 }
