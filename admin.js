@@ -1106,7 +1106,7 @@ if (generateAIBtn) {
                 ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
                 : '';
 
-            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción muy concisa y comercial para el producto "${prodName}" de la categoría "${prodCategory}".${offerHint}
+            const promptText = `Escribe SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}". No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
 
 REGLAS FUNDAMENTALES:
 1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
