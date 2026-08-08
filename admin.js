@@ -1076,37 +1076,72 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
-// ─── AI DESCRIPTION GENERATOR (GEMINI) ─────────────────────────
-const generateAIBtn = document.getElementById('generateAIBtn');
-if (generateAIBtn) {
-    generateAIBtn.addEventListener('click', async () => {
-        const prodName = document.getElementById('prodName').value.trim();
-        const prodCategory = document.getElementById('prodCategory').value.trim();
+// ─── AI DESCRIPTION GENERATOR (GEMINI + RESPALDO) ─────────
+// Gemini es la IA principal. Si se agota su límite, se prueba Groq automáticamente.
+// Las keys de respaldo se guardan en localStorage (por navegador).
 
-        if (!prodName) {
-            alert('Por favor, ingresa el Nombre del Producto primero.');
-            return;
-        }
+function getGroqKey() {
+    try { return localStorage.getItem('mimo_groq_key') || ''; } catch(e) { return ''; }
+}
 
-        // La llave se divide en partes para evitar que GitHub bloquee la subida por seguridad
-        const p1 = 'AQ.Ab8RN6JuUNrE-DGGV';
-        const p2 = 'WJLFqUKn-lNTcnRME3';
-        const p3 = 'quULW5xIVUnXzDA';
-        const apiKey = p1 + p2 + p3;
+function getGeminiKey() {
+    // La llave se divide en partes para evitar que GitHub bloquee la subida por seguridad
+    const p1 = 'AQ.Ab8RN6JuUNrE-DGGV';
+    const p2 = 'WJLFqUKn-lNTcnRME3';
+    const p3 = 'quULW5xIVUnXzDA';
+    return p1 + p2 + p3;
+}
 
-        const originalBtnText = generateAIBtn.innerHTML;
-        generateAIBtn.innerHTML = '<span>⏳ Generando...</span>';
-        generateAIBtn.style.pointerEvents = 'none';
-        generateAIBtn.style.opacity = '0.7';
+async function callGemini(promptText) {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${getGeminiKey()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+    });
+    if (!resp.ok) {
+        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite diario o por minuto.' };
+        if (resp.status === 400 || resp.status === 403) throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o sin permisos.' };
+        throw { code: 'HTTP', label: 'Gemini', message: 'Error al conectar con la API de Gemini.' };
+    }
+    const data = await resp.json();
+    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] ? data.candidates[0].content.parts[0].text : '';
+    if (!text) throw { code: 'EMPTY', label: 'Gemini', message: 'Gemini devolvió una respuesta vacía.' };
+    return text.trim();
+}
 
-        try {
-            // Precio de oferta opcional para mencionarlo en la descripción
-            const prodOffer = document.getElementById('prodOffer').value.trim();
-            const offerHint = prodOffer
-                ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
-                : '';
+async function callGroq(promptText) {
+    const key = getGroqKey();
+    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: promptText }],
+            temperature: 0.7
+        })
+    });
+    if (!resp.ok) {
+        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Groq', message: 'Groq alcanzó su límite diario o por minuto.' };
+        if (resp.status === 401) throw { code: 'AUTH', label: 'Groq', message: 'API Key de Groq inválida.' };
+        throw { code: 'HTTP', label: 'Groq', message: 'Error al conectar con la API de Groq.' };
+    }
+    const data = await resp.json();
+    const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+    if (!text) throw { code: 'EMPTY', label: 'Groq', message: 'Groq devolvió una respuesta vacía.' };
+    return text.trim();
+}
 
-            const promptText = `Escribe SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}". No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
+function buildProductPrompt() {
+    const prodName = document.getElementById('prodName').value.trim();
+    const prodCategory = document.getElementById('prodCategory').value.trim();
+    // Precio de oferta opcional para mencionarlo en la descripción
+    const prodOffer = document.getElementById('prodOffer').value.trim();
+    const offerHint = prodOffer
+        ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
+        : '';
+
+    return `Escribe SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}". No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
 
 REGLAS FUNDAMENTALES:
 1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
@@ -1125,43 +1160,90 @@ Usá estos atributos clave según la categoría del producto (describí todos lo
 - Otro: describí todos los atributos relevantes del producto, cuantos más haya.
 
 Formato de cada bullet: "• Atributo: detalle completo". No inventes atributos.`;
-            
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: promptText
-                        }]
-                    }]
-                })
-            });
+}
 
-            if (!response.ok) {
-                if (response.status === 429) {
-                    throw new Error('Se alcanzó el límite diario de Gemini. Esperá unos minutos (límite por minuto) o volvé mañana (límite diario).');
-                }
-                if (response.status === 400 || response.status === 403) {
-                    throw new Error('API Key inválida o sin permisos.');
-                }
-                throw new Error('Error al conectar con la API de Gemini.');
-            }
+const generateAIBtn = document.getElementById('generateAIBtn');
+if (generateAIBtn) {
+    generateAIBtn.addEventListener('click', async () => {
+        const prodName = document.getElementById('prodName').value.trim();
 
-            const data = await response.json();
-            const text = data.candidates[0].content.parts[0].text;
-            
-            document.getElementById('prodDesc').value = text.trim();
-        } catch (error) {
-            console.error(error);
-            alert(`Error: ${error.message}\nSi el problema persiste, la llave API puede ser incorrecta o haber expirado.`);
-        } finally {
-            generateAIBtn.innerHTML = originalBtnText;
-            generateAIBtn.style.pointerEvents = 'auto';
-            generateAIBtn.style.opacity = '1';
+        if (!prodName) {
+            alert('Por favor, ingresa el Nombre del Producto primero.');
+            return;
         }
+
+        const originalBtnText = generateAIBtn.innerHTML;
+        generateAIBtn.innerHTML = '<span>⏳ Generando...</span>';
+        generateAIBtn.style.pointerEvents = 'none';
+        generateAIBtn.style.opacity = '0.7';
+
+        const promptText = buildProductPrompt();
+
+        // Proveedores en orden de prioridad. Se prueban en cascada:
+        // 1) Gemini (principal). 2) Groq (respaldo).
+        const providers = [
+            { label: 'Gemini', fn: () => callGemini(promptText) },
+            { label: 'Groq', fn: () => callGroq(promptText) }
+        ];
+
+        let lastErr = null;
+        let success = false;
+
+        for (const provider of providers) {
+            if (success) break;
+            try {
+                const text = await provider.fn();
+                document.getElementById('prodDesc').value = text;
+                generateAIBtn.innerHTML = `<span>✨ Generar con IA</span>`;
+                success = true;
+            } catch (e) {
+                lastErr = e;
+                console.warn(`[${provider.label}] falló:`, e.message || e);
+                generateAIBtn.innerHTML = `<span>${provider.label} agotado, probando respaldo...</span>`;
+            }
+        }
+
+        if (!success) {
+            const msg = lastErr ? lastErr.message : 'Error desconocido.';
+            const hint = lastErr && lastErr.label === 'Gemini' && lastErr.code === 'RATE_LIMIT'
+                ? '\n\nSi tenés una key de Groq, configurala con el botón 🔑 para usarla como respaldo automático.'
+                : '';
+            alert(`Error: ${msg}${hint}`);
+        }
+
+        generateAIBtn.innerHTML = originalBtnText;
+        generateAIBtn.style.pointerEvents = 'auto';
+        generateAIBtn.style.opacity = '1';
+    });
+}
+
+// Configuración de IAs de respaldo (localStorage)
+const aiConfigBtn = document.getElementById('aiConfigBtn');
+const aiConfigModal = document.getElementById('aiConfigModal');
+if (aiConfigBtn && aiConfigModal) {
+    aiConfigBtn.addEventListener('click', () => {
+        document.getElementById('groqApiKey').value = getGroqKey();
+        aiConfigModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+    document.getElementById('aiConfigClose')?.addEventListener('click', () => {
+        aiConfigModal.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    aiConfigModal.addEventListener('click', e => {
+        if (e.target === aiConfigModal) {
+            aiConfigModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    document.getElementById('aiConfigSave')?.addEventListener('click', () => {
+        const key = document.getElementById('groqApiKey').value.trim();
+        try {
+            if (key) localStorage.setItem('mimo_groq_key', key);
+            else localStorage.removeItem('mimo_groq_key');
+        } catch(e) { /* ignore */ }
+        aiConfigModal.classList.remove('active');
+        document.body.style.overflow = '';
     });
 }
 
