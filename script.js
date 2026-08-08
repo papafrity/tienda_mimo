@@ -1035,11 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const costEl = document.getElementById('shippingCostDisplay');
             const rate = findRateForProvince(prov);
             if (rate) {
-                const totalKg = cart.reduce((s, i) => {
-                    const p = products.find(x => x.id === i.id);
-                    return s + ((p && p.peso) || 0.5) * i.qty;
-                }, 0);
-                const cost = rate.base + rate.perKg * totalKg;
+                const cost = rate.base;
                 costEl.textContent = '$' + cost.toLocaleString('es-AR', { minimumFractionDigits: 2 });
                 display.style.display = 'block';
             } else {
@@ -1084,11 +1080,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const rate = findRateForProvince(provField);
                 let shippingCost = 0;
                 if (rate) {
-                    const totalKg = cart.reduce((s, i) => {
-                        const p = products.find(x => x.id === i.id);
-                        return s + ((p && p.peso) || 0.5) * i.qty;
-                    }, 0);
-                    shippingCost = rate.base + rate.perKg * totalKg;
+                    shippingCost = rate.base;
                 }
 
                 // Save pending order to Firestore

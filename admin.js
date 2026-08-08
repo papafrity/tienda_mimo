@@ -244,8 +244,6 @@ function renderAdminProducts() {
             <td style="text-transform: capitalize;">${p.category}</td>
             <td>$${fmt(p.price)}</td>
             <td>${p.offerPrice ? '$' + fmt(p.offerPrice) : '-'}</td>
-            <td style="text-align:center">${p.stock !== undefined ? p.stock : '-'}</td>
-            <td style="text-align:center">${p.peso ? p.peso + 'kg' : '-'}</td>
             <td style="text-align:center">
                 <span class="status-badge ${p.isActive !== false ? 'active' : 'paused'}">
                     ${p.isActive !== false ? '🟢 Activo' : '🔴 Pausado'}
@@ -330,8 +328,6 @@ function openModal(id = null) {
             }
             document.getElementById('prodFeatured').checked = p.isFeatured || false;
             document.getElementById('prodActive').checked = p.isActive !== false;
-            document.getElementById('prodStock').value = p.stock ?? 0;
-            document.getElementById('prodWeight').value = p.peso ?? 0.5;
             
             if (imgsToLoad.length > 0) {
                 currentUploadedImages = imgsToLoad;
@@ -395,9 +391,7 @@ form.addEventListener('submit', async (e) => {
         image: mainImgUrl,
         fullImages: JSON.stringify(finalImages),
         isFeatured: document.getElementById('prodFeatured').checked,
-        isActive: document.getElementById('prodActive').checked,
-        stock: parseInt(document.getElementById('prodStock').value) || 0,
-        peso: parseFloat(document.getElementById('prodWeight').value) || 0.5
+        isActive: document.getElementById('prodActive').checked
     };
 
     const saveBtn = document.getElementById('saveBtn');
