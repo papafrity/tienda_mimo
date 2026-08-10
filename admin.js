@@ -1140,7 +1140,7 @@ function buildProductPrompt() {
 REGLAS FUNDAMENTALES:
 1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
 2. Incluí TODAS las características relevantes del producto (cuántas más tenga, más larga será la descripción). No limites la cantidad: un producto con muchos specs debe describirlos casi todos.
-3. Separá cada característica con un doble salto de línea para que se lea fácil.
+3. Separá cada característica con un solo salto de línea (no dejes líneas en blanco entre bullets).
 4. No uses emojis ni formato Markdown (no asteriscos ** ni símbolos raros). Todo texto plano.
 5. Terminá cada bullet en punto. No dejes espacios "..." ni textos entre corchetes como "[detalle...]".
 

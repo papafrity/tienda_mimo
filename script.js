@@ -675,10 +675,70 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cards.length === 0) return;
 
         const realCount = cards.length;
+        const isMobile = () => innerWidth < 768;
+
+        // ── MODO MOBILE: scroll nativo fluido tipo app ──
+        if (isMobile()) {
+            // Quitar el posicionamiento absoluto/3D que deja el CSS desktop
+            cards.forEach(c => c.style.cssText = 'position:relative;flex:0 0 260px;width:260px;height:440px;opacity:1;pointer-events:auto;transform:none;filter:none');
+
+            // Dots
+            dotsC.innerHTML = '';
+            for (let i = 0; i < realCount; i++) {
+                const d = document.createElement('div');
+                d.classList.add('carousel-dot');
+                if (i === 0) d.classList.add('active');
+                d.addEventListener('click', () => scrollToCard(i));
+                dotsC.appendChild(d);
+            }
+
+            let activeIdx = 0;
+            function scrollToCard(i) {
+                const card = cards[i];
+                if (!card) return;
+                track.scrollTo({ left: card.offsetLeft - (track.clientWidth - card.offsetWidth) / 2, behavior: 'smooth' });
+            }
+
+            function updateDots() {
+                dotsC.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+            }
+
+            function onScroll() {
+                const center = track.scrollLeft + track.clientWidth / 2;
+                let best = 0, bestDist = Infinity;
+                cards.forEach((c, i) => {
+                    const cCenter = c.offsetLeft + c.offsetWidth / 2;
+                    const dist = Math.abs(cCenter - center);
+                    if (dist < bestDist) { bestDist = dist; best = i; }
+                });
+                if (best !== activeIdx) { activeIdx = best; updateDots(); }
+            }
+
+            track.addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true });
+
+            nextBtn.addEventListener('click', () => scrollToCard(Math.min(activeIdx + 1, realCount - 1)));
+            prevBtn.addEventListener('click', () => scrollToCard(Math.max(activeIdx - 1, 0)));
+
+            cards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.add-to-cart')) return;
+                    const btn = card.querySelector('.add-to-cart');
+                    if (btn) window.openProductModal(btn.dataset.productId);
+                });
+            });
+
+            // Auto-play + pausa al tocar
+            let ap = setInterval(() => nextBtn.click(), 5000);
+            track.addEventListener('touchstart', () => clearInterval(ap), { passive: true });
+            track.addEventListener('touchend', () => { if (!ap) ap = setInterval(() => nextBtn.click(), 5000); }, { passive: true });
+
+            onScroll();
+            return;
+        }
+
+        const X_STEP = isMobile() ? 260 : 320;
         let ci = 0;
         let animating = false;
-        const isMobile = () => innerWidth < 768;
-        const X_STEP = isMobile() ? 260 : 320;
 
         // ── Spotlight element ──
         let spotlight = wrapper.querySelector('.carousel-spotlight');
@@ -2313,11 +2373,12 @@ document.head.appendChild(st);
     const updatePedestalScale = () => {
         if (isMobile()) {
             pedestal.scale.set(0.65, 0.65, 0.65);
+            if (phoneGroup) phoneGroup.userData.baseY = 1.4;
         } else {
             pedestal.scale.set(1, 1, 1);
+            if (phoneGroup) phoneGroup.userData.baseY = 0.4;
         }
     };
-    updatePedestalScale();
     window.addEventListener('resize', updatePedestalScale);
 
     // ── GLB model slots (drop real models in /models/) ──
@@ -2398,11 +2459,12 @@ document.head.appendChild(st);
         g.visible = false; return g;
     }
 
-    const FLOAT_Y = { tv: -0.3, speaker: 0.4, phone: 0.4 };
+    const FLOAT_Y = { tv: -0.3, speaker: 0.4, phone: isMobile() ? 1.4 : 0.4 };
     const tvGroup = createTV(); tvGroup.userData.baseY = FLOAT_Y.tv; scene.add(tvGroup);
     const speakerGroup = createSpeaker(); speakerGroup.userData.baseY = FLOAT_Y.speaker; scene.add(speakerGroup);
     const phoneGroup = createPhone(); phoneGroup.userData.baseY = FLOAT_Y.phone; scene.add(phoneGroup);
     applyModel('tv', tvGroup); applyModel('speaker', speakerGroup); applyModel('phone', phoneGroup);
+    updatePedestalScale();
 
     // ── Background Digital Particle Field (Polvo Cyber) ──
     const particleCount = 250;
@@ -2622,6 +2684,28 @@ document.head.appendChild(st);
     gsap.from('.hero-content', {
         y: 40, opacity: 0, duration: 1, delay: 0.5, ease: 'power3.out'
     });
+
+    // Hero title: scroll-linked parallax + glow (continuous)
+    const heroTitle = document.getElementById('heroTitle');
+    const heroSection = document.getElementById('home');
+    if (heroTitle && heroSection) {
+        // Glow pulsante permanente (vida en el título)
+        gsap.to(heroTitle, {
+            filter: 'drop-shadow(0 0 18px rgba(0,240,255,.45)) drop-shadow(0 0 40px rgba(138,43,226,.25))',
+            duration: 1.6, yoyo: true, repeat: -1, ease: 'sine.inOut'
+        });
+        // Reacción al scroll: sube más lento (parallax) y se atenúa al salir del hero
+        gsap.to(heroTitle, {
+            scrollTrigger: {
+                trigger: heroSection,
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1
+            },
+            y: 60, opacity: 0.4,
+            ease: 'none'
+        });
+    }
 
     // Init after products render
     if (typeof renderPage === 'function') {

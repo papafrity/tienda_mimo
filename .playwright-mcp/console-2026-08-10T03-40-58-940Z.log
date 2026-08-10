@@ -1,0 +1,7 @@
+[     650ms] [WARNING] THREE.MeshPhysicalMaterial: 'thickness' is not a property of this material. @ https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js:5
+[     650ms] [WARNING] THREE.MeshPhysicalMaterial: 'thickness' is not a property of this material. @ https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js:5
+[    1134ms] ReferenceError: Cannot access 'phoneGroup' before initialization
+    at updatePedestalScale (http://localhost:8765/script.js:2379:13)
+    at http://localhost:8765/script.js:2382:5
+    at http://localhost:8765/script.js:2636:3
+[    1174ms] [LOG] Carrito cargado desde localStorage: null @ http://localhost:8765/script.js:434

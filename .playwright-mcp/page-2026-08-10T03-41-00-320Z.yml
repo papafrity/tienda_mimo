@@ -1,0 +1,341 @@
+- generic [active] [ref=f2e1]:
+  - generic [ref=f2e3]:
+    - generic [ref=f2e4]: M
+    - generic [ref=f2e5]: i
+    - generic [ref=f2e6]: m
+    - generic [ref=f2e7]: o
+    - generic [ref=f2e8]: "!"
+  - navigation [ref=f2e11]:
+    - generic [ref=f2e12]: Mimo!
+    - list [ref=f2e13]:
+      - listitem:
+        - link "Ofertas Ver Deal →":
+          - /url: "#carousel"
+          - generic [ref=f2e14]: Ofertas
+          - generic [ref=f2e15]: Ver Deal →
+      - listitem:
+        - link "Productos Catálogo →":
+          - /url: "#products"
+          - generic [ref=f2e16]: Productos
+          - generic [ref=f2e17]: Catálogo →
+      - listitem:
+        - link "Contacto Escribinos →":
+          - /url: "#contact"
+          - generic [ref=f2e18]: Contacto
+          - generic [ref=f2e19]: Escribinos →
+    - button "Buscar" [ref=f2e21] [cursor=pointer]
+    - button "Carrito" [ref=f2e24] [cursor=pointer]:
+      - generic [ref=f2e27]: "0"
+  - generic [ref=f2e29]:
+    - banner [ref=f2e30]:
+      - generic [ref=f2e31]:
+        - generic [ref=f2e32]: ⚡ La tienda del futuro
+        - heading "T u u n i v e r s o t e c h e n u n c l i c k" [level=1] [ref=f2e34]:
+          - generic [ref=f2e35]: T
+          - generic [ref=f2e36]: u
+          - generic [ref=f2e38]: u
+          - generic [ref=f2e39]: "n"
+          - generic [ref=f2e40]: i
+          - generic [ref=f2e41]: v
+          - generic [ref=f2e42]: e
+          - generic [ref=f2e43]: r
+          - generic [ref=f2e44]: s
+          - generic [ref=f2e45]: o
+          - generic [ref=f2e47]: t
+          - generic [ref=f2e48]: e
+          - generic [ref=f2e49]: c
+          - generic [ref=f2e50]: h
+          - generic [ref=f2e52]: e
+          - generic [ref=f2e53]: "n"
+          - generic [ref=f2e55]: u
+          - generic [ref=f2e56]: "n"
+          - generic [ref=f2e58]: c
+          - generic [ref=f2e59]: l
+          - generic [ref=f2e60]: i
+          - generic [ref=f2e61]: c
+          - generic [ref=f2e62]: k
+        - paragraph [ref=f2e63]:
+          - text: Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con
+          - strong [ref=f2e64]: Mimo!
+        - textbox "Buscar productos, categorías..." [ref=f2e68]
+        - link "🔥 Ver Ofertas" [ref=f2e70]:
+          - /url: "#carousel"
+      - generic [ref=f2e74]: Scroll
+    - generic [ref=f2e78]:
+      - generic:
+        - generic:
+          - generic: "01"
+          - heading "TELEVISORES" [level=2]
+          - paragraph: Experiencias de cine y definición ultra premium en tu hogar
+        - generic:
+          - generic: "02"
+          - heading "PARLANTES" [level=2]
+          - paragraph: Sonido envolvente con diseño premium
+        - generic:
+          - generic: "03"
+          - heading "CELULARES" [level=2]
+          - paragraph: La tecnología que llevás en tu bolsillo
+    - generic [ref=f2e81]:
+      - generic [ref=f2e82]: AURICULARES
+      - generic [ref=f2e83]: ✦
+      - generic [ref=f2e84]: PARLANTES
+      - generic [ref=f2e85]: ✦
+      - generic [ref=f2e86]: TV BOX
+      - generic [ref=f2e87]: ✦
+      - generic [ref=f2e88]: TELEVISORES
+      - generic [ref=f2e89]: ✦
+      - generic [ref=f2e90]: COCINAS
+      - generic [ref=f2e91]: ✦
+      - generic [ref=f2e92]: HELADERAS
+      - generic [ref=f2e93]: ✦
+      - generic [ref=f2e94]: AURICULARES
+      - generic [ref=f2e95]: ✦
+      - generic [ref=f2e96]: PARLANTES
+      - generic [ref=f2e97]: ✦
+      - generic [ref=f2e98]: TV BOX
+      - generic [ref=f2e99]: ✦
+      - generic [ref=f2e100]: TELEVISORES
+      - generic [ref=f2e101]: ✦
+      - generic [ref=f2e102]: COCINAS
+      - generic [ref=f2e103]: ✦
+      - generic [ref=f2e104]: HELADERAS
+      - generic [ref=f2e105]: ✦
+    - generic [ref=f2e107]:
+      - generic [ref=f2e108]: "🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)"
+      - generic [ref=f2e109]: ✦
+      - generic [ref=f2e110]: "🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)"
+      - generic [ref=f2e111]: ✦
+      - generic [ref=f2e112]: "🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)"
+      - generic [ref=f2e113]: ✦
+      - generic [ref=f2e114]: "🚚 ENVÍOS A TODO EL PAÍS: DESDE GRATIS (CABA) HASTA $25.000 (INTERIOR)"
+      - generic [ref=f2e115]: ✦
+    - generic [ref=f2e116]:
+      - generic [ref=f2e117]: TECNOLOGÍA
+      - generic [ref=f2e118]: PREMIUM
+    - generic [ref=f2e119]:
+      - generic [ref=f2e120]:
+        - generic [ref=f2e121]: //
+        - generic [ref=f2e122]: OFERTAS
+        - generic [ref=f2e123]: "001"
+      - generic [ref=f2e124]: Ofertas destacadas
+      - heading "🔥 Ofertas & Más Vendidos" [level=2] [ref=f2e125]
+      - generic [ref=f2e126]:
+        - button "Anterior" [ref=f2e127] [cursor=pointer]: ❮
+        - button "Siguiente" [ref=f2e129] [cursor=pointer]: ❯
+    - generic [ref=f2e130]:
+      - generic [ref=f2e131]:
+        - generic [ref=f2e132]: //
+        - generic [ref=f2e133]: NÚMEROS
+        - generic [ref=f2e134]: "003"
+      - generic [ref=f2e135]:
+        - text: 0+
+        - paragraph [ref=f2e136]: Productos Vendidos
+      - generic [ref=f2e137]: "|"
+      - generic [ref=f2e138]:
+        - text: 0%
+        - paragraph [ref=f2e139]: Clientes Satisfechos
+      - generic [ref=f2e140]: "|"
+      - generic [ref=f2e141]:
+        - text: 0+
+        - paragraph [ref=f2e142]: Marcas Asociadas
+    - generic [ref=f2e143]:
+      - generic [ref=f2e144]:
+        - generic [ref=f2e145]: //
+        - generic [ref=f2e146]: CATÁLOGO
+        - generic [ref=f2e147]: "002"
+      - generic [ref=f2e148]: Catálogo completo
+      - heading "Todos los Productos" [level=2] [ref=f2e149]
+      - generic [ref=f2e150]:
+        - generic [ref=f2e151]:
+          - button "Todos" [ref=f2e152]
+          - button "Televisores" [ref=f2e153]
+          - button "Celulares" [ref=f2e154]
+          - button "TV Box" [ref=f2e155]
+          - button "Proyectores" [ref=f2e156]
+          - button "Parlantes" [ref=f2e157]
+          - button "Auriculares" [ref=f2e158]
+          - button "Gaming" [ref=f2e159]
+          - button "PC" [ref=f2e160]
+          - button "Cocinas" [ref=f2e161]
+          - button "Calefacción" [ref=f2e162]
+          - button "Climatización" [ref=f2e163]
+          - button "Ventilación" [ref=f2e164]
+          - button "Herramientas" [ref=f2e165]
+          - button "Belleza" [ref=f2e166]
+          - button "Bicicletas" [ref=f2e167]
+          - button "Movilidad" [ref=f2e168]
+          - button "Hogar" [ref=f2e169]
+          - button "Baño" [ref=f2e170]
+          - button "Decoración" [ref=f2e171]
+          - button "Iluminación" [ref=f2e172]
+          - button "Exteriores" [ref=f2e173]
+          - button "Limpieza" [ref=f2e174]
+          - button "Gadgets" [ref=f2e175]
+          - button "Cargadores" [ref=f2e176]
+          - button "Relojes" [ref=f2e177]
+        - generic [ref=f2e178]:
+          - generic [ref=f2e179]:
+            - spinbutton "Min $" [ref=f2e180]
+            - generic [ref=f2e181]: —
+            - spinbutton "Max $" [ref=f2e182]
+          - combobox [ref=f2e183] [cursor=pointer]:
+            - option "Por defecto" [selected]
+            - option "Menor precio"
+            - option "Mayor precio"
+            - option "A-Z"
+            - option "Z-A"
+            - option "Mejor calificados"
+      - button "Cargar más productos" [ref=f2e258]
+    - contentinfo [ref=f2e262]:
+      - generic [ref=f2e263]:
+        - generic [ref=f2e264]:
+          - generic [ref=f2e265]:
+            - generic [ref=f2e266]: //
+            - generic [ref=f2e267]: CONTACTO
+            - generic [ref=f2e268]: "004"
+          - generic [ref=f2e269]: Contacto
+          - heading "Mimo!" [level=2] [ref=f2e270]
+          - paragraph [ref=f2e271]: Tu destino para la tecnología de mañana, hoy.
+        - generic [ref=f2e272]:
+          - heading "Contacto" [level=4] [ref=f2e273]
+          - link "mimo.la.tienda@gmail.com" [ref=f2e274]:
+            - /url: mailto:mimo.la.tienda@gmail.com
+          - link "+54 2634 478522" [ref=f2e275]:
+            - /url: https://wa.me/542634478522
+        - generic [ref=f2e276]:
+          - heading "Medios de pago" [level=4] [ref=f2e277]
+          - generic [ref=f2e278]:
+            - img [ref=f2e279]:
+              - generic [ref=f2e282]: VISA
+            - img [ref=f2e288]:
+              - generic [ref=f2e291]: AMEX
+            - img [ref=f2e292]:
+              - generic [ref=f2e295]: CABAL
+            - img [ref=f2e296]:
+              - generic [ref=f2e299]: NARANJA
+            - img [ref=f2e300]:
+              - generic [ref=f2e303]: DÉBITO
+            - img [ref=f2e304]:
+              - generic [ref=f2e307]: MP
+      - generic [ref=f2e308]:
+        - paragraph [ref=f2e309]: © 2026 Mimo! Tienda de Tecnología. Todos los derechos reservados.
+        - paragraph [ref=f2e310]:
+          - text: 🛡️
+          - strong [ref=f2e311]: "Botón de arrepentimiento:"
+          - text: Tenés 10 días desde que recibís el producto para devolverlo. Contactanos por
+          - link "WhatsApp" [ref=f2e312] [cursor=pointer]:
+            - /url: https://wa.me/542634478522
+          - text: o email a
+          - link "mimo.la.tienda@gmail.com" [ref=f2e313] [cursor=pointer]:
+            - /url: mailto:mimo.la.tienda@gmail.com
+          - text: y te guiamos en el proceso. El producto debe estar sin uso y en su empaque original. El costo de envío de la devolución está a cargo del comprador, salvo que el producto tenga falla de fábrica.
+  - generic [ref=f2e314]:
+    - generic [ref=f2e315]:
+      - heading "Tu Carrito" [level=2] [ref=f2e316]
+      - button "×" [ref=f2e317] [cursor=pointer]
+    - generic [ref=f2e318]: Tu carrito está vacío
+    - generic [ref=f2e320]:
+      - generic [ref=f2e321]:
+        - generic [ref=f2e322]: "Total:"
+        - generic [ref=f2e323]: $0
+      - button "Ir a Pagar" [ref=f2e324] [cursor=pointer]
+  - generic:
+    - button "Producto anterior": ‹
+    - button "Producto siguiente": ›
+    - generic:
+      - button "×"
+      - generic:
+        - generic:
+          - generic:
+            - img "Producto"
+        - generic:
+          - heading [level=2]
+          - paragraph
+          - generic:
+            - paragraph
+          - button "Agregar al Carrito"
+      - generic:
+        - generic:
+          - heading "⭐ Opiniones de clientes" [level=3]
+          - button "Dejar mi reseña"
+  - link "Escribinos por WhatsApp" [ref=f2e325] [cursor=pointer]:
+    - /url: https://wa.me/542634478522
+  - generic:
+    - generic:
+      - button "×"
+      - generic:
+        - heading "Detalles de Envío y Facturación" [level=2]
+        - paragraph: Completá tus datos para procesar el pedido con Mercado Pago y coordinar con el proveedor.
+        - generic:
+          - generic:
+            - generic:
+              - generic: Nombre Completo *
+              - textbox "Nombre Completo *":
+                - /placeholder: Juan Pérez
+            - generic:
+              - generic: DNI / CUIL *
+              - textbox "DNI / CUIL *":
+                - /placeholder: "12345678"
+          - generic:
+            - generic:
+              - generic: Teléfono de Contacto *
+              - textbox "Teléfono de Contacto *":
+                - /placeholder: 11 2345 6789
+            - generic:
+              - generic: Correo Electrónico *
+              - textbox "Correo Electrónico *":
+                - /placeholder: juan@email.com
+          - generic:
+            - generic:
+              - generic: Provincia *
+              - combobox "Provincia *":
+                - option "Selecciona tu provincia" [disabled] [selected]
+                - option "Buenos Aires"
+                - option "Capital Federal (CABA)"
+                - option "Catamarca"
+                - option "Chaco"
+                - option "Chubut"
+                - option "Córdoba"
+                - option "Corrientes"
+                - option "Entre Ríos"
+                - option "Formosa"
+                - option "Jujuy"
+                - option "La Pampa"
+                - option "La Rioja"
+                - option "Mendoza"
+                - option "Misiones"
+                - option "Neuquén"
+                - option "Río Negro"
+                - option "Salta"
+                - option "San Juan"
+                - option "San Luis"
+                - option "Santa Cruz"
+                - option "Santa Fe"
+                - option "Santiago del Estero"
+                - option "Tierra del Fuego"
+                - option "Tucumán"
+            - generic:
+              - generic: Localidad *
+              - textbox "Localidad *":
+                - /placeholder: Mar del Plata
+          - generic:
+            - paragraph: ⚠️ Información importante sobre envíos
+            - paragraph:
+              - text: Para envíos a todo el país mediante
+              - strong: Vía Cargo
+              - text: ", existe un recargo adicional que deberá ser abonado por el cliente en la sucursal correspondiente al momento de retirar el producto."
+          - generic:
+            - generic:
+              - generic: Dirección Completa (Calle, Número, Piso/Depto) *
+              - textbox "Dirección Completa (Calle, Número, Piso/Depto) *":
+                - /placeholder: Av. Colón 1234, 4° B
+            - generic:
+              - generic: Código Postal *
+              - textbox "Código Postal *":
+                - /placeholder: "7600"
+          - generic:
+            - generic: ⚠️
+            - generic:
+              - strong: "Importante:"
+              - text: Los envíos al interior del país se realizan a través de empresas de cargo. El cliente deberá abonar el flete correspondiente al momento de retirar el producto en la sucursal de la empresa elegida.
+          - button "Confirmar y Continuar al Pago"

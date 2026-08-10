@@ -424,6 +424,11 @@ body{cursor:auto}
   .offer-price{font-size:1.2rem}
   .carousel-card img{height:auto;max-height:180px}
  .carousel-btn.prev{left:1%}.carousel-btn.next{right:1%}
+  /* Carrusel nativo mobile: scroll fluido tipo app */
+  .carousel-3d{width:auto;min-width:0;height:auto;min-height:440px;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;gap:1.2rem;padding:1rem 38vw;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .carousel-3d::-webkit-scrollbar{display:none}
+  .carousel-3d .carousel-card{position:relative;flex:0 0 260px;width:260px;height:440px;opacity:1 !important;pointer-events:auto !important;transform:none !important;filter:none !important;scroll-snap-align:center;animation:none}
+  .carousel-3d .carousel-card.active{animation:none}
 #enviosMarquee{font-size:.75rem;letter-spacing:2px}
 .filter-tabs{gap:.5rem}
 .filter-tab{padding:.5rem 1rem;font-size:.85rem}
