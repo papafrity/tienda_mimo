@@ -2377,13 +2377,31 @@ document.head.appendChild(st);
     contactShadow.rotation.x = -Math.PI / 2; contactShadow.position.y = -1.89; pedestal.add(contactShadow);
     scene.add(pedestal);
 
+    // Alinea los 3 modelos por su borde inferior: todos descansan sobre la misma altura (PISO)
+    // así quedan a la misma altura respecto a la base, con margen para la flotación (±0.1).
+    // OJO: los objetos se escalan de nuevo con getTargetScale en mobile (TV 0.65, speaker 0.8, phone 0.85),
+    // así que el borde real = baseY - halfH*S; por eso multiplicamos halfH por la escala final.
+    const PISO_MOBILE = -0.5; // borde inferior común de las figuras sobre la plataforma mobile
+    const MOBILE_SCALE = { tv: 0.65, speaker: 0.8, phone: 0.85 };
+    const alignObjectHeights = () => {
+        const groups = [tvGroup, speakerGroup, phoneGroup];
+        groups.forEach(g => {
+            if (!g) return;
+            const hh = g.userData.halfH || 1.5;
+            const s = MOBILE_SCALE[g.userData.slot] || 1;
+            g.userData.baseY = PISO_MOBILE + hh * s;
+        });
+    };
+
     const updatePedestalScale = () => {
         if (isMobile()) {
             pedestal.scale.set(0.65, 0.65, 0.65);
-            if (phoneGroup) phoneGroup.userData.baseY = 1.4;
+            alignObjectHeights();
         } else {
             pedestal.scale.set(1, 1, 1);
-            if (phoneGroup) phoneGroup.userData.baseY = 0.4;
+            if (tvGroup) tvGroup.userData.baseY = FLOAT_Y.tv;
+            if (speakerGroup) speakerGroup.userData.baseY = FLOAT_Y.speaker;
+            if (phoneGroup) phoneGroup.userData.baseY = FLOAT_Y.phone;
         }
     };
     window.addEventListener('resize', updatePedestalScale);
@@ -2417,6 +2435,10 @@ document.head.appendChild(st);
             const horizR = Math.max(size.x, size.z) * s / 2;
             const sFinal = horizR > SAFE_R ? s * (SAFE_R / horizR) : s;
             inner.scale.setScalar(sFinal);
+            // Guardar la media altura real del modelo escalado para anclar el borde inferior en mobile
+            group.userData.halfH = (size.y * sFinal) / 2;
+            // Re-anclar la altura si seguimos en mobile (la altura real difiere del fallback)
+            if (typeof updatePedestalScale === 'function' && isMobile()) updatePedestalScale();
             const rot = MODEL_ROT[slot] || { x: 0, y: 0, z: 0 };
             model.rotation.set(rot.x, rot.y, rot.z);
             model.traverse(o => { if (o.isMesh && o.material) { o.material.envMapIntensity = 1.3; } });
@@ -2467,9 +2489,9 @@ document.head.appendChild(st);
     }
 
     const FLOAT_Y = { tv: -0.3, speaker: 0.4, phone: isMobile() ? 1.4 : 0.4 };
-    const tvGroup = createTV(); tvGroup.userData.baseY = FLOAT_Y.tv; scene.add(tvGroup);
-    const speakerGroup = createSpeaker(); speakerGroup.userData.baseY = FLOAT_Y.speaker; scene.add(speakerGroup);
-    const phoneGroup = createPhone(); phoneGroup.userData.baseY = FLOAT_Y.phone; scene.add(phoneGroup);
+    const tvGroup = createTV(); tvGroup.userData.slot = 'tv'; tvGroup.userData.halfH = 1.6; tvGroup.userData.baseY = FLOAT_Y.tv; scene.add(tvGroup);
+    const speakerGroup = createSpeaker(); speakerGroup.userData.slot = 'speaker'; speakerGroup.userData.halfH = 1.55; speakerGroup.userData.baseY = FLOAT_Y.speaker; scene.add(speakerGroup);
+    const phoneGroup = createPhone(); phoneGroup.userData.slot = 'phone'; phoneGroup.userData.halfH = 1.95; phoneGroup.userData.baseY = FLOAT_Y.phone; scene.add(phoneGroup);
     applyModel('tv', tvGroup); applyModel('speaker', speakerGroup); applyModel('phone', phoneGroup);
     updatePedestalScale();
 
