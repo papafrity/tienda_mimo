@@ -1,0 +1,3 @@
+[    2639ms] [WARNING] THREE.MeshPhysicalMaterial: 'thickness' is not a property of this material. @ https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js:5
+[    2640ms] [WARNING] THREE.MeshPhysicalMaterial: 'thickness' is not a property of this material. @ https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js:5
+[    3822ms] [LOG] Carrito cargado desde localStorage: null @ http://localhost:8765/script.js:434

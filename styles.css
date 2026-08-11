@@ -20,7 +20,6 @@
     --font-mono: 'IBM Plex Mono', monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif}
-html{scroll-behavior:smooth}
 body{background:var(--bg-color);color:var(--text-primary);overflow-x:hidden;cursor:none}
 
 /* Hex Grid Pattern handled by canvas now */
@@ -414,8 +413,12 @@ body{cursor:auto}
 .hamburger{display:none}
 .nav-links{display:none}
 .split-title{font-size:2.8rem;word-wrap:break-word}
-.hero{padding:0 6%}
+.hero{padding:0 6%;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:5.5rem;text-align:center}
 .hero-deco{display:none}
+.hero-content{max-width:100%;align-items:center;display:flex;flex-direction:column;padding-bottom:3rem}
+.hero-visual{top:auto;bottom:0;height:42%}
+.orb1{top:auto;bottom:-180px;right:-15%;width:420px;height:420px;opacity:.8}
+.orb2{top:auto;bottom:-140px;right:22%;width:300px;height:300px;opacity:.7}
 .modal-body{grid-template-columns:1fr}
 .product-grid{grid-template-columns:1fr;max-width:100%;padding:0 1rem;gap:1.5rem}
 .carousel-3d{width:260px;height:440px}

@@ -1820,13 +1820,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!target) return;
             e.preventDefault();
             const isInstant = this.hasAttribute('data-instant');
-            const offset = window.innerWidth < 768 ? 80 : 70;
+            const isMobile = window.innerWidth < 768;
+            const offset = isMobile ? 80 : 70;
             const top = target.getBoundingClientRect().top + window.scrollY - offset;
-            if (smoother) {
+            if (smoother && !isMobile) {
                 smoother.scrollTo(top, !isInstant);
+            } else if (isInstant) {
+                document.documentElement.style.scrollBehavior = 'auto';
+                window.scrollTo(0, top);
+                requestAnimationFrame(() => document.documentElement.style.scrollBehavior = '');
             } else {
-                if (isInstant) window.scrollTo(0, top);
-                else window.scrollTo({ top, behavior: 'smooth' });
+                document.documentElement.style.scrollBehavior = 'smooth';
+                window.scrollTo(0, top);
+                setTimeout(() => document.documentElement.style.scrollBehavior = '', 900);
             }
         });
     });
@@ -2000,12 +2006,13 @@ document.head.appendChild(st);
         });
         backToTop.addEventListener('click', () => {
             if (smoother) {
-                smoother.scrollTo(0, { duration: 0, ease: 'none' });
+                smoother.scrollTo(0, false);
             } else {
-                window.scrollTo({ top: 0, behavior: 'instant' });
+                document.documentElement.style.scrollBehavior = 'auto';
+                window.scrollTo(0, 0);
+                requestAnimationFrame(() => document.documentElement.style.scrollBehavior = '');
             }
-        });
-    }
+        });    }
 })();
 
 // ─── INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
