@@ -912,11 +912,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Cinematic timing: smooth cascade with premium easings
                 let dur, ease, delay;
                 if (isLeaving) {
-                    // Card leaving center: quick elegant exit
-                    dur = 0.5; ease = 'expo.in'; delay = 0;
+                    // Card leaving center: clears out first so the incoming never overlaps
+                    dur = 0.5; ease = 'expo.out'; delay = 0;
                 } else if (isEntering) {
-                    // Card entering center: dramatic, satisfying arrival
-                    dur = 0.95; ease = 'expo.out'; delay = 0.18;
+                    // Card entering center: waits for the center to clear, then arrives
+                    dur = 0.9; ease = 'expo.out'; delay = 0.45;
                     card.style.zIndex = 11; // above center during transition
                 } else {
                     // Side cards: fluid repositioning
@@ -942,16 +942,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const price = card.querySelector('.offer-price') || card.querySelector('.old-price');
                     const btn = card.querySelector('.add-to-cart');
                     const baseEase = 'expo.out';
-                    if (info) tl.fromTo(info, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: baseEase }, 0.35);
-                    if (badge) tl.fromTo(badge, { scale: 0.6, opacity: 0, y: 10 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(2.2)' }, 0.4);
-                    if (title) tl.fromTo(title, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.46);
-                    if (price) tl.fromTo(price, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.53);
-                    if (btn) tl.fromTo(btn, { y: 14, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, 0.6);
+                    if (info) tl.fromTo(info, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: baseEase }, 0.55);
+                    if (badge) tl.fromTo(badge, { scale: 0.6, opacity: 0, y: 10 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(2.2)' }, 0.6);
+                    if (title) tl.fromTo(title, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.66);
+                    if (price) tl.fromTo(price, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.73);
+                    if (btn) tl.fromTo(btn, { y: 14, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, 0.8);
                 }
             });
 
-            // Spotlight move — smooth follow
-            tl.to(spotlight, { left: '50%', duration: 0.9, ease: 'expo.out' }, 0);
+            // Spotlight move — smooth follow (waits for the incoming card)
+            tl.to(spotlight, { left: '50%', duration: 0.9, ease: 'expo.out' }, 0.45);
 
             // Particles
             spawnParticles(cards[ci]);
