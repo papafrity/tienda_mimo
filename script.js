@@ -2361,49 +2361,7 @@ document.head.appendChild(st);
     fabricTex.wrapS = fabricTex.wrapT = THREE.RepeatWrapping; fabricTex.repeat.set(4, 6); fabricTex.encoding = THREE.sRGBEncoding;
     cabinetMat.map = fabricTex; cabinetMat.metalness = 0.5; cabinetMat.roughness = 0.55;
 
-    // ── Studio pedestal + contact shadow (shared, static) ──
-    const pedestal = new THREE.Group();
-    const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.18, 64), new THREE.MeshStandardMaterial({ color: 0x0a0c12, metalness: 0.85, roughness: 0.25 }));
-    platform.position.y = -2.0; pedestal.add(platform);
-    const pedRim = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.025, 8, 80), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
-    pedRim.rotation.x = Math.PI / 2; pedRim.position.y = -1.91; pedestal.add(pedRim);
-    const shCanvas = document.createElement('canvas'); shCanvas.width = shCanvas.height = 256;
-    const sx = shCanvas.getContext('2d');
-    const sg = sx.createRadialGradient(128, 128, 10, 128, 128, 128);
-    sg.addColorStop(0, 'rgba(0,0,0,0.55)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
-    sx.fillStyle = sg; sx.fillRect(0, 0, 256, 256);
-    const contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shCanvas), transparent: true, depthWrite: false, opacity: 0.85 }));
-    contactShadow.rotation.x = -Math.PI / 2; contactShadow.position.y = -1.89; pedestal.add(contactShadow);
-    scene.add(pedestal);
-
-    // Alinea los 3 modelos por su borde inferior: todos descansan sobre la misma altura (PISO)
-    // así quedan a la misma altura respecto a la base, con margen para la flotación (±0.1).
-    // OJO: los objetos se escalan de nuevo con getTargetScale en mobile (TV 0.65, speaker 0.8, phone 0.85),
-    // así que el borde real = baseY - halfH*S; por eso multiplicamos halfH por la escala final.
-    const PISO_MOBILE = -0.5; // borde inferior común de las figuras sobre la plataforma mobile
-    const MOBILE_SCALE = { tv: 0.65, speaker: 0.8, phone: 0.85 };
-    const alignObjectHeights = () => {
-        const groups = [tvGroup, speakerGroup, phoneGroup];
-        groups.forEach(g => {
-            if (!g) return;
-            const hh = g.userData.halfH || 1.5;
-            const s = MOBILE_SCALE[g.userData.slot] || 1;
-            g.userData.baseY = PISO_MOBILE + hh * s;
-        });
-    };
-
-    const updatePedestalScale = () => {
-        if (isMobile()) {
-            pedestal.scale.set(0.65, 0.65, 0.65);
-            alignObjectHeights();
-        } else {
-            pedestal.scale.set(1, 1, 1);
-            if (tvGroup) tvGroup.userData.baseY = FLOAT_Y.tv;
-            if (speakerGroup) speakerGroup.userData.baseY = FLOAT_Y.speaker;
-            if (phoneGroup) phoneGroup.userData.baseY = FLOAT_Y.phone;
-        }
-    };
-    window.addEventListener('resize', updatePedestalScale);
+    // (Pedestal removido: las figuras flotan libres; la cámara apunta al centro real del objeto activo)
 
     // ── GLB model slots (drop real models in /models/) ──
     const MODEL_URLS = { tv: 'models/tv.glb', speaker: 'models/speaker.glb', phone: 'models/phone.glb' };
@@ -2434,10 +2392,8 @@ document.head.appendChild(st);
             const horizR = Math.max(size.x, size.z) * s / 2;
             const sFinal = horizR > SAFE_R ? s * (SAFE_R / horizR) : s;
             inner.scale.setScalar(sFinal);
-            // Guardar la media altura real del modelo escalado para anclar el borde inferior en mobile
+            // Guardar la media altura real del modelo escalado para centrar la flotación
             group.userData.halfH = (size.y * sFinal) / 2;
-            // Re-anclar la altura si seguimos en mobile (la altura real difiere del fallback)
-            if (typeof updatePedestalScale === 'function' && isMobile()) updatePedestalScale();
             const rot = MODEL_ROT[slot] || { x: 0, y: 0, z: 0 };
             model.rotation.set(rot.x, rot.y, rot.z);
             model.traverse(o => { if (o.isMesh && o.material) { o.material.envMapIntensity = 1.3; } });
@@ -2487,12 +2443,10 @@ document.head.appendChild(st);
         g.visible = false; return g;
     }
 
-    const FLOAT_Y = { tv: -0.3, speaker: 0.4, phone: isMobile() ? 1.4 : 0.4 };
-    const tvGroup = createTV(); tvGroup.userData.slot = 'tv'; tvGroup.userData.halfH = 1.6; tvGroup.userData.baseY = FLOAT_Y.tv; scene.add(tvGroup);
-    const speakerGroup = createSpeaker(); speakerGroup.userData.slot = 'speaker'; speakerGroup.userData.halfH = 1.55; speakerGroup.userData.baseY = FLOAT_Y.speaker; scene.add(speakerGroup);
-    const phoneGroup = createPhone(); phoneGroup.userData.slot = 'phone'; phoneGroup.userData.halfH = 1.95; phoneGroup.userData.baseY = FLOAT_Y.phone; scene.add(phoneGroup);
+    const tvGroup = createTV(); tvGroup.userData.slot = 'tv'; tvGroup.userData.halfH = 1.6; tvGroup.userData.baseY = 0; scene.add(tvGroup);
+    const speakerGroup = createSpeaker(); speakerGroup.userData.slot = 'speaker'; speakerGroup.userData.halfH = 1.55; speakerGroup.userData.baseY = 0; scene.add(speakerGroup);
+    const phoneGroup = createPhone(); phoneGroup.userData.slot = 'phone'; phoneGroup.userData.halfH = 1.95; phoneGroup.userData.baseY = 0; scene.add(phoneGroup);
     applyModel('tv', tvGroup); applyModel('speaker', speakerGroup); applyModel('phone', phoneGroup);
-    updatePedestalScale();
 
     // ── Background Digital Particle Field (Polvo Cyber) ──
     const particleCount = 250;
