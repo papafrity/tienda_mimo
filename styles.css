@@ -147,7 +147,7 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .showcase-label p{font-size:1rem;color:var(--text-secondary);line-height:1.6}
 @media(max-width:768px){
 .showcase-pin{position:sticky;top:0}
-.showcase-labels{padding:0 5%;justify-content:center}
+.showcase-labels{padding:0 5%;justify-content:center;align-items:flex-start;top:12%}
 .showcase-label{left:5%;right:5%;max-width:100%;text-align:center}
 .showcase-label h2{font-size:2rem}
 }

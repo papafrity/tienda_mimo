@@ -2202,7 +2202,6 @@ document.head.appendChild(st);
         camera.aspect = w / h;
         camera.updateProjectionMatrix();
         renderer.setSize(w, h);
-        if (composer) composer.setSize(w, h);
     });
 
     // ── Lights ──
@@ -2541,6 +2540,57 @@ document.head.appendChild(st);
         return 1.0;
     };
 
+    // ── Cámara cinematográfica ──
+    // La cámara orbita alrededor del centro real del objeto activo (lo mantiene centrado,
+    // así nunca tapa los labels) con dolly (r), altura (h), ángulo y FOV por segmento.
+    const CAM_SEG = [
+        { t: 0.00, ang: 0.2, r: 7.8, h: 0.0, fov: 50 },   // TV: frontal, amplio
+        { t: 0.38, ang: 2.6, r: 6.2, h: 0.35, fov: 53 },  // Parlante: gira lateral, se acerca
+        { t: 0.72, ang: 4.6, r: 5.4, h: 0.4, fov: 57 },   // Celular: contrapicado leve, close-up
+        { t: 1.00, ang: 6.2, r: 7.4, h: 0.4, fov: 50 }    // Salida: vuelve frontal
+    ];
+    const smoothStep = (t) => t * t * (3 - 2 * t);
+    let camProgress = 0;
+    let camActiveIdx = 0;
+
+    function updateCamera() {
+        const obj = objects[camActiveIdx];
+        if (!obj || !obj.visible || typeof THREE === 'undefined') return;
+        const box = new THREE.Box3().setFromObject(obj);
+        if (box.isEmpty()) return;
+        const c = box.getCenter(new THREE.Vector3());
+
+        let a = CAM_SEG[0], b = CAM_SEG[CAM_SEG.length - 1];
+        for (let i = 0; i < CAM_SEG.length - 1; i++) {
+            if (camProgress >= CAM_SEG[i].t && camProgress <= CAM_SEG[i + 1].t) {
+                a = CAM_SEG[i]; b = CAM_SEG[i + 1]; break;
+            }
+        }
+        const local = smoothStep(Math.max(0, Math.min(1, (camProgress - a.t) / (b.t - a.t))));
+        const ang = a.ang + (b.ang - a.ang) * local;
+        const r = a.r + (b.r - a.r) * local;
+        const h = a.h + (b.h - a.h) * local;
+        const fov = a.fov + (b.fov - a.fov) * local;
+
+        camera.position.set(
+            c.x + Math.sin(ang) * r,
+            c.y + h,
+            c.z + Math.cos(ang) * r
+        );
+        camera.lookAt(c);
+        // En desktop el objeto queda a la derecha (texto a la izquierda); el pan es horizontal
+        // constante en pantalla usando el eje right real de la cámara (consistente en toda la órbita).
+        const PAN_DESKTOP = -1.8;
+        if (!isMobile()) {
+            const camRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+            camera.lookAt(c.clone().addScaledVector(camRight, PAN_DESKTOP));
+        }
+        if (Math.abs(camera.fov - fov) > 0.01) {
+            camera.fov = fov;
+            camera.updateProjectionMatrix();
+        }
+    }
+
     // ── Initial State Setup ──
     let currentIdx = 0;
     let progress = 0;
@@ -2561,6 +2611,7 @@ document.head.appendChild(st);
             anticipatePin: 1,
             onUpdate: (self) => {
                 progress = self.progress;
+                camProgress = progress;
                 
                 // Nuevos rangos de scroll optimizados para darle más espacio al televisor al inicio
                 let idx = 0;
@@ -2570,6 +2621,7 @@ document.head.appendChild(st);
                 if (idx !== currentIdx) {
                     const prevIdx = currentIdx;
                     currentIdx = idx;
+                    camActiveIdx = idx;
 
                     // Desvanecer objeto anterior
                     if (prevIdx >= 0 && prevIdx < 3) {
@@ -2605,12 +2657,10 @@ document.head.appendChild(st);
                     localProgress = (progress - 0.72) / 0.28;
                 }
 
-                // Rotación continua fluida basada en el scroll local
+                // El objeto activo se inclina suavemente; la cámara es quien hace el recorrido
                 objects.forEach((obj, i) => {
                     if (obj.visible) {
-                        obj.rotation.y = localProgress * Math.PI * 2;
-                        // Efecto de inclinación 3D al escrolear
-                        obj.rotation.x = Math.sin(localProgress * Math.PI) * 0.15;
+                        obj.rotation.x = Math.sin(localProgress * Math.PI) * 0.12;
                     }
                 });
 
@@ -2621,7 +2671,7 @@ document.head.appendChild(st);
         });
     }
 
-    // ── Post-processing (Bloom removido a petición del usuario) ──
+    // ── Post-processing (bloom removido a petición del usuario; sin render extra por rendimiento) ──
     composer = null;
 
     // ── Animation Loop ──
@@ -2629,6 +2679,9 @@ document.head.appendChild(st);
     function animate() {
         requestAnimationFrame(animate);
         time++;
+
+        // La cámara sigue la coreografía según el scroll (mantiene al objeto activo centrado)
+        updateCamera();
 
         // Rotación lenta de partículas
         particleSystem.rotation.y = time * 0.0004;
