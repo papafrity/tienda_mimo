@@ -2541,13 +2541,13 @@ document.head.appendChild(st);
     };
 
     // ── Cámara cinematográfica ──
-    // La cámara orbita alrededor del centro real del objeto activo (lo mantiene centrado,
-    // así nunca tapa los labels) con dolly (r), altura (h), ángulo y FOV por segmento.
+    // La cámara se mantiene frontal y estable (la base no "gira" con la órbita);
+    // la rotación completa la hace el objeto. El último tramo es un dolly-zoom épico.
     const CAM_SEG = [
-        { t: 0.00, ang: 0.2, r: 7.8, h: 0.0, fov: 50 },   // TV: frontal, amplio
-        { t: 0.38, ang: 2.6, r: 6.2, h: 0.35, fov: 53 },  // Parlante: gira lateral, se acerca
-        { t: 0.72, ang: 4.6, r: 5.4, h: 0.4, fov: 57 },   // Celular: contrapicado leve, close-up
-        { t: 1.00, ang: 6.2, r: 7.4, h: 0.4, fov: 50 }    // Salida: vuelve frontal
+        { t: 0.00, ang: 0.15, r: 7.8, h: 0.0, fov: 50, lookY: 0 },   // Entrada: TV frontal amplio
+        { t: 0.38, ang: 0.55, r: 6.6, h: 0.3, fov: 50, lookY: 0 },   // Parlante: sutil lateral
+        { t: 0.72, ang: 1.00, r: 6.5, h: 0.4, fov: 46, lookY: 0.2 },  // Celular: ligero ángulo
+        { t: 1.00, ang: 0.80, r: 5.0, h: 1.4, fov: 42, lookY: 0.45 } // Zoom final: mira por encima, objeto abajo = no tapa label
     ];
     const smoothStep = (t) => t * t * (3 - 2 * t);
     let camProgress = 0;
@@ -2571,19 +2571,20 @@ document.head.appendChild(st);
         const r = a.r + (b.r - a.r) * local;
         const h = a.h + (b.h - a.h) * local;
         const fov = a.fov + (b.fov - a.fov) * local;
+        const lookY = a.lookY + (b.lookY - a.lookY) * local;
 
         camera.position.set(
             c.x + Math.sin(ang) * r,
             c.y + h,
             c.z + Math.cos(ang) * r
         );
-        camera.lookAt(c);
+        camera.lookAt(c.clone().setY(c.y + lookY));
         // En desktop el objeto queda a la derecha (texto a la izquierda); el pan es horizontal
         // constante en pantalla usando el eje right real de la cámara (consistente en toda la órbita).
         const PAN_DESKTOP = -1.8;
         if (!isMobile()) {
             const camRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
-            camera.lookAt(c.clone().addScaledVector(camRight, PAN_DESKTOP));
+            camera.lookAt(c.clone().setY(c.y + lookY).addScaledVector(camRight, PAN_DESKTOP));
         }
         if (Math.abs(camera.fov - fov) > 0.01) {
             camera.fov = fov;
@@ -2657,9 +2658,11 @@ document.head.appendChild(st);
                     localProgress = (progress - 0.72) / 0.28;
                 }
 
-                // El objeto activo se inclina suavemente; la cámara es quien hace el recorrido
+                // El objeto activo da una vuelta completa para exhibirse entero; la cámara
+                // se mantiene estable y frontal (la base no rota).
                 objects.forEach((obj, i) => {
                     if (obj.visible) {
+                        obj.rotation.y = localProgress * Math.PI * 2;
                         obj.rotation.x = Math.sin(localProgress * Math.PI) * 0.12;
                     }
                 });
