@@ -283,6 +283,8 @@ function openModal(id = null) {
     form.reset();
     document.getElementById('prodId').value = '';
     document.getElementById('prodCost').value = '0';
+    document.getElementById('prodCurrency').dataset.currency = 'ARS';
+    document.getElementById('prodCurrencyLabel').textContent = 'ARS';
     document.getElementById('prodMargin').value = '30';
     document.getElementById('modalTitle').textContent = 'Agregar Producto';
     
@@ -301,6 +303,8 @@ function openModal(id = null) {
             document.getElementById('prodName').value = p.name;
             document.getElementById('prodCategory').value = p.category;
             document.getElementById('prodCost').value = p.cost || 0;
+            document.getElementById('prodCurrency').dataset.currency = p.costCurrency || 'ARS';
+            document.getElementById('prodCurrencyLabel').textContent = p.costCurrency || 'ARS';
             document.getElementById('prodMargin').value = p.margin || 30;
             document.getElementById('prodPrice').value = p.price;
             document.getElementById('prodOffer').value = p.offerPrice || '';
@@ -348,6 +352,8 @@ function openModal(id = null) {
     document.getElementById('prodImg').dispatchEvent(new Event('input'));
     // Update profit display
     document.getElementById('prodPrice').dispatchEvent(new Event('input'));
+    // Update live cost conversion (USD → ARS)
+    updateCostARSDisplay();
 }
 
 form.addEventListener('submit', async (e) => {
@@ -381,6 +387,7 @@ form.addEventListener('submit', async (e) => {
         category: document.getElementById('prodCategory').value,
         price: (() => { const v = parseFloat(document.getElementById('prodPrice').value) || 0; return v < 100 ? v : Math.ceil(v / 100) * 100; })(),
         cost: parseFloat(document.getElementById('prodCost').value) || 0,
+        costCurrency: document.getElementById('prodCurrency').dataset.currency || 'ARS',
         margin: parseInt(document.getElementById('prodMargin').value) || 0,
         offerPrice: document.getElementById('prodOffer').value ? (() => { const v = parseFloat(document.getElementById('prodOffer').value) || 0; return v < 100 ? v : Math.ceil(v / 100) * 100; })() : null,
         badge: document.getElementById('prodBadge').value,
@@ -414,30 +421,93 @@ form.addEventListener('submit', async (e) => {
     saveBtn.disabled = false;
 });
 
+// ─── CURRENCY CONVERSION ────────────────────────────────
+let usdRateARS = null;
+let usdRateFetchedAt = 0;
+const USD_REFRESH_MS = 10 * 60 * 1000; // recargar la cotización cada 10 min
+
+async function fetchUsdRate() {
+    try {
+        const resp = await fetch('https://dolarapi.com/v1/dolares/blue');
+        const data = await resp.json();
+        if (data && data.venta) {
+            usdRateARS = data.venta;
+            usdRateFetchedAt = Date.now();
+            updateCalculatedPrice();
+        }
+    } catch(e) { /* ignore */ }
+}
+fetchUsdRate();
+setInterval(() => {
+    if (Date.now() - usdRateFetchedAt > USD_REFRESH_MS) fetchUsdRate();
+}, 60 * 1000);
+
+function getCostCurrency() {
+    return document.getElementById('prodCurrency').dataset.currency || 'ARS';
+}
+
+function getCostInARS() {
+    const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+    const currency = getCostCurrency();
+    if (currency === 'USD' && usdRateARS) return cost * usdRateARS;
+    return cost;
+}
+
+function updateCostARSDisplay() {
+    const el = document.getElementById('prodCostARS');
+    if (!el) return;
+    const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+    const currency = getCostCurrency();
+    if (currency === 'USD' && cost > 0) {
+        if (usdRateARS) {
+            const ars = cost * usdRateARS;
+            el.textContent = `= $${fmt(Math.round(ars))} ARS (costo en pesos, Dólar Blue $${fmt(Math.round(usdRateARS))})`;
+            el.style.color = '#2ed573';
+        } else {
+            el.textContent = 'Consultando cotización del dólar...';
+            el.style.color = 'var(--text-secondary)';
+        }
+    } else {
+        el.textContent = '\u00A0';
+    }
+}
+
 // Auto-calculate price
 const MP_FEE = 0.0649; // 6.49% Mercado Pago comisión inmediata
 function updateCalculatedPrice() {
-    const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+    const costARS = getCostInARS();
     const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
-    const basePrice = cost * (1 + (margin / 100));
+    const basePrice = costARS * (1 + (margin / 100));
     const rawFinal = basePrice * (1 + MP_FEE);
     const finalPrice = rawFinal < 100 ? rawFinal : Math.ceil(rawFinal / 100) * 100;
     document.getElementById('prodPrice').value = finalPrice;
     
-    const profit = finalPrice - cost;
+    const profit = finalPrice - costARS;
     const display = document.getElementById('prodProfitDisplay');
-    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / cost) * 100) || 0}% sobre costo)`;
+    const currency = getCostCurrency();
+    const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
+    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
+    updateCostARSDisplay();
 }
 document.getElementById('prodCost').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodMargin').addEventListener('input', updateCalculatedPrice);
+document.getElementById('prodCurrency').addEventListener('click', () => {
+    const btn = document.getElementById('prodCurrency');
+    const next = btn.dataset.currency === 'USD' ? 'ARS' : 'USD';
+    btn.dataset.currency = next;
+    document.getElementById('prodCurrencyLabel').textContent = next;
+    updateCalculatedPrice();
+});
 
 // Also update profit display if user manually edits the final price
 document.getElementById('prodPrice').addEventListener('input', () => {
-    const cost = parseFloat(document.getElementById('prodCost').value) || 0;
+    const costARS = getCostInARS();
     const finalPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
-    const profit = finalPrice - cost;
+    const profit = finalPrice - costARS;
     const display = document.getElementById('prodProfitDisplay');
-    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / cost) * 100) || 0}% sobre costo)`;
+    const currency = getCostCurrency();
+    const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
+    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
 });
 
 // ─── PRICE COMPARISON SEARCH ──────────────────────────
@@ -987,8 +1057,8 @@ document.getElementById('refreshStatsBtn').addEventListener('click', loadStats);
 loadStats();
 
 // ─── ORDER MANAGEMENT ─────────────────────────────────────
-const statusLabels = { pending:'🟡 Pendiente', paid:'🟢 Pagado', shipped:'🔵 Enviado', delivered:'✅ Entregado', cancelled:'🔴 Cancelado' };
-const statusFlow = { pending:['paid','cancelled'], paid:['shipped','cancelled'], shipped:['delivered','cancelled'], delivered:[], cancelled:[] };
+const statusLabels = { initiated:'⚪ Iniciado', pending:'🟡 Pendiente', paid:'🟢 Pagado', shipped:'🔵 Enviado', delivered:'✅ Entregado', cancelled:'🔴 Cancelado' };
+const statusFlow = { initiated:['paid','cancelled'], pending:['paid','cancelled'], paid:['shipped','cancelled'], shipped:['delivered','cancelled'], delivered:[], cancelled:[] };
 
 async function loadOrders(filter = 'all') {
     const tbody = document.getElementById('ordersList');
@@ -1013,7 +1083,7 @@ async function loadOrders(filter = 'all') {
                 <td>${(o.cart || []).reduce((s, i) => s + i.qty, 0)} items</td>
                 <td>${o.customer?.province || o.shippingProvince || '—'}</td>
                 <td style="font-size:.85rem;white-space:nowrap">${date}</td>
-                <td><span style="display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.8rem;background:${o.status === 'paid' ? 'rgba(46,213,115,.15)' : o.status === 'shipped' ? 'rgba(0,240,255,.15)' : o.status === 'delivered' ? 'rgba(46,213,115,.1)' : o.status === 'cancelled' ? 'rgba(255,71,87,.15)' : 'rgba(255,193,7,.15)'};color:${o.status === 'paid' ? '#2ed573' : o.status === 'shipped' ? '#00f0ff' : o.status === 'delivered' ? '#2ed573' : o.status === 'cancelled' ? '#ff4757' : '#ffc107'}">${statusLabels[o.status] || o.status}</span></td>
+                <td><span style="display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.8rem;background:${o.status === 'paid' ? 'rgba(46,213,115,.15)' : o.status === 'shipped' ? 'rgba(0,240,255,.15)' : o.status === 'delivered' ? 'rgba(46,213,115,.1)' : o.status === 'cancelled' ? 'rgba(255,71,87,.15)' : o.status === 'initiated' ? 'rgba(255,255,255,.05)' : 'rgba(255,193,7,.15)'};color:${o.status === 'paid' ? '#2ed573' : o.status === 'shipped' ? '#00f0ff' : o.status === 'delivered' ? '#2ed573' : o.status === 'cancelled' ? '#ff4757' : o.status === 'initiated' ? '#888' : '#ffc107'}">${statusLabels[o.status] || o.status}</span></td>
                 <td>
                     <button class="action-btn view-order-btn" data-id="${id}" title="Ver detalle">👁️</button>
                     ${(statusFlow[o.status] || []).map(next => `<button class="action-btn status-btn" data-id="${id}" data-next="${next}" title="Marcar como ${statusLabels[next]}">${next === 'cancelled' ? '❌' : next === 'paid' ? '💳' : next === 'shipped' ? '📦' : '✅'}</button>`).join('')}
@@ -1112,79 +1182,174 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
-// ─── AI DESCRIPTION GENERATOR (GEMINI) ─────────────────────────
+// ─── AI DESCRIPTION GENERATOR (GEMINI + RESPALDO) ─────────
+// Gemini es la IA principal. Si se agota su límite, se prueba Groq automáticamente.
+// Las keys de respaldo se guardan en localStorage (por navegador).
+
+function getGroqKey() {
+    try { return localStorage.getItem('mimo_groq_key') || ''; } catch(e) { return ''; }
+}
+
+function getGeminiKey() {
+    // La llave se divide en partes para evitar que GitHub bloquee la subida por seguridad
+    const p1 = 'AQ.Ab8RN6JuUNrE-DGGV';
+    const p2 = 'WJLFqUKn-lNTcnRME3';
+    const p3 = 'quULW5xIVUnXzDA';
+    return p1 + p2 + p3;
+}
+
+async function callGemini(promptText) {
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${getGeminiKey()}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+    });
+    if (!resp.ok) {
+        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite diario o por minuto.' };
+        if (resp.status === 400 || resp.status === 403) throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o sin permisos.' };
+        throw { code: 'HTTP', label: 'Gemini', message: 'Error al conectar con la API de Gemini.' };
+    }
+    const data = await resp.json();
+    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] ? data.candidates[0].content.parts[0].text : '';
+    if (!text) throw { code: 'EMPTY', label: 'Gemini', message: 'Gemini devolvió una respuesta vacía.' };
+    return text.trim();
+}
+
+async function callGroq(promptText) {
+    const key = getGroqKey();
+    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
+    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            model: 'llama-3.3-70b-versatile',
+            messages: [{ role: 'user', content: promptText }],
+            temperature: 0.7
+        })
+    });
+    if (!resp.ok) {
+        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Groq', message: 'Groq alcanzó su límite diario o por minuto.' };
+        if (resp.status === 401) throw { code: 'AUTH', label: 'Groq', message: 'API Key de Groq inválida.' };
+        throw { code: 'HTTP', label: 'Groq', message: 'Error al conectar con la API de Groq.' };
+    }
+    const data = await resp.json();
+    const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+    if (!text) throw { code: 'EMPTY', label: 'Groq', message: 'Groq devolvió una respuesta vacía.' };
+    return text.trim();
+}
+
+function buildProductPrompt() {
+    const prodName = document.getElementById('prodName').value.trim();
+    const prodCategory = document.getElementById('prodCategory').value.trim();
+    // Precio de oferta opcional para mencionarlo en la descripción
+    const prodOffer = document.getElementById('prodOffer').value.trim();
+    const offerHint = prodOffer
+        ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
+        : '';
+
+    return `Escribe SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}". No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
+
+REGLAS FUNDAMENTALES:
+1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
+2. Incluí TODAS las características relevantes del producto (cuántas más tenga, más larga será la descripción). No limites la cantidad: un producto con muchos specs debe describirlos casi todos.
+3. Separá cada característica con un solo salto de línea (no dejes líneas en blanco entre bullets).
+4. No uses emojis ni formato Markdown (no asteriscos ** ni símbolos raros). Todo texto plano.
+5. Terminá cada bullet en punto. No dejes espacios "..." ni textos entre corchetes como "[detalle...]".
+
+Usá estos atributos clave según la categoría del producto (describí todos los que apliquen, y agregá otros que veas):
+- Auriculares / parlantes: tipo, cancelación de ruido (solo si está confirmado), batería, conectividad, resistencia al agua, controles, códec de audio.
+- Teclados / mouse / periféricos: tipo (inalámbrico/cableado), conexión, batería o pilas, compatibilidad, diseño, switches, retroiluminación.
+- Smartwatches / relojes: pantalla, batería, sensores, resistencia al agua, compatibilidad con celulares, funciones de salud.
+- TVs / monitores: tamaño, resolución, tipo de panel, conectividad, smart, tasa de refresco, HDR.
+- Celulares / tablets: pantalla, batería, cámara, almacenamiento, procesador, conectividad, carga.
+- Cocinas / heladeras / electrodomésticos: capacidad, tipo, eficiencia energética, funciones, dimensiones, materiales.
+- Otro: describí todos los atributos relevantes del producto, cuantos más haya.
+
+Formato de cada bullet: "• Atributo: detalle completo". No inventes atributos.`;
+}
+
 const generateAIBtn = document.getElementById('generateAIBtn');
 if (generateAIBtn) {
     generateAIBtn.addEventListener('click', async () => {
         const prodName = document.getElementById('prodName').value.trim();
-        const prodCategory = document.getElementById('prodCategory').value.trim();
 
         if (!prodName) {
             alert('Por favor, ingresa el Nombre del Producto primero.');
             return;
         }
 
-        // La llave se divide en partes para evitar que GitHub bloquee la subida por seguridad
-        const p1 = 'AQ.Ab8RN6JuUNrE-DGGV';
-        const p2 = 'WJLFqUKn-lNTcnRME3';
-        const p3 = 'quULW5xIVUnXzDA';
-        const apiKey = p1 + p2 + p3;
-
         const originalBtnText = generateAIBtn.innerHTML;
         generateAIBtn.innerHTML = '<span>⏳ Generando...</span>';
         generateAIBtn.style.pointerEvents = 'none';
         generateAIBtn.style.opacity = '0.7';
 
-        try {
-            const promptText = `Eres un experto en marketing de tecnología. Escribe una descripción muy concisa y comercial para el producto "${prodName}" de la categoría "${prodCategory}".
-MUY IMPORTANTE: Da SOLO las características más importantes y resumidas. La descripción DEBE estar dividida en partes fáciles de leer, separadas por un doble salto de línea.
-No uses emojis. Usa un punto negro (•) al inicio de cada característica para crear una lista limpia y muy breve.
-No uses formato Markdown (no uses asteriscos ** ni símbolos raros) ya que será texto plano.
+        const promptText = buildProductPrompt();
 
-Usa una estructura similar a este ejemplo dependiendo de lo que aplique al producto:
-• Pantalla: LED de 43 pulgadas con resolución Full HD...
+        // Proveedores en orden de prioridad. Se prueban en cascada:
+        // 1) Gemini (principal). 2) Groq (respaldo).
+        const providers = [
+            { label: 'Gemini', fn: () => callGemini(promptText) },
+            { label: 'Groq', fn: () => callGroq(promptText) }
+        ];
 
-• Diseño: Estructura Frameless (sin marcos)...
+        let lastErr = null;
+        let success = false;
 
-• Rendimiento: Procesador de última generación...
-
-• Batería / Energía: [detalle...]
-
-• Conectividad: [detalle...]`;
-            
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${apiKey}`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    contents: [{
-                        parts: [{
-                            text: promptText
-                        }]
-                    }]
-                })
-            });
-
-            if (!response.ok) {
-                if (response.status === 400 || response.status === 403) {
-                    throw new Error('API Key inválida o sin permisos.');
-                }
-                throw new Error('Error al conectar con la API de Gemini.');
+        for (const provider of providers) {
+            if (success) break;
+            try {
+                const text = await provider.fn();
+                document.getElementById('prodDesc').value = text;
+                generateAIBtn.innerHTML = `<span>✨ Generar con IA</span>`;
+                success = true;
+            } catch (e) {
+                lastErr = e;
+                console.warn(`[${provider.label}] falló:`, e.message || e);
+                generateAIBtn.innerHTML = `<span>${provider.label} agotado, probando respaldo...</span>`;
             }
-
-            const data = await response.json();
-            const text = data.candidates[0].content.parts[0].text;
-            
-            document.getElementById('prodDesc').value = text.trim();
-        } catch (error) {
-            console.error(error);
-            alert(`Error: ${error.message}\nSi el problema persiste, la llave API puede ser incorrecta o haber expirado.`);
-        } finally {
-            generateAIBtn.innerHTML = originalBtnText;
-            generateAIBtn.style.pointerEvents = 'auto';
-            generateAIBtn.style.opacity = '1';
         }
+
+        if (!success) {
+            const msg = lastErr ? lastErr.message : 'Error desconocido.';
+            const hint = lastErr && lastErr.label === 'Gemini' && lastErr.code === 'RATE_LIMIT'
+                ? '\n\nSi tenés una key de Groq, configurala con el botón 🔑 para usarla como respaldo automático.'
+                : '';
+            alert(`Error: ${msg}${hint}`);
+        }
+
+        generateAIBtn.innerHTML = originalBtnText;
+        generateAIBtn.style.pointerEvents = 'auto';
+        generateAIBtn.style.opacity = '1';
+    });
+}
+
+// Configuración de IAs de respaldo (localStorage)
+const aiConfigBtn = document.getElementById('aiConfigBtn');
+const aiConfigModal = document.getElementById('aiConfigModal');
+if (aiConfigBtn && aiConfigModal) {
+    aiConfigBtn.addEventListener('click', () => {
+        document.getElementById('groqApiKey').value = getGroqKey();
+        aiConfigModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    });
+    document.getElementById('aiConfigClose')?.addEventListener('click', () => {
+        aiConfigModal.classList.remove('active');
+        document.body.style.overflow = '';
+    });
+    aiConfigModal.addEventListener('click', e => {
+        if (e.target === aiConfigModal) {
+            aiConfigModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+    });
+    document.getElementById('aiConfigSave')?.addEventListener('click', () => {
+        const key = document.getElementById('groqApiKey').value.trim();
+        try {
+            if (key) localStorage.setItem('mimo_groq_key', key);
+            else localStorage.removeItem('mimo_groq_key');
+        } catch(e) { /* ignore */ }
+        aiConfigModal.classList.remove('active');
+        document.body.style.overflow = '';
     });
 }
 

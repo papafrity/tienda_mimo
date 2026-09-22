@@ -1,0 +1,5 @@
+[     891ms] [WARNING] THREE.MeshPhysicalMaterial: 'thickness' is not a property of this material. @ https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js:5
+[     893ms] [WARNING] THREE.MeshPhysicalMaterial: 'thickness' is not a property of this material. @ https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js:5
+[    1525ms] [LOG] Carrito cargado desde localStorage: null @ http://localhost:8765/script.js:434
+[   18624ms] ReferenceError: r is not defined
+    at eval (eval at <anonymous> (eval at evaluate (:311:30)), <anonymous>:1:242)

@@ -148,6 +148,43 @@ document.addEventListener('DOMContentLoaded', () => {
     function offerVal(p) { return p.offerPrice != null ? p.offerPrice : p.price; }
     function hasOffer(p) { return p.offerPrice != null && p.offerPrice !== p.price; }
 
+    // ─── PRECIOS DINÁMICOS CON DÓLAR ─────────────────
+    // Los productos con costCurrency = 'USD' recalculan su precio en ARS
+    // automáticamente con el dólar blue del momento (misma fórmula del admin).
+    const MP_FEE = 0.0649;
+    let usdRateARS = null;
+
+    function roundPrice(v) { return v < 100 ? v : Math.ceil(v / 100) * 100; }
+
+    function calcPriceFromUSD(costUSD, margin) {
+        const costARS = costUSD * (usdRateARS || 0);
+        if (!costARS) return null;
+        const basePrice = costARS * (1 + (margin / 100));
+        return roundPrice(basePrice * (1 + MP_FEE));
+    }
+
+    function applyDynamicPrices() {
+        let changed = false;
+        products.forEach(p => {
+            if (p.costCurrency === 'USD' && p.cost > 0 && usdRateARS) {
+                const dynamicPrice = calcPriceFromUSD(p.cost, p.margin || 30);
+                if (dynamicPrice != null) {
+                    p.price = dynamicPrice;
+                    changed = true;
+                }
+            }
+        });
+        return changed;
+    }
+
+    async function fetchUsdRate() {
+        try {
+            const resp = await fetch('https://dolarapi.com/v1/dolares/blue');
+            const data = await resp.json();
+            if (data && data.venta) usdRateARS = data.venta;
+        } catch(e) { /* ignore */ }
+    }
+
     function renderStarsHtml(rating) {
         const r = Math.round((rating || 0) * 2) / 2;
         let html = '';
@@ -266,11 +303,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchProducts() {
         try {
+            await fetchUsdRate();
             const querySnapshot = await db.collection("products").get();
             products = [];
             querySnapshot.forEach((doc) => {
                 products.push({ id: doc.id, ...doc.data() });
             });
+            applyDynamicPrices();
             if (products.length === 0) {
                 showEmptyProductsMessage();
             } else {
@@ -280,6 +319,15 @@ document.addEventListener('DOMContentLoaded', () => {
             initDynamicEvents();
             initCarouselLogic();
             initProductFiltersAndModals();
+
+            // Recalcular precios cada 10 min con el dólar del momento
+            setInterval(async () => {
+                await fetchUsdRate();
+                if (applyDynamicPrices()) {
+                    renderProducts();
+                    renderCarousel();
+                }
+            }, 10 * 60 * 1000);
         } catch(e) {
             console.error("Error fetching products", e);
             showProductsError(e.message);
@@ -627,10 +675,70 @@ document.addEventListener('DOMContentLoaded', () => {
         if (cards.length === 0) return;
 
         const realCount = cards.length;
+        const isMobile = () => innerWidth < 768;
+
+        // ── MODO MOBILE: scroll nativo fluido tipo app ──
+        if (isMobile()) {
+            // Quitar el posicionamiento absoluto/3D que deja el CSS desktop
+            cards.forEach(c => c.style.cssText = 'position:relative;flex:0 0 260px;width:260px;height:440px;opacity:1;pointer-events:auto;transform:none;filter:none');
+
+            // Dots
+            dotsC.innerHTML = '';
+            for (let i = 0; i < realCount; i++) {
+                const d = document.createElement('div');
+                d.classList.add('carousel-dot');
+                if (i === 0) d.classList.add('active');
+                d.addEventListener('click', () => scrollToCard(i));
+                dotsC.appendChild(d);
+            }
+
+            let activeIdx = 0;
+            function scrollToCard(i) {
+                const card = cards[i];
+                if (!card) return;
+                track.scrollTo({ left: card.offsetLeft - (track.clientWidth - card.offsetWidth) / 2, behavior: 'smooth' });
+            }
+
+            function updateDots() {
+                dotsC.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === activeIdx));
+            }
+
+            function onScroll() {
+                const center = track.scrollLeft + track.clientWidth / 2;
+                let best = 0, bestDist = Infinity;
+                cards.forEach((c, i) => {
+                    const cCenter = c.offsetLeft + c.offsetWidth / 2;
+                    const dist = Math.abs(cCenter - center);
+                    if (dist < bestDist) { bestDist = dist; best = i; }
+                });
+                if (best !== activeIdx) { activeIdx = best; updateDots(); }
+            }
+
+            track.addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true });
+
+            nextBtn.addEventListener('click', () => scrollToCard(Math.min(activeIdx + 1, realCount - 1)));
+            prevBtn.addEventListener('click', () => scrollToCard(Math.max(activeIdx - 1, 0)));
+
+            cards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (e.target.closest('.add-to-cart')) return;
+                    const btn = card.querySelector('.add-to-cart');
+                    if (btn) window.openProductModal(btn.dataset.productId);
+                });
+            });
+
+            // Auto-play + pausa al tocar
+            let ap = setInterval(() => nextBtn.click(), 5000);
+            track.addEventListener('touchstart', () => clearInterval(ap), { passive: true });
+            track.addEventListener('touchend', () => { if (!ap) ap = setInterval(() => nextBtn.click(), 5000); }, { passive: true });
+
+            onScroll();
+            return;
+        }
+
+        const X_STEP = isMobile() ? 260 : 320;
         let ci = 0;
         let animating = false;
-        const isMobile = () => innerWidth < 768;
-        const X_STEP = isMobile() ? 260 : 320;
 
         // ── Spotlight element ──
         let spotlight = wrapper.querySelector('.carousel-spotlight');
@@ -804,11 +912,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Cinematic timing: smooth cascade with premium easings
                 let dur, ease, delay;
                 if (isLeaving) {
-                    // Card leaving center: quick elegant exit
-                    dur = 0.5; ease = 'expo.in'; delay = 0;
+                    // Card leaving center: clears out first so the incoming never overlaps
+                    dur = 0.5; ease = 'expo.out'; delay = 0;
                 } else if (isEntering) {
-                    // Card entering center: dramatic, satisfying arrival
-                    dur = 0.95; ease = 'expo.out'; delay = 0.18;
+                    // Card entering center: waits for the center to clear, then arrives
+                    dur = 0.9; ease = 'expo.out'; delay = 0.45;
                     card.style.zIndex = 11; // above center during transition
                 } else {
                     // Side cards: fluid repositioning
@@ -834,16 +942,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     const price = card.querySelector('.offer-price') || card.querySelector('.old-price');
                     const btn = card.querySelector('.add-to-cart');
                     const baseEase = 'expo.out';
-                    if (info) tl.fromTo(info, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: baseEase }, 0.35);
-                    if (badge) tl.fromTo(badge, { scale: 0.6, opacity: 0, y: 10 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(2.2)' }, 0.4);
-                    if (title) tl.fromTo(title, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.46);
-                    if (price) tl.fromTo(price, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.53);
-                    if (btn) tl.fromTo(btn, { y: 14, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, 0.6);
+                    if (info) tl.fromTo(info, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: baseEase }, 0.55);
+                    if (badge) tl.fromTo(badge, { scale: 0.6, opacity: 0, y: 10 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(2.2)' }, 0.6);
+                    if (title) tl.fromTo(title, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.66);
+                    if (price) tl.fromTo(price, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.73);
+                    if (btn) tl.fromTo(btn, { y: 14, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, 0.8);
                 }
             });
 
-            // Spotlight move — smooth follow
-            tl.to(spotlight, { left: '50%', duration: 0.9, ease: 'expo.out' }, 0);
+            // Spotlight move — smooth follow (waits for the incoming card)
+            tl.to(spotlight, { left: '50%', duration: 0.9, ease: 'expo.out' }, 0.45);
 
             // Particles
             spawnParticles(cards[ci]);
@@ -1046,13 +1154,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Save pending order to Firestore
                 const orderRef = await db.collection('orders').add({
                     customer: customer,
-                    cart: cart.map(item => ({
-                        id: item.id,
-                        name: item.name,
-                        price: Number(offerVal(item)),
-                        qty: item.qty
-                    })),
-                    status: 'pending',
+                    cart: cart.map(item => {
+                        const p = products.find(x => x.id === item.id);
+                        const costCurrency = (p && p.costCurrency) || 'ARS';
+                        const cost = (p && p.cost) || 0;
+                        const costARS = costCurrency === 'USD' ? cost * (usdRateARS || 0) : cost;
+                        return {
+                            id: item.id,
+                            name: item.name,
+                            price: Number(offerVal(item)),
+                            qty: item.qty,
+                            cost: cost,
+                            costCurrency: costCurrency,
+                            costARS: costARS,
+                            margin: (p && p.margin) || 0
+                        };
+                    }),
+                    status: 'initiated',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                     total: cart.reduce((sum, item) => sum + (Number(offerVal(item)) * item.qty), 0),
                     shippingCost: shippingCost,
@@ -1143,6 +1261,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span>`
                 : `$${fmt(offerVal(p))}`;
             mDesc.textContent = p.description || '';
+            const descWrap = document.getElementById('modalDescWrap');
+            const descToggle = document.getElementById('modalDescToggle');
+            // Reiniciar estado: recortar si la descripción supera el alto visible
+            descWrap.classList.remove('collapsed');
+            descWrap.classList.toggle('has-more', mDesc.scrollHeight > 150);
+            if (mDesc.scrollHeight > 150) {
+                descWrap.classList.add('collapsed');
+                descToggle.textContent = 'Ver más';
+            }
             
             let imgs;
             try { imgs = p.fullImages ? JSON.parse(p.fullImages) : null; } catch(e) { imgs = null; }
@@ -1502,6 +1629,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const newModal = liveModal.cloneNode(true);
         liveModal.parentNode.replaceChild(newModal, liveModal);
         newModal.addEventListener('click', e => { if (e.target === newModal || e.target.closest('#modalClose')) { closeM(); } });
+
+        // "Ver más" en la descripción del modal: expande/colapsa con fade
+        const descToggle = document.getElementById('modalDescToggle');
+        if (descToggle) {
+            descToggle.addEventListener('click', () => {
+                const wrap = document.getElementById('modalDescWrap');
+                const isCollapsed = wrap.classList.contains('collapsed');
+                wrap.classList.toggle('collapsed');
+                descToggle.textContent = isCollapsed ? 'Ver menos' : 'Ver más';
+            });
+        }
         } catch(e) { console.error('Error en initProductFiltersAndModals:', e); }
     }
     
@@ -1690,13 +1828,19 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!target) return;
             e.preventDefault();
             const isInstant = this.hasAttribute('data-instant');
-            const offset = window.innerWidth < 768 ? 80 : 70;
+            const isMobile = window.innerWidth < 768;
+            const offset = isMobile ? 80 : 70;
             const top = target.getBoundingClientRect().top + window.scrollY - offset;
-            if (smoother) {
+            if (smoother && !isMobile) {
                 smoother.scrollTo(top, !isInstant);
+            } else if (isInstant) {
+                document.documentElement.style.scrollBehavior = 'auto';
+                window.scrollTo(0, top);
+                requestAnimationFrame(() => document.documentElement.style.scrollBehavior = '');
             } else {
-                if (isInstant) window.scrollTo(0, top);
-                else window.scrollTo({ top, behavior: 'smooth' });
+                document.documentElement.style.scrollBehavior = 'smooth';
+                window.scrollTo(0, top);
+                setTimeout(() => document.documentElement.style.scrollBehavior = '', 900);
             }
         });
     });
@@ -1870,12 +2014,13 @@ document.head.appendChild(st);
         });
         backToTop.addEventListener('click', () => {
             if (smoother) {
-                smoother.scrollTo(0, { duration: 0, ease: 'none' });
+                smoother.scrollTo(0, false);
             } else {
-                window.scrollTo({ top: 0, behavior: 'instant' });
+                document.documentElement.style.scrollBehavior = 'auto';
+                window.scrollTo(0, 0);
+                requestAnimationFrame(() => document.documentElement.style.scrollBehavior = '');
             }
-        });
-    }
+        });    }
 })();
 
 // ─── INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
@@ -2225,30 +2370,7 @@ document.head.appendChild(st);
     fabricTex.wrapS = fabricTex.wrapT = THREE.RepeatWrapping; fabricTex.repeat.set(4, 6); fabricTex.encoding = THREE.sRGBEncoding;
     cabinetMat.map = fabricTex; cabinetMat.metalness = 0.5; cabinetMat.roughness = 0.55;
 
-    // ── Studio pedestal + contact shadow (shared, static) ──
-    const pedestal = new THREE.Group();
-    const platform = new THREE.Mesh(new THREE.CylinderGeometry(3.2, 3.4, 0.18, 64), new THREE.MeshStandardMaterial({ color: 0x0a0c12, metalness: 0.85, roughness: 0.25 }));
-    platform.position.y = -2.0; pedestal.add(platform);
-    const pedRim = new THREE.Mesh(new THREE.TorusGeometry(3.2, 0.025, 8, 80), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
-    pedRim.rotation.x = Math.PI / 2; pedRim.position.y = -1.91; pedestal.add(pedRim);
-    const shCanvas = document.createElement('canvas'); shCanvas.width = shCanvas.height = 256;
-    const sx = shCanvas.getContext('2d');
-    const sg = sx.createRadialGradient(128, 128, 10, 128, 128, 128);
-    sg.addColorStop(0, 'rgba(0,0,0,0.55)'); sg.addColorStop(1, 'rgba(0,0,0,0)');
-    sx.fillStyle = sg; sx.fillRect(0, 0, 256, 256);
-    const contactShadow = new THREE.Mesh(new THREE.PlaneGeometry(6, 6), new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(shCanvas), transparent: true, depthWrite: false, opacity: 0.85 }));
-    contactShadow.rotation.x = -Math.PI / 2; contactShadow.position.y = -1.89; pedestal.add(contactShadow);
-    scene.add(pedestal);
-
-    const updatePedestalScale = () => {
-        if (isMobile()) {
-            pedestal.scale.set(0.65, 0.65, 0.65);
-        } else {
-            pedestal.scale.set(1, 1, 1);
-        }
-    };
-    updatePedestalScale();
-    window.addEventListener('resize', updatePedestalScale);
+    // (Pedestal removido: las figuras flotan libres; la cámara apunta al centro real del objeto activo)
 
     // ── GLB model slots (drop real models in /models/) ──
     const MODEL_URLS = { tv: 'models/tv.glb', speaker: 'models/speaker.glb', phone: 'models/phone.glb' };
@@ -2279,6 +2401,8 @@ document.head.appendChild(st);
             const horizR = Math.max(size.x, size.z) * s / 2;
             const sFinal = horizR > SAFE_R ? s * (SAFE_R / horizR) : s;
             inner.scale.setScalar(sFinal);
+            // Guardar la media altura real del modelo escalado para centrar la flotación
+            group.userData.halfH = (size.y * sFinal) / 2;
             const rot = MODEL_ROT[slot] || { x: 0, y: 0, z: 0 };
             model.rotation.set(rot.x, rot.y, rot.z);
             model.traverse(o => { if (o.isMesh && o.material) { o.material.envMapIntensity = 1.3; } });
@@ -2328,10 +2452,9 @@ document.head.appendChild(st);
         g.visible = false; return g;
     }
 
-    const FLOAT_Y = { tv: -0.3, speaker: 0.4, phone: 0.4 };
-    const tvGroup = createTV(); tvGroup.userData.baseY = FLOAT_Y.tv; scene.add(tvGroup);
-    const speakerGroup = createSpeaker(); speakerGroup.userData.baseY = FLOAT_Y.speaker; scene.add(speakerGroup);
-    const phoneGroup = createPhone(); phoneGroup.userData.baseY = FLOAT_Y.phone; scene.add(phoneGroup);
+    const tvGroup = createTV(); tvGroup.userData.slot = 'tv'; tvGroup.userData.halfH = 1.6; tvGroup.userData.baseY = 0; scene.add(tvGroup);
+    const speakerGroup = createSpeaker(); speakerGroup.userData.slot = 'speaker'; speakerGroup.userData.halfH = 1.55; speakerGroup.userData.baseY = 0; scene.add(speakerGroup);
+    const phoneGroup = createPhone(); phoneGroup.userData.slot = 'phone'; phoneGroup.userData.halfH = 1.95; phoneGroup.userData.baseY = 0; scene.add(phoneGroup);
     applyModel('tv', tvGroup); applyModel('speaker', speakerGroup); applyModel('phone', phoneGroup);
 
     // ── Background Digital Particle Field (Polvo Cyber) ──
@@ -2380,6 +2503,58 @@ document.head.appendChild(st);
         return 1.0;
     };
 
+    // ── Cámara cinematográfica ──
+    // La cámara se mantiene frontal y estable (la base no "gira" con la órbita);
+    // la rotación completa la hace el objeto. El último tramo es un dolly-zoom épico.
+    const CAM_SEG = [
+        { t: 0.00, ang: 0.15, r: 7.8, h: 0.0, fov: 50, lookY: 0 },   // Entrada: TV frontal amplio
+        { t: 0.38, ang: 0.55, r: 6.6, h: 0.3, fov: 50, lookY: 0 },   // Parlante: sutil lateral
+        { t: 0.72, ang: 1.00, r: 6.5, h: 0.4, fov: 46, lookY: 0.2 },  // Celular: ligero ángulo
+        { t: 1.00, ang: 0.80, r: 5.0, h: 1.4, fov: 42, lookY: 0.45 } // Zoom final: mira por encima, objeto abajo = no tapa label
+    ];
+    const smoothStep = (t) => t * t * (3 - 2 * t);
+    let camProgress = 0;
+    let camActiveIdx = 0;
+
+    function updateCamera() {
+        const obj = objects[camActiveIdx];
+        if (!obj || !obj.visible || typeof THREE === 'undefined') return;
+        const box = new THREE.Box3().setFromObject(obj);
+        if (box.isEmpty()) return;
+        const c = box.getCenter(new THREE.Vector3());
+
+        let a = CAM_SEG[0], b = CAM_SEG[CAM_SEG.length - 1];
+        for (let i = 0; i < CAM_SEG.length - 1; i++) {
+            if (camProgress >= CAM_SEG[i].t && camProgress <= CAM_SEG[i + 1].t) {
+                a = CAM_SEG[i]; b = CAM_SEG[i + 1]; break;
+            }
+        }
+        const local = smoothStep(Math.max(0, Math.min(1, (camProgress - a.t) / (b.t - a.t))));
+        const ang = a.ang + (b.ang - a.ang) * local;
+        const r = a.r + (b.r - a.r) * local;
+        const h = a.h + (b.h - a.h) * local;
+        const fov = a.fov + (b.fov - a.fov) * local;
+        const lookY = a.lookY + (b.lookY - a.lookY) * local;
+
+        camera.position.set(
+            c.x + Math.sin(ang) * r,
+            c.y + h,
+            c.z + Math.cos(ang) * r
+        );
+        camera.lookAt(c.clone().setY(c.y + lookY));
+        // En desktop el objeto queda a la derecha (texto a la izquierda); el pan es horizontal
+        // constante en pantalla usando el eje right real de la cámara (consistente en toda la órbita).
+        const PAN_DESKTOP = -1.8;
+        if (!isMobile()) {
+            const camRight = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+            camera.lookAt(c.clone().setY(c.y + lookY).addScaledVector(camRight, PAN_DESKTOP));
+        }
+        if (Math.abs(camera.fov - fov) > 0.01) {
+            camera.fov = fov;
+            camera.updateProjectionMatrix();
+        }
+    }
+
     // ── Initial State Setup ──
     let currentIdx = 0;
     let progress = 0;
@@ -2400,6 +2575,7 @@ document.head.appendChild(st);
             anticipatePin: 1,
             onUpdate: (self) => {
                 progress = self.progress;
+                camProgress = progress;
                 
                 // Nuevos rangos de scroll optimizados para darle más espacio al televisor al inicio
                 let idx = 0;
@@ -2409,6 +2585,7 @@ document.head.appendChild(st);
                 if (idx !== currentIdx) {
                     const prevIdx = currentIdx;
                     currentIdx = idx;
+                    camActiveIdx = idx;
 
                     // Desvanecer objeto anterior
                     if (prevIdx >= 0 && prevIdx < 3) {
@@ -2444,12 +2621,12 @@ document.head.appendChild(st);
                     localProgress = (progress - 0.72) / 0.28;
                 }
 
-                // Rotación continua fluida basada en el scroll local
+                // El objeto activo da una vuelta completa para exhibirse entero; la cámara
+                // se mantiene estable y frontal (la base no rota).
                 objects.forEach((obj, i) => {
                     if (obj.visible) {
                         obj.rotation.y = localProgress * Math.PI * 2;
-                        // Efecto de inclinación 3D al escrolear
-                        obj.rotation.x = Math.sin(localProgress * Math.PI) * 0.15;
+                        obj.rotation.x = Math.sin(localProgress * Math.PI) * 0.12;
                     }
                 });
 
@@ -2460,7 +2637,7 @@ document.head.appendChild(st);
         });
     }
 
-    // ── Post-processing (Bloom removido a petición del usuario) ──
+    // ── Post-processing (bloom removido a petición del usuario; sin render extra por rendimiento) ──
     composer = null;
 
     // ── Animation Loop ──
@@ -2468,6 +2645,9 @@ document.head.appendChild(st);
     function animate() {
         requestAnimationFrame(animate);
         time++;
+
+        // La cámara sigue la coreografía según el scroll (mantiene al objeto activo centrado)
+        updateCamera();
 
         // Rotación lenta de partículas
         particleSystem.rotation.y = time * 0.0004;
@@ -2552,6 +2732,28 @@ document.head.appendChild(st);
     gsap.from('.hero-content', {
         y: 40, opacity: 0, duration: 1, delay: 0.5, ease: 'power3.out'
     });
+
+    // Hero title: scroll-linked parallax + glow (continuous)
+    const heroTitle = document.getElementById('heroTitle');
+    const heroSection = document.getElementById('home');
+    if (heroTitle && heroSection) {
+        // Glow pulsante permanente (vida en el título)
+        gsap.to(heroTitle, {
+            filter: 'drop-shadow(0 0 18px rgba(0,240,255,.45)) drop-shadow(0 0 40px rgba(138,43,226,.25))',
+            duration: 1.6, yoyo: true, repeat: -1, ease: 'sine.inOut'
+        });
+        // Reacción al scroll: sube más lento (parallax) y se atenúa al salir del hero
+        gsap.to(heroTitle, {
+            scrollTrigger: {
+                trigger: heroSection,
+                start: 'top top',
+                end: 'bottom top',
+                scrub: 1
+            },
+            y: 60, opacity: 0.4,
+            ease: 'none'
+        });
+    }
 
     // Init after products render
     if (typeof renderPage === 'function') {
