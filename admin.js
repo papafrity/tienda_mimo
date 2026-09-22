@@ -1161,24 +1161,22 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
-// ─── AI DESCRIPTION GENERATOR (GEMINI + RESPALDO) ─────────
-// Gemini es la IA principal. Si se agota su límite, se prueba Groq automáticamente.
-// Las keys de respaldo se guardan en localStorage (por navegador).
+// ─── AI DESCRIPTION GENERATOR (GEMINI → GROQ → POLLINATIONS) ─
+// Cascada: Gemini (con key propia) → Groq (con key propia) → Pollinations (sin key).
+// Las keys se guardan en localStorage (por navegador).
 
 function getGroqKey() {
     try { return localStorage.getItem('mimo_groq_key') || ''; } catch(e) { return ''; }
 }
 
 function getGeminiKey() {
-    // La llave se divide en partes para evitar que GitHub bloquee la subida por seguridad
-    const p1 = 'AQ.Ab8RN6JuUNrE-DGGV';
-    const p2 = 'WJLFqUKn-lNTcnRME3';
-    const p3 = 'quULW5xIVUnXzDA';
-    return p1 + p2 + p3;
+    try { return localStorage.getItem('mimo_gemini_key') || ''; } catch(e) { return ''; }
 }
 
 async function callGemini(promptText) {
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent?key=${getGeminiKey()}`, {
+    const key = getGeminiKey();
+    if (!key) throw { code: 'NO_KEY', label: 'Gemini', message: 'No hay key de Gemini configurada (botón 🔑).' };
+    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
@@ -1194,14 +1192,12 @@ async function callGemini(promptText) {
     return text.trim();
 }
 
-async function callGroq(promptText) {
-    const key = getGroqKey();
-    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
+async function callGroqModel(promptText, key, model) {
     const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            model: 'llama-3.3-70b-versatile',
+            model,
             messages: [{ role: 'user', content: promptText }],
             temperature: 0.7
         })
@@ -1215,6 +1211,40 @@ async function callGroq(promptText) {
     const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
     if (!text) throw { code: 'EMPTY', label: 'Groq', message: 'Groq devolvió una respuesta vacía.' };
     return text.trim();
+}
+
+async function callGroq(promptText) {
+    const key = getGroqKey();
+    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
+    // Modelos vigentes (llama-3.3 fue dado de baja por Groq el 16/08/26).
+    // Se prueba el principal y, si falla por modelo, el alternativo.
+    const models = ['openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
+    let lastErr = null;
+    for (const model of models) {
+        try {
+            return await callGroqModel(promptText, key, model);
+        } catch (e) {
+            lastErr = e;
+            if (e.code === 'AUTH' || e.code === 'NO_KEY') throw e;
+            console.warn(`[Groq:${model}] falló, probando siguiente:`, e.message || e);
+        }
+    }
+    throw lastErr;
+}
+
+async function callPollinations(promptText) {
+    // IA gratuita sin API key (respaldo final, siempre disponible).
+    const resp = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`, {
+        method: 'GET',
+        headers: { 'Accept': 'text/plain' }
+    });
+    if (!resp.ok) {
+        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Pollinations', message: 'Pollinations alcanzó su límite por minuto. Esperá unos segundos.' };
+        throw { code: 'HTTP', label: 'Pollinations', message: 'Error al conectar con Pollinations.' };
+    }
+    const text = (await resp.text()).trim();
+    if (!text) throw { code: 'EMPTY', label: 'Pollinations', message: 'Pollinations devolvió una respuesta vacía.' };
+    return text;
 }
 
 function buildProductPrompt() {
@@ -1265,10 +1295,11 @@ if (generateAIBtn) {
         const promptText = buildProductPrompt();
 
         // Proveedores en orden de prioridad. Se prueban en cascada:
-        // 1) Gemini (principal). 2) Groq (respaldo).
+        // 1) Gemini (si hay key). 2) Groq (si hay key). 3) Pollinations (sin key).
         const providers = [
             { label: 'Gemini', fn: () => callGemini(promptText) },
-            { label: 'Groq', fn: () => callGroq(promptText) }
+            { label: 'Groq', fn: () => callGroq(promptText) },
+            { label: 'Pollinations', fn: () => callPollinations(promptText) }
         ];
 
         let lastErr = null;
@@ -1290,8 +1321,8 @@ if (generateAIBtn) {
 
         if (!success) {
             const msg = lastErr ? lastErr.message : 'Error desconocido.';
-            const hint = lastErr && lastErr.label === 'Gemini' && lastErr.code === 'RATE_LIMIT'
-                ? '\n\nSi tenés una key de Groq, configurala con el botón 🔑 para usarla como respaldo automático.'
+            const hint = (lastErr && (lastErr.code === 'NO_KEY' || lastErr.code === 'RATE_LIMIT'))
+                ? '\n\nConfigurá tus keys con el botón 🔑 (Gemini y/o Groq). Pollinations funciona sin key como último respaldo.'
                 : '';
             alert(`Error: ${msg}${hint}`);
         }
@@ -1308,6 +1339,7 @@ const aiConfigModal = document.getElementById('aiConfigModal');
 if (aiConfigBtn && aiConfigModal) {
     aiConfigBtn.addEventListener('click', () => {
         document.getElementById('groqApiKey').value = getGroqKey();
+        document.getElementById('geminiApiKey').value = getGeminiKey();
         aiConfigModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     });
@@ -1322,10 +1354,13 @@ if (aiConfigBtn && aiConfigModal) {
         }
     });
     document.getElementById('aiConfigSave')?.addEventListener('click', () => {
-        const key = document.getElementById('groqApiKey').value.trim();
+        const groqKey = document.getElementById('groqApiKey').value.trim();
+        const geminiKey = document.getElementById('geminiApiKey').value.trim();
         try {
-            if (key) localStorage.setItem('mimo_groq_key', key);
+            if (groqKey) localStorage.setItem('mimo_groq_key', groqKey);
             else localStorage.removeItem('mimo_groq_key');
+            if (geminiKey) localStorage.setItem('mimo_gemini_key', geminiKey);
+            else localStorage.removeItem('mimo_gemini_key');
         } catch(e) { /* ignore */ }
         aiConfigModal.classList.remove('active');
         document.body.style.overflow = '';
