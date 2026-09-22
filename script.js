@@ -202,9 +202,9 @@ document.addEventListener('DOMContentLoaded', () => {
         grid.innerHTML = '';
         pageProducts.forEach((p, idx) => {
             const hasDiscount = hasOffer(p);
-            let priceHtml = hasDiscount 
-                ? `<p class="price"><span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span></p>`
-                : `<p class="price">$${fmt(offerVal(p))}</p>`;
+            let priceHtml = hasDiscount
+                ? `<p class="price"><span class="price-old">$${fmt(p.price)}</span><span class="price-offer">$${fmt(p.offerPrice)}</span></p>`
+                : `<p class="price"><span class="price-offer">$${fmt(offerVal(p))}</span></p>`;
                 
             grid.innerHTML += `
             <div class="product-card tilt-card reveal-up" data-category="${p.category}" data-id="${p.id}" style="transition-delay:${Math.min(idx * .04, .3)}s">
