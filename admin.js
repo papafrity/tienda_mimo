@@ -273,6 +273,9 @@ const form = document.getElementById('productForm');
 
 document.getElementById('addProductBtn').addEventListener('click', () => openModal());
 document.getElementById('reloadBtn').addEventListener('click', loadProducts);
+document.querySelectorAll('.margin-btn').forEach(btn => {
+    btn.addEventListener('click', () => setAllMargin(parseInt(btn.dataset.margin)));
+});
 document.getElementById('cancelBtn').addEventListener('click', () => modal.classList.remove('active'));
 
 adminSearchInput.addEventListener('input', renderAdminProducts);
@@ -285,7 +288,7 @@ function openModal(id = null) {
     document.getElementById('prodCost').value = '0';
     document.getElementById('prodCurrency').dataset.currency = 'ARS';
     document.getElementById('prodCurrencyLabel').textContent = 'ARS';
-    document.getElementById('prodMargin').value = '30';
+    document.getElementById('prodMargin').value = '20';
     document.getElementById('modalTitle').textContent = 'Agregar Producto';
     
     currentUploadedImages = [];
@@ -510,110 +513,6 @@ document.getElementById('prodPrice').addEventListener('input', () => {
     if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
 });
 
-// ─── PRICE COMPARISON SEARCH ──────────────────────────
-async function searchPrices(source) {
-    const name = document.getElementById('prodName').value.trim();
-    if (!name) { alert('Escribí el nombre del producto primero.'); return; }
-
-    const panel = document.getElementById('priceSearchResults');
-    const tbl = document.getElementById('psTbody');
-    const src = document.getElementById('psSource');
-    const minEl = document.getElementById('psMin');
-    const compEl = document.getElementById('psCompare');
-    const errEl = document.getElementById('psError');
-    const loadEl = document.getElementById('psLoading');
-    const btns = document.querySelectorAll('.ps-btn');
-
-    panel.style.display = 'block';
-    errEl.textContent = '';
-    compEl.innerHTML = '';
-    loadEl.style.display = 'block';
-    tbl.innerHTML = '';
-    src.textContent = '';
-    minEl.textContent = '';
-    btns.forEach(b => b.disabled = true);
-
-    const label2 = source === 'serper' || source === 'google' ? 'Google Shopping' : 'Mercado Libre';
-    src.textContent = label2;
-
-    try {
-        const resp = await fetch(`/api/search-prices?q=${encodeURIComponent(name)}&source=${source}`);
-        const ct = resp.headers.get('content-type') || '';
-        if (!ct.includes('json')) {
-            const text = await resp.text();
-            const is404 = text.includes('<!DOCTYPE') || text.includes('Not Found');
-            if (is404) {
-                throw new Error(
-                    'La función /api/search-prices no está deployada. ' +
-                    'En la terminal de tu proyecto ejecutá: <strong>vercel --prod</strong> ' +
-                    '(subir archivos manualmente por el dashboard NO deploya las funciones del servidor).' +
-                    '<br><small>Recibido: ' + text.slice(0, 100).replace(/</g, '&lt;') + '</small>'
-                );
-            }
-            throw new Error('Respuesta inesperada: ' + text.slice(0, 200).replace(/</g, '&lt;'));
-        }
-
-        const data = await resp.json();
-
-        if (!data || data.error) {
-            errEl.innerHTML = data?.error || 'Error desconocido';
-            loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return;
-        }
-        if (!data.results || data.results.length === 0) {
-            errEl.textContent = 'No se encontraron resultados.';
-            loadEl.style.display = 'none'; btns.forEach(b => b.disabled = false); return;
-        }
-
-        const results = data.results;
-        const exchangeRate = data.exchangeRate;
-        const rateSource = data.rateSource;
-        const min = results[0];
-
-        // Show exchange rate info in header
-        if (exchangeRate) {
-            src.textContent = `${label2} · ${rateSource}: $${fmt(exchangeRate)}`;
-        }
-
-        minEl.textContent = `Mín: $${fmt(min.price)}${min.converted ? ' (USD→ARS)' : ''}`;
-
-        results.forEach(r => {
-            const tr = document.createElement('tr');
-            const isMin = r === min;
-            const convTag = r.converted ? ' <small style="color:#ffa502;font-size:.65rem">USD→ARS</small>' : '';
-            tr.innerHTML = `
-                <td>${r.store}</td>
-                <td style="${isMin ? 'color:#2ed573;font-weight:700' : ''}">$${fmt(r.price)}${convTag}</td>
-                <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">
-                    <a href="${r.link || '#'}" target="_blank" rel="noopener" style="color:#fff;text-decoration:none;display:flex;align-items:center;gap:6px">
-                        <img src="${r.thumbnail || ''}" alt="" style="width:24px;height:24px;border-radius:4px;object-fit:cover;" onerror="this.style.display='none'">
-                        ${r.title ? (r.title.length > 40 ? r.title.slice(0,38) + '…' : r.title) : '—'}
-                    </a>
-                </td>
-            `;
-            tbl.appendChild(tr);
-        });
-
-        const currentPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
-        if (currentPrice > 0 && min.price > 0) {
-            const diff = currentPrice - min.price;
-            const pct = ((diff / min.price) * 100).toFixed(0);
-            const color = Math.abs(diff) < min.price * 0.2 ? '#2ed573' : '#ff4757';
-            const label = diff <= 0 ? 'Estás por debajo del mínimo' : 'Estás $' + fmt(Math.abs(diff)) + ' arriba del mínimo (' + pct + '%)';
-            compEl.innerHTML = `<div style="margin-top:.6rem;font-size:.85rem;color:${color}">Tu precio: <strong>$${fmt(currentPrice)}</strong> · Mín: <strong>$${fmt(min.price)}</strong> — ${label}</div>`;
-        }
-
-    } catch(e) {
-        errEl.innerHTML = e.message;
-    }
-
-    loadEl.style.display = 'none';
-    btns.forEach(b => b.disabled = false);
-}
-
-// Wire buttons
-document.getElementById('btnSearchML').addEventListener('click', () => searchPrices('mercadolibre'));
-document.getElementById('btnSearchSerper').addEventListener('click', () => searchPrices('serper'));
-
 async function deleteProduct(id) {
     if (confirm("¿Estás seguro de que quieres borrar este producto?")) {
         try {
@@ -624,6 +523,30 @@ async function deleteProduct(id) {
             showFirebaseErrorAlert('eliminar el producto', error);
         }
     }
+}
+
+async function setAllMargin(marginPercent) {
+    if (!confirm(`¿Establecer ${marginPercent}% de ganancia a TODOS los productos? Se recalcularán los precios.`)) return;
+    const btns = document.querySelectorAll('.margin-btn');
+    btns.forEach(b => { b.textContent = '⏳'; b.disabled = true; });
+    try {
+        const snap = await db.collection("products").get();
+        let count = 0;
+        for (const doc of snap.docs) {
+            const data = doc.data();
+            const cost = data.cost || 0;
+            const margin = marginPercent;
+            const price = cost > 0 ? (() => { const v = cost * (1 + margin / 100) * 1.0649; return v < 100 ? v : Math.ceil(v / 100) * 100; })() : data.price;
+            await db.collection("products").doc(doc.id).update({ margin, cost, price });
+            count++;
+        }
+        alert(`✅ ${count} productos actualizados a ${marginPercent}% de ganancia.`);
+        loadProducts();
+    } catch (e) {
+        console.error("Error aplicando %:", e);
+        alert("Error: " + e.message);
+    }
+    btns.forEach(b => { b.textContent = b.dataset.margin + '%'; b.disabled = false; });
 }
 
 // Migrate Initial Data
