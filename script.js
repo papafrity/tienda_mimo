@@ -148,6 +148,28 @@ document.addEventListener('DOMContentLoaded', () => {
     function offerVal(p) { return p.offerPrice != null ? p.offerPrice : p.price; }
     function hasOffer(p) { return p.offerPrice != null && p.offerPrice !== p.price; }
 
+    // ─── PRECIOS POR CANTIDAD (MAYORISTA) ───────────────
+    // tiers: [{minQty, cost, price}] — el tramo alcanzado gana a la oferta.
+    function validTiers(p) {
+        if (!p || !Array.isArray(p.tiers)) return [];
+        return p.tiers.filter(t => t && t.minQty >= 2 && t.price > 0).sort((a, b) => a.minQty - b.minQty);
+    }
+    function tierForQty(p, qty) {
+        let best = null;
+        validTiers(p).forEach(t => { if (qty >= t.minQty) best = t; });
+        return best;
+    }
+    function unitPriceForQty(p, qty) {
+        const t = tierForQty(p, qty);
+        if (t) return { price: t.price, tier: t };
+        return { price: offerVal(p), tier: null };
+    }
+    function tiersHintHtml(p) {
+        const ts = validTiers(p);
+        if (!ts.length) return '';
+        return `<div class="tier-hint">${ts.map(t => `<span>Llevando ${t.minQty}+: $${fmt(t.price)}</span>`).join('')}</div>`;
+    }
+
     // ─── PRECIOS DINÁMICOS CON DÓLAR ─────────────────
     // Los productos con costCurrency = 'USD' recalculan su precio en ARS
     // automáticamente con el dólar blue del momento (misma fórmula del admin).
@@ -253,6 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3>${p.name}</h3>
                     <div class="stars">${renderStarsHtml(p.rating)}${p.reviewCount ? `<span class="review-count">(${p.reviewCount})</span>` : ''}</div>
                     ${priceHtml}
+                    ${tiersHintHtml(p)}
                     <button class="add-to-cart magnetic-btn">Agregar al Carrito</button>
                 </div>
             </div>`;
@@ -617,16 +640,17 @@ document.addEventListener('DOMContentLoaded', () => {
             cartItems.innerHTML = '<div class="empty-cart">Tu carrito está vacío</div>';
         } else {
             cart.forEach(item => {
-                const price = offerVal(item);
+                const up = unitPriceForQty(item, item.qty);
+                const price = up.price;
                 total += price * item.qty;
                 count += item.qty;
-                
+
                 cartItems.innerHTML += `
                 <div class="cart-item">
                     <img src="${item.image}" alt="${item.name}">
                     <div class="cart-item-info">
                         <h4>${item.name}</h4>
-                        <p>$${fmt(price)}</p>
+                        <p>$${fmt(price)}${up.tier ? ` <span class="tier-badge">Mayorista ${up.tier.minQty}+</span>` : ''}</p>
                         <div class="cart-item-qty">
                             <button class="qty-btn" onclick="updateQty('${item.id}', -1, this)">-</button>
                             <span class="qty-val">${item.qty}</span>
@@ -1159,11 +1183,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         const costCurrency = (p && p.costCurrency) || 'ARS';
                         const cost = (p && p.cost) || 0;
                         const costARS = costCurrency === 'USD' ? cost * (usdRateARS || 0) : cost;
+                        const up = unitPriceForQty(item, item.qty);
                         return {
                             id: item.id,
                             name: item.name,
-                            price: Number(offerVal(item)),
+                            price: Number(up.price),
                             qty: item.qty,
+                            tierMinQty: up.tier ? up.tier.minQty : null,
                             cost: cost,
                             costCurrency: costCurrency,
                             costARS: costARS,
@@ -1172,7 +1198,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     }),
                     status: 'initiated',
                     createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                    total: cart.reduce((sum, item) => sum + (Number(offerVal(item)) * item.qty), 0),
+                    total: cart.reduce((sum, item) => sum + (Number(unitPriceForQty(item, item.qty).price) * item.qty), 0),
                     shippingCost: shippingCost,
                     shippingProvince: provField
                 });
@@ -1257,9 +1283,11 @@ document.addEventListener('DOMContentLoaded', () => {
             mCat.textContent = p.category;
             mTit.textContent = p.name;
             const hasDiscount = hasOffer(p);
-            mPr.innerHTML = hasDiscount 
+            mPr.innerHTML = hasDiscount
                 ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span>`
                 : `$${fmt(offerVal(p))}`;
+            const tiersHint = tiersHintHtml(p);
+            if (tiersHint) mPr.innerHTML += tiersHint;
             mDesc.textContent = p.description || '';
             const descWrap = document.getElementById('modalDescWrap');
             const descToggle = document.getElementById('modalDescToggle');

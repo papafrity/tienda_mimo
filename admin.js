@@ -273,10 +273,15 @@ const form = document.getElementById('productForm');
 
 document.getElementById('addProductBtn').addEventListener('click', () => openModal());
 document.getElementById('reloadBtn').addEventListener('click', loadProducts);
-document.querySelectorAll('.margin-btn').forEach(btn => {
-    btn.addEventListener('click', () => setAllMargin(parseInt(btn.dataset.margin)));
-});
 document.getElementById('cancelBtn').addEventListener('click', () => modal.classList.remove('active'));
+
+// Botones rápidos de margen: solo rellenan el formulario del producto en edición
+document.querySelectorAll('#productForm .margin-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.getElementById('prodMargin').value = btn.dataset.margin;
+        updateCalculatedPrice();
+    });
+});
 
 adminSearchInput.addEventListener('input', renderAdminProducts);
 adminCategoryFilter.addEventListener('change', renderAdminProducts);
@@ -289,6 +294,7 @@ function openModal(id = null) {
     document.getElementById('prodCurrency').dataset.currency = 'ARS';
     document.getElementById('prodCurrencyLabel').textContent = 'ARS';
     document.getElementById('prodMargin').value = '20';
+    resetTierForm();
     document.getElementById('modalTitle').textContent = 'Agregar Producto';
     
     currentUploadedImages = [];
@@ -309,6 +315,7 @@ function openModal(id = null) {
             document.getElementById('prodCurrency').dataset.currency = p.costCurrency || 'ARS';
             document.getElementById('prodCurrencyLabel').textContent = p.costCurrency || 'ARS';
             document.getElementById('prodMargin').value = p.margin || 30;
+            loadTiersToForm(p.tiers);
             document.getElementById('prodPrice').value = p.price;
             document.getElementById('prodOffer').value = p.offerPrice || '';
             document.getElementById('prodBadge').value = p.badge || '';
@@ -392,6 +399,7 @@ form.addEventListener('submit', async (e) => {
         cost: parseFloat(document.getElementById('prodCost').value) || 0,
         costCurrency: document.getElementById('prodCurrency').dataset.currency || 'ARS',
         margin: parseInt(document.getElementById('prodMargin').value) || 0,
+        tiers: readTiersFromForm(),
         offerPrice: document.getElementById('prodOffer').value ? (() => { const v = parseFloat(document.getElementById('prodOffer').value) || 0; return v < 100 ? v : Math.ceil(v / 100) * 100; })() : null,
         badge: document.getElementById('prodBadge').value,
         description: document.getElementById('prodDesc').value,
@@ -491,7 +499,77 @@ function updateCalculatedPrice() {
     const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
     if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
     updateCostARSDisplay();
+    updateTierPrices();
 }
+
+// ─── PRECIOS POR CANTIDAD (MAYORISTA) ─────────────────────
+// Tramo 1 = costo/precio base. Tramos 2-4: misma fórmula (margen + MP + redondeo).
+function calcFinalPrice(costARS, margin) {
+    const basePrice = costARS * (1 + (margin / 100));
+    const rawFinal = basePrice * (1 + MP_FEE);
+    return rawFinal < 100 ? Math.round(rawFinal * 100) / 100 : Math.ceil(rawFinal / 100) * 100;
+}
+
+function getTierCostInARS(n) {
+    const cost = parseFloat(document.getElementById('tier' + n + 'Cost').value) || 0;
+    const currency = getCostCurrency();
+    if (currency === 'USD' && usdRateARS) return cost * usdRateARS;
+    return cost;
+}
+
+function updateTierPrices() {
+    const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
+    [2, 3, 4].forEach(n => {
+        const el = document.getElementById('tier' + n + 'Price');
+        if (!el) return;
+        const costARS = getTierCostInARS(n);
+        el.textContent = costARS > 0 ? '$' + fmt(calcFinalPrice(costARS, margin)) : '—';
+    });
+}
+
+function readTiersFromForm() {
+    const tiers = [];
+    [2, 3, 4].forEach(n => {
+        const minQty = parseInt(document.getElementById('tier' + n + 'Qty').value) || 0;
+        const cost = parseFloat(document.getElementById('tier' + n + 'Cost').value) || 0;
+        if (minQty >= 2 && cost > 0) {
+            const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
+            tiers.push({
+                minQty,
+                cost,
+                costCurrency: getCostCurrency(),
+                price: calcFinalPrice(getTierCostInARS(n), margin)
+            });
+        }
+    });
+    tiers.sort((a, b) => a.minQty - b.minQty);
+    return tiers;
+}
+
+function resetTierForm() {
+    [2, 3, 4].forEach(n => {
+        document.getElementById('tier' + n + 'Qty').value = '';
+        document.getElementById('tier' + n + 'Cost').value = '';
+    });
+    updateTierPrices();
+}
+
+function loadTiersToForm(tiers) {
+    resetTierForm();
+    if (!Array.isArray(tiers)) return;
+    const valid = tiers.filter(t => t && t.minQty >= 2 && (t.cost > 0 || t.price > 0)).slice(0, 3);
+    valid.forEach((t, i) => {
+        const n = i + 2;
+        document.getElementById('tier' + n + 'Qty').value = t.minQty;
+        document.getElementById('tier' + n + 'Cost').value = t.cost || '';
+    });
+    updateTierPrices();
+}
+
+['tier2Qty', 'tier2Cost', 'tier3Qty', 'tier3Cost', 'tier4Qty', 'tier4Cost'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateTierPrices);
+});
 document.getElementById('prodCost').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodMargin').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodCurrency').addEventListener('click', () => {
@@ -523,30 +601,6 @@ async function deleteProduct(id) {
             showFirebaseErrorAlert('eliminar el producto', error);
         }
     }
-}
-
-async function setAllMargin(marginPercent) {
-    if (!confirm(`¿Establecer ${marginPercent}% de ganancia a TODOS los productos? Se recalcularán los precios.`)) return;
-    const btns = document.querySelectorAll('.margin-btn');
-    btns.forEach(b => { b.textContent = '⏳'; b.disabled = true; });
-    try {
-        const snap = await db.collection("products").get();
-        let count = 0;
-        for (const doc of snap.docs) {
-            const data = doc.data();
-            const cost = data.cost || 0;
-            const margin = marginPercent;
-            const price = cost > 0 ? (() => { const v = cost * (1 + margin / 100) * 1.0649; return v < 100 ? v : Math.ceil(v / 100) * 100; })() : data.price;
-            await db.collection("products").doc(doc.id).update({ margin, cost, price });
-            count++;
-        }
-        alert(`✅ ${count} productos actualizados a ${marginPercent}% de ganancia.`);
-        loadProducts();
-    } catch (e) {
-        console.error("Error aplicando %:", e);
-        alert("Error: " + e.message);
-    }
-    btns.forEach(b => { b.textContent = b.dataset.margin + '%'; b.disabled = false; });
 }
 
 // Migrate Initial Data

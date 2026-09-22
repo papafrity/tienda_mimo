@@ -279,6 +279,10 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .product-info .price{font-size:1.2rem;color:var(--text-secondary);margin:.3rem 0 1.2rem}
 .product-info .price-old{text-decoration:line-through;font-size:.85em;color:var(--text-secondary);margin-right:8px}
 .product-info .price-offer{font-size:1.35rem;font-weight:800;color:#fff}
+.tier-hint{display:flex;flex-wrap:wrap;gap:.35rem;margin:.1rem 0 .8rem}
+.tier-hint span{font-size:.72rem;color:#2ed573;background:rgba(46,213,115,.08);border:1px solid rgba(46,213,115,.25);border-radius:20px;padding:.15rem .6rem;white-space:nowrap}
+.modal-price .tier-hint{margin-top:.6rem}
+.tier-badge{display:inline-block;font-size:.7rem;font-weight:700;color:#2ed573;background:rgba(46,213,115,.1);border:1px solid rgba(46,213,115,.3);border-radius:20px;padding:.1rem .55rem;margin-left:.4rem;vertical-align:middle;white-space:nowrap}
 .add-to-cart{width:100%;padding:.9rem;background:transparent;border:1px solid var(--surface-border);color:var(--text-primary);border-radius:12px;font-size:.95rem;font-weight:600;cursor:none;transition:all var(--transition-base);margin-top:auto;font-family:'Outfit',sans-serif;position:relative;z-index:1}
 .add-to-cart:hover,.product-card:hover .add-to-cart{background:var(--gradient-glow);border-color:transparent;color:#000}
 .add-to-cart.added{background:var(--gradient-glow) !important;border-color:transparent !important;color:#000 !important;animation:addedPulse .35s ease}
@@ -621,11 +625,15 @@ body{padding-bottom:70px}
 
 .cart-item-del {
     position: absolute;
-    top: 1rem; right: 1rem;
+    top: .5rem; right: .5rem;
+    min-width: 44px; min-height: 44px;
+    display: inline-flex; align-items: center; justify-content: center;
+    padding: 0; border-radius: 12px;
     background: none; border: none; color: var(--text-secondary);
-    cursor: pointer; font-size: 1.2rem; transition: color 0.3s;
+    cursor: pointer; font-size: 1.7rem; line-height: 1;
+    transition: color .3s, background .3s;
 }
-.cart-item-del:hover { color: #ff4757; }
+.cart-item-del:hover { color: #ff4757; background: rgba(255,71,87,.12); }
 
 .cart-footer {
     padding: 2rem;
