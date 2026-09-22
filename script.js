@@ -1286,8 +1286,27 @@ document.addEventListener('DOMContentLoaded', () => {
             mPr.innerHTML = hasDiscount
                 ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span>`
                 : `$${fmt(offerVal(p))}`;
-            const tiersHint = tiersHintHtml(p);
-            if (tiersHint) mPr.innerHTML += tiersHint;
+            const tiersToggle = document.getElementById('modalTiersToggle');
+            const tiersList = document.getElementById('modalTiersList');
+            if (tiersToggle && tiersList) {
+                const ts = validTiers(p);
+                if (!ts.length) {
+                    tiersToggle.style.display = 'none';
+                    tiersList.style.display = 'none';
+                } else {
+                    tiersToggle.style.display = '';
+                    tiersToggle.classList.remove('open');
+                    tiersList.style.display = 'none';
+                    tiersList.innerHTML =
+                        `<div class="tier-row"><span>x1</span><span>$${fmt(offerVal(p))}</span></div>` +
+                        ts.map(t => `<div class="tier-row"><span>x${t.minQty}</span><span>$${fmt(t.price)}</span></div>`).join('');
+                    tiersToggle.onclick = () => {
+                        const isOpen = tiersList.style.display !== 'none';
+                        tiersList.style.display = isOpen ? 'none' : 'block';
+                        tiersToggle.classList.toggle('open', !isOpen);
+                    };
+                }
+            }
             mDesc.textContent = p.description || '';
             const descWrap = document.getElementById('modalDescWrap');
             const descToggle = document.getElementById('modalDescToggle');

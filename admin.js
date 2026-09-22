@@ -546,9 +546,11 @@ function readTiersFromForm() {
     return tiers;
 }
 
+const TIER_DEFAULT_QTY = { 2: 3, 3: 5, 4: 10 };
+
 function resetTierForm() {
     [2, 3, 4].forEach(n => {
-        document.getElementById('tier' + n + 'Qty').value = '';
+        document.getElementById('tier' + n + 'Qty').value = TIER_DEFAULT_QTY[n];
         document.getElementById('tier' + n + 'Cost').value = '';
     });
     updateTierPrices();

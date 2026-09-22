@@ -281,7 +281,14 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .product-info .price-offer{font-size:1.35rem;font-weight:800;color:#fff}
 .tier-hint{display:flex;flex-wrap:wrap;gap:.35rem;margin:.1rem 0 .8rem}
 .tier-hint span{font-size:.72rem;color:#2ed573;background:rgba(46,213,115,.08);border:1px solid rgba(46,213,115,.25);border-radius:20px;padding:.15rem .6rem;white-space:nowrap}
-.modal-price .tier-hint{margin-top:.6rem}
+.modal-tiers-toggle{background:transparent;border:1px solid var(--surface-border);color:var(--text-primary);border-radius:10px;padding:.55rem 1rem;font-size:.85rem;font-weight:600;cursor:pointer;margin-top:.7rem;transition:border-color .3s,color .3s;font-family:'Outfit',sans-serif}
+.modal-tiers-toggle:hover{border-color:var(--accent-color);color:var(--accent-color)}
+.modal-tiers-toggle .tiers-arrow{display:inline-block;transition:transform .3s}
+.modal-tiers-toggle.open .tiers-arrow{transform:rotate(180deg)}
+.modal-tiers-list{margin-top:.5rem;border:1px solid var(--surface-border);border-radius:10px;overflow:hidden}
+.modal-tiers-list .tier-row{display:flex;justify-content:space-between;align-items:center;padding:.5rem .9rem;font-size:.9rem}
+.modal-tiers-list .tier-row:nth-child(odd){background:rgba(255,255,255,.02)}
+.modal-tiers-list .tier-row span:last-child{font-weight:700;color:#2ed573}
 .tier-badge{display:inline-block;font-size:.7rem;font-weight:700;color:#2ed573;background:rgba(46,213,115,.1);border:1px solid rgba(46,213,115,.3);border-radius:20px;padding:.1rem .55rem;margin-left:.4rem;vertical-align:middle;white-space:nowrap}
 .add-to-cart{width:100%;padding:.9rem;background:transparent;border:1px solid var(--surface-border);color:var(--text-primary);border-radius:12px;font-size:.95rem;font-weight:600;cursor:none;transition:all var(--transition-base);margin-top:auto;font-family:'Outfit',sans-serif;position:relative;z-index:1}
 .add-to-cart:hover,.product-card:hover .add-to-cart{background:var(--gradient-glow);border-color:transparent;color:#000}
