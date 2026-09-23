@@ -1161,8 +1161,8 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
-// ─── AI DESCRIPTION GENERATOR (GEMINI → GROQ → POLLINATIONS) ─
-// Cascada: Gemini (con key propia) → Groq (con key propia) → Pollinations (sin key).
+// ─── AI DESCRIPTION GENERATOR (GEMINI → GROQ → PUTER) ─────
+// Cascada: Gemini (con key propia) → Groq (con key propia) → Puter (sin key).
 // Las keys se guardan en localStorage (por navegador).
 
 function getGroqKey() {
@@ -1232,19 +1232,27 @@ async function callGroq(promptText) {
     throw lastErr;
 }
 
-async function callPollinations(promptText) {
-    // IA gratuita sin API key (respaldo final, siempre disponible).
-    const resp = await fetch(`https://text.pollinations.ai/${encodeURIComponent(promptText)}?model=openai`, {
-        method: 'GET',
-        headers: { 'Accept': 'text/plain' }
-    });
-    if (!resp.ok) {
-        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Pollinations', message: 'Pollinations alcanzó su límite por minuto. Esperá unos segundos.' };
-        throw { code: 'HTTP', label: 'Pollinations', message: 'Error al conectar con Pollinations.' };
+async function callPuter(promptText) {
+    // IA sin API key (respaldo final). El primer uso abre un popup para
+    // crear/iniciar sesión en Puter (gratis); después funciona directo.
+    if (typeof puter === 'undefined' || !puter.ai || typeof puter.ai.chat !== 'function') {
+        throw { code: 'NO_SDK', label: 'Puter', message: 'No se pudo cargar Puter.js. Revisá tu conexión e intentá de nuevo.' };
     }
-    const text = (await resp.text()).trim();
-    if (!text) throw { code: 'EMPTY', label: 'Pollinations', message: 'Pollinations devolvió una respuesta vacía.' };
-    return text;
+    let resp;
+    try {
+        resp = await puter.ai.chat(promptText);
+    } catch (e) {
+        const msg = (e && e.message ? e.message : String(e)) || '';
+        if (/auth|sign|login|permission|denied|cancel/i.test(msg)) {
+            throw { code: 'AUTH', label: 'Puter', message: 'Tenés que iniciar sesión en Puter (popup) para usar esta IA. Es gratis.' };
+        }
+        throw { code: 'HTTP', label: 'Puter', message: 'Error al conectar con Puter: ' + (msg || 'desconocido') };
+    }
+    const text = typeof resp === 'string' ? resp
+        : (resp && resp.message && typeof resp.message.content === 'string' ? resp.message.content
+        : (resp && typeof resp.text === 'string' ? resp.text : ''));
+    if (!text.trim()) throw { code: 'EMPTY', label: 'Puter', message: 'Puter devolvió una respuesta vacía.' };
+    return text.trim();
 }
 
 function buildProductPrompt() {
@@ -1295,11 +1303,11 @@ if (generateAIBtn) {
         const promptText = buildProductPrompt();
 
         // Proveedores en orden de prioridad. Se prueban en cascada:
-        // 1) Gemini (si hay key). 2) Groq (si hay key). 3) Pollinations (sin key).
+        // 1) Gemini (si hay key). 2) Groq (si hay key). 3) Puter (sin key).
         const providers = [
             { label: 'Gemini', fn: () => callGemini(promptText) },
             { label: 'Groq', fn: () => callGroq(promptText) },
-            { label: 'Pollinations', fn: () => callPollinations(promptText) }
+            { label: 'Puter', fn: () => callPuter(promptText) }
         ];
 
         let lastErr = null;
@@ -1322,7 +1330,7 @@ if (generateAIBtn) {
         if (!success) {
             const msg = lastErr ? lastErr.message : 'Error desconocido.';
             const hint = (lastErr && (lastErr.code === 'NO_KEY' || lastErr.code === 'RATE_LIMIT'))
-                ? '\n\nConfigurá tus keys con el botón 🔑 (Gemini y/o Groq). Pollinations funciona sin key como último respaldo.'
+                ? '\n\nConfigurá tus keys con el botón 🔑 (Gemini y/o Groq). Puter funciona sin key como último respaldo (pide login gratis una vez).'
                 : '';
             alert(`Error: ${msg}${hint}`);
         }
