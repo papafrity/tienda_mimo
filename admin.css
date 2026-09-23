@@ -752,6 +752,20 @@ select option { background: #fff; color: #000; }
     border: 1px solid rgba(255, 71, 87, 0.3);
 }
 
+/* Inline cost/price editing in admin table */
+.cell-wrap{display:flex;align-items:center;gap:.25rem}
+.cell-cur{color:var(--text-secondary);font-size:.75rem;white-space:nowrap}
+.cell-input{width:90px;padding:.35rem .5rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;outline:none;transition:border-color .2s}
+.cell-input:focus{border-color:var(--accent-color)}
+#adminProductList tr.dirty td:first-child{box-shadow:inset 3px 0 0 #ffc107}
+#adminProductList tr.dirty .cell-input{border-color:rgba(255,193,7,.6)}
+.save-dot{display:inline-block;min-width:18px;height:18px;line-height:18px;text-align:center;border-radius:50%;background:#ffc107;color:#000;font-size:.7rem;font-weight:800;padding:0 4px;margin-left:.3rem;vertical-align:middle}
+
+/* Bulk selection in admin table */
+#selectAll,.row-select{width:17px;height:17px;accent-color:var(--primary);cursor:pointer;vertical-align:middle}
+#bulkBar .bulk-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:#00f0ff;box-shadow:0 0 8px rgba(0,240,255,.7)}
+#adminProductList tr:has(.row-select:checked){background:rgba(0,240,255,.04)}
+
 /* Visual distinction for paused products in admin table */
 #adminProductList tr:has(.status-badge.paused) {
     opacity: 0.45;

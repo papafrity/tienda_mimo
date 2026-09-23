@@ -235,17 +235,21 @@ function renderAdminProducts() {
 
     filtered.forEach(p => {
         const tr = document.createElement('tr');
+        if (pendingEdits[p.id]) tr.classList.add('dirty');
         const displayImg = isLocalFilePath(p.image) 
             ? "https://placehold.co/100x100/1a1a2e/ff4757?text=PC+File" 
             : (p.image || 'https://placehold.co/100x100/1a1a2e/00f0ff?text=Mimo!');
+        const pend = pendingEdits[p.id];
+        const costVal = pend && pend.costTouched ? pend.cost : (p.cost ?? '');
+        const priceVal = pend && pend.priceTouched ? pend.price : (p.price ?? '');
         tr.innerHTML = `
+            <td><input type="checkbox" class="row-select" data-id="${p.id}" ${selectedIds.has(p.id) ? 'checked' : ''} title="Seleccionar"></td>
             <td><img src="${displayImg}" alt="img"></td>
             <td><strong>${p.name}</strong></td>
             <td style="text-transform: capitalize;">${p.category}</td>
-            <td>$${fmt(p.price)}</td>
+            <td><div class="cell-wrap"><span class="cell-cur">${p.costCurrency === 'USD' ? 'US$' : '$'}</span><input class="cell-input cost-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${costVal}" placeholder="—"></div></td>
+            <td><div class="cell-wrap"><span class="cell-cur">$</span><input class="cell-input price-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${priceVal}"></div></td>
             <td>${p.offerPrice ? '$' + fmt(p.offerPrice) : '-'}</td>
-            <td style="text-align:center">${p.stock !== undefined ? p.stock : '-'}</td>
-            <td style="text-align:center">${p.peso ? p.peso + 'kg' : '-'}</td>
             <td style="text-align:center">
                 <span class="status-badge ${p.isActive !== false ? 'active' : 'paused'}">
                     ${p.isActive !== false ? '🟢 Activo' : '🔴 Pausado'}
@@ -260,12 +264,228 @@ function renderAdminProducts() {
     });
 
     document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => openModal(e.target.closest('.edit-btn').dataset.id));
+        btn.addEventListener('click', (e) => { seqQueue = []; seqIdx = -1; openModal(e.target.closest('.edit-btn').dataset.id); });
     });
     document.querySelectorAll('.del-btn').forEach(btn => {
         btn.addEventListener('click', (e) => deleteProduct(e.target.closest('.del-btn').dataset.id));
     });
+    updateBulkBar();
 }
+
+// ─── SELECCIÓN MÚLTIPLE + ACCIONES EN LOTE ──────────────
+const selectedIds = new Set();
+let seqQueue = [];
+let seqIdx = -1;
+const seqActive = () => seqIdx >= 0 && seqIdx < seqQueue.length;
+
+function updateBulkBar() {
+    const bar = document.getElementById('bulkBar');
+    const count = document.getElementById('bulkCount');
+    if (!bar || !count) return;
+    const n = selectedIds.size;
+    bar.style.display = n ? 'flex' : 'none';
+    count.textContent = `${n} seleccionado${n === 1 ? '' : 's'}`;
+    const sa = document.getElementById('selectAll');
+    const boxes = [...document.querySelectorAll('#adminProductList .row-select')];
+    const checked = boxes.filter(b => b.checked).length;
+    if (sa) {
+        sa.checked = boxes.length > 0 && checked === boxes.length;
+        sa.indeterminate = checked > 0 && checked < boxes.length;
+    }
+}
+
+tbody.addEventListener('change', (e) => {
+    const cb = e.target.closest('.row-select');
+    if (!cb) return;
+    if (cb.checked) selectedIds.add(cb.dataset.id);
+    else selectedIds.delete(cb.dataset.id);
+    updateBulkBar();
+});
+
+document.getElementById('selectAll').addEventListener('change', (e) => {
+    document.querySelectorAll('#adminProductList .row-select').forEach(cb => {
+        cb.checked = e.target.checked;
+        if (cb.checked) selectedIds.add(cb.dataset.id);
+        else selectedIds.delete(cb.dataset.id);
+    });
+    updateBulkBar();
+});
+
+document.getElementById('bulkClearBtn').addEventListener('click', () => {
+    selectedIds.clear();
+    document.querySelectorAll('#adminProductList .row-select').forEach(cb => { cb.checked = false; });
+    updateBulkBar();
+});
+
+async function bulkDelete() {
+    const ids = [...selectedIds];
+    if (!ids.length) return;
+    if (!confirm(`¿Borrar ${ids.length} producto${ids.length === 1 ? '' : 's'}? Esta acción no se puede deshacer.`)) return;
+    try {
+        for (let i = 0; i < ids.length; i += 400) {
+            const batch = db.batch();
+            ids.slice(i, i + 400).forEach(id => batch.delete(db.collection('products').doc(id)));
+            await batch.commit();
+        }
+        selectedIds.clear();
+        alert(`🗑️ ${ids.length} producto${ids.length === 1 ? '' : 's'} borrado${ids.length === 1 ? '' : 's'}.`);
+        loadProducts();
+    } catch (e) {
+        console.error('Error borrando en lote:', e);
+        alert('Error: ' + e.message);
+    }
+}
+
+async function bulkSetActive(active) {
+    const ids = [...selectedIds];
+    if (!ids.length) return;
+    try {
+        for (let i = 0; i < ids.length; i += 400) {
+            const batch = db.batch();
+            ids.slice(i, i + 400).forEach(id => batch.update(db.collection('products').doc(id), { isActive: active }));
+            await batch.commit();
+        }
+        selectedIds.clear();
+        alert(`${active ? '🟢' : '🔴'} ${ids.length} producto${ids.length === 1 ? '' : 's'} ${active ? 'activado' : 'pausado'}${ids.length === 1 ? '' : 's'}.`);
+        loadProducts();
+    } catch (e) {
+        console.error('Error actualizando en lote:', e);
+        alert('Error: ' + e.message);
+    }
+}
+
+document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDelete);
+document.getElementById('bulkPauseBtn').addEventListener('click', () => bulkSetActive(false));
+document.getElementById('bulkActivateBtn').addEventListener('click', () => bulkSetActive(true));
+
+// ─── EDICIÓN SECUENCIAL ─────────────────────────────────
+function updateSeqUI() {
+    const prog = document.getElementById('seqProgress');
+    const skip = document.getElementById('skipBtn');
+    const cancel = document.getElementById('cancelBtn');
+    if (seqActive()) {
+        prog.style.display = '';
+        prog.textContent = `${seqIdx + 1} de ${seqQueue.length}`;
+        skip.style.display = '';
+        cancel.textContent = 'Terminar';
+    } else {
+        prog.style.display = 'none';
+        skip.style.display = 'none';
+        cancel.textContent = 'Cancelar';
+    }
+}
+
+function startSequence() {
+    const order = [];
+    document.querySelectorAll('#adminProductList .row-select').forEach(cb => {
+        if (selectedIds.has(cb.dataset.id)) order.push(cb.dataset.id);
+    });
+    seqQueue = order.length ? order : [...selectedIds];
+    if (!seqQueue.length) return;
+    seqIdx = 0;
+    openModal(seqQueue[seqIdx]);
+}
+
+document.getElementById('bulkEditSeqBtn').addEventListener('click', startSequence);
+
+document.getElementById('skipBtn').addEventListener('click', () => {
+    if (!seqActive()) return;
+    selectedIds.delete(seqQueue[seqIdx]);
+    seqIdx++;
+    if (seqActive()) {
+        openModal(seqQueue[seqIdx]);
+    } else {
+        seqQueue = []; seqIdx = -1;
+        selectedIds.clear();
+        updateSeqUI();
+        modal.classList.remove('active');
+        loadProducts();
+        alert('Secuencia terminada.');
+    }
+});
+
+// ─── EDICIÓN INLINE DE COSTO/PRECIO EN LA LISTA ─────────
+// Los cambios quedan "pendientes" (punto ámbar) hasta pulsar Guardar cambios.
+const pendingEdits = {};
+const MP_FEE_INLINE = 0.0649;
+
+function calcPriceFromCostInline(costARS, margin) {
+    const v = costARS * (1 + (margin / 100)) * (1 + MP_FEE_INLINE);
+    return v < 100 ? Math.round(v * 100) / 100 : Math.ceil(v / 100) * 100;
+}
+
+function refreshSaveAllBtn() {
+    const btn = document.getElementById('saveAllBtn');
+    if (!btn) return;
+    const n = Object.keys(pendingEdits).length;
+    btn.disabled = n === 0;
+    btn.style.opacity = n === 0 ? '.4' : '1';
+    btn.innerHTML = n === 0 ? '💾 Guardar cambios' : `💾 Guardar cambios <span class="save-dot">${n}</span>`;
+}
+
+tbody.addEventListener('input', (e) => {
+    const input = e.target.closest('.cell-input');
+    if (!input) return;
+    const id = input.dataset.id;
+    const isCost = input.classList.contains('cost-input');
+    if (!pendingEdits[id]) pendingEdits[id] = {};
+    const entry = pendingEdits[id];
+    if (isCost) { entry.cost = input.value; entry.costTouched = true; }
+    else { entry.price = input.value; entry.priceTouched = true; }
+    const tr = input.closest('tr');
+    if (tr) tr.classList.add('dirty');
+    refreshSaveAllBtn();
+});
+
+tbody.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.target.closest('.cell-input')) {
+        e.preventDefault();
+        saveAllEdits();
+    }
+});
+
+async function saveAllEdits() {
+    const ids = Object.keys(pendingEdits);
+    if (!ids.length) return;
+    const btn = document.getElementById('saveAllBtn');
+    btn.disabled = true;
+    btn.textContent = '⏳ Guardando...';
+    let ok = 0;
+    const errors = [];
+    for (const id of ids) {
+        const p = adminProducts.find(x => x.id === id);
+        const entry = pendingEdits[id];
+        if (!p) { delete pendingEdits[id]; continue; }
+        const cost = entry.costTouched ? parseFloat(entry.cost) : (p.cost || 0);
+        const manualPrice = entry.priceTouched ? parseFloat(entry.price) : null;
+        if (entry.costTouched && (isNaN(cost) || cost < 0)) { errors.push(p.name + ' (costo inválido)'); continue; }
+        if (entry.priceTouched && (isNaN(manualPrice) || manualPrice < 0)) { errors.push(p.name + ' (precio inválido)'); continue; }
+        const currency = p.costCurrency || 'ARS';
+        let price;
+        if (entry.costTouched && !(currency === 'USD' && !usdRateARS)) {
+            const costARS = currency === 'USD' ? cost * usdRateARS : cost;
+            price = calcPriceFromCostInline(costARS, p.margin || 0);
+        } else {
+            price = manualPrice != null ? manualPrice : p.price;
+        }
+        try {
+            await db.collection('products').doc(id).update({ cost, price });
+            const idx = adminProducts.findIndex(x => x.id === id);
+            if (idx >= 0) { adminProducts[idx].cost = cost; adminProducts[idx].price = price; }
+            delete pendingEdits[id];
+            ok++;
+        } catch (e) {
+            console.error('Error guardando ' + p.name, e);
+            errors.push(p.name);
+        }
+    }
+    refreshSaveAllBtn();
+    renderAdminProducts();
+    if (errors.length) alert('⚠️ ' + ok + ' guardados. Revisar: ' + errors.join(', '));
+    else alert('✅ ' + ok + ' productos actualizados.');
+}
+
+document.getElementById('saveAllBtn').addEventListener('click', saveAllEdits);
 
 // Modal Logic
 const modal = document.getElementById('adminModal');
@@ -273,7 +493,11 @@ const form = document.getElementById('productForm');
 
 document.getElementById('addProductBtn').addEventListener('click', () => openModal());
 document.getElementById('reloadBtn').addEventListener('click', loadProducts);
-document.getElementById('cancelBtn').addEventListener('click', () => modal.classList.remove('active'));
+document.getElementById('cancelBtn').addEventListener('click', () => {
+    seqQueue = []; seqIdx = -1;
+    updateSeqUI();
+    modal.classList.remove('active');
+});
 
 // Botones rápidos de margen: solo rellenan el formulario del producto en edición
 document.querySelectorAll('#productForm .margin-btn').forEach(btn => {
@@ -340,8 +564,7 @@ function openModal(id = null) {
             }
             document.getElementById('prodFeatured').checked = p.isFeatured || false;
             document.getElementById('prodActive').checked = p.isActive !== false;
-            document.getElementById('prodStock').value = p.stock ?? 0;
-            document.getElementById('prodWeight').value = p.peso ?? 0.5;
+
             
             if (imgsToLoad.length > 0) {
                 currentUploadedImages = imgsToLoad;
@@ -358,6 +581,7 @@ function openModal(id = null) {
         }
     }
     modal.classList.add('active');
+    updateSeqUI();
     // Disparar evento para que aparezca la cruz de borrar imagen
     document.getElementById('prodImg').dispatchEvent(new Event('input'));
     // Update profit display
@@ -407,8 +631,6 @@ form.addEventListener('submit', async (e) => {
         fullImages: JSON.stringify(finalImages),
         isFeatured: document.getElementById('prodFeatured').checked,
         isActive: document.getElementById('prodActive').checked,
-        stock: parseInt(document.getElementById('prodStock').value) || 0,
-        peso: parseFloat(document.getElementById('prodWeight').value) || 0.5
     };
 
     const saveBtn = document.getElementById('saveBtn');
@@ -421,8 +643,23 @@ form.addEventListener('submit', async (e) => {
         } else {
             await db.collection("products").add(productData);
         }
-        modal.classList.remove('active');
-        await loadProducts();
+        if (seqActive()) {
+            selectedIds.delete(id);
+            seqIdx++;
+            await loadProducts();
+            if (seqActive()) {
+                openModal(seqQueue[seqIdx]);
+            } else {
+                seqQueue = []; seqIdx = -1;
+                selectedIds.clear();
+                updateSeqUI();
+                modal.classList.remove('active');
+                alert('✅ Secuencia completa.');
+            }
+        } else {
+            modal.classList.remove('active');
+            await loadProducts();
+        }
     } catch (error) {
         console.error("Error guardando:", error);
         showFirebaseErrorAlert('guardar el producto', error);
