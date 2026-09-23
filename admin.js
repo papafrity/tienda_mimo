@@ -1454,18 +1454,20 @@ async function callGemini(promptText) {
     const key = getGeminiKey();
     if (!key) throw { code: 'NO_KEY', label: 'Gemini', message: 'No hay key de Gemini configurada (botón 🔑).' };
 
-    const modelsToTry = ['gemini-2.0-flash', 'gemini-flash-latest'];
+    const modelsToTry = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
     let lastErr = null;
 
     for (const model of modelsToTry) {
-        // Intento A: Con herramienta de búsqueda de Google (specs reales)
+        // Intento directo con el modelo
         try {
             const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-goog-api-key': key
+                },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }],
-                    tools: [{ google_search: {} }]
+                    contents: [{ parts: [{ text: promptText }] }]
                 })
             });
 
@@ -1478,36 +1480,12 @@ async function callGemini(promptText) {
                 throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite de cuota temporal.' };
             } else if (resp.status === 401 || resp.status === 403) {
                 throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o expirada.' };
+            } else {
+                lastErr = { code: 'HTTP', label: 'Gemini', message: `Error HTTP ${resp.status} en modelo ${model}.` };
             }
         } catch (e) {
             if (e && (e.code === 'RATE_LIMIT' || e.code === 'AUTH')) throw e;
-        }
-
-        // Intento B: Directo sin herramienta (más compatible)
-        try {
-            const resp2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    contents: [{ parts: [{ text: promptText }] }]
-                })
-            });
-
-            if (resp2.ok) {
-                const data2 = await resp2.json();
-                const parts2 = data2.candidates && data2.candidates[0] && data2.candidates[0].content && data2.candidates[0].content.parts ? data2.candidates[0].content.parts : [];
-                const text2 = parts2.filter(pt => pt && typeof pt.text === 'string').map(pt => pt.text).join('').trim();
-                if (text2) return text2;
-            } else if (resp2.status === 429) {
-                throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite de cuota temporal.' };
-            } else if (resp2.status === 401 || resp2.status === 403) {
-                throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o expirada.' };
-            } else {
-                lastErr = { code: 'HTTP', label: 'Gemini', message: `Error HTTP ${resp2.status} en modelo ${model}.` };
-            }
-        } catch (e2) {
-            if (e2 && (e2.code === 'RATE_LIMIT' || e2.code === 'AUTH')) throw e2;
-            lastErr = e2;
+            lastErr = e;
         }
     }
 
@@ -1738,11 +1716,11 @@ function updateKeyFormatFeedback() {
     const geminiStatus = document.getElementById('geminiKeyStatus');
     if (geminiStatus) {
         if (!geminiVal) {
-            geminiStatus.innerHTML = '<span style="color:var(--text-secondary)">Debe comenzar con "AIzaSy...". Se autoguarda al escribir.</span>';
-        } else if (geminiVal.startsWith('AIzaSy')) {
-            geminiStatus.innerHTML = '<span style="color:#2ed573">✓ Formato de clave Gemini correcto (AIzaSy...)</span>';
+            geminiStatus.innerHTML = '<span style="color:var(--text-secondary)">Debe comenzar con "AQ." o "AIzaSy...". Se autoguarda al escribir.</span>';
+        } else if (geminiVal.startsWith('AQ.') || geminiVal.startsWith('AIzaSy')) {
+            geminiStatus.innerHTML = '<span style="color:#2ed573">✓ Formato de clave Gemini correcto</span>';
         } else {
-            geminiStatus.innerHTML = '<span style="color:#ff4757">⚠️ Formato inválido: las claves de Google AI Studio deben empezar con "AIzaSy...". Verificá no haber pegado un token "AQ." ni una URL.</span>';
+            geminiStatus.innerHTML = '<span style="color:#ff4757">⚠️ Formato inválido: las claves de Google AI Studio deben empezar con "AQ." o "AIzaSy...".</span>';
         }
     }
 
@@ -1838,30 +1816,30 @@ if (aiConfigBtn && aiConfigModal) {
             // 1. Test Gemini
             if (!geminiKey) {
                 results.push('<div style="margin-bottom:.3rem">⚪ <strong>Gemini:</strong> Sin clave configurada (opcional).</div>');
-            } else if (!geminiKey.startsWith('AIzaSy')) {
-                results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> La clave ingresada no es válida. Debe ser una clave de Google AI Studio que empieza con "AIzaSy...".</div>');
+            } else if (!geminiKey.startsWith('AIzaSy') && !geminiKey.startsWith('AQ.')) {
+                results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> La clave debe comenzar con "AQ." o "AIzaSy...".</div>');
             } else {
                 try {
-                    let testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: 'Hola' }] }] })
-                    });
-                    if (!testResp.ok && testResp.status === 404) {
-                        // Reintento con 1.5 flash
-                        testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+                    let testOk = false;
+                    let lastErrMsg = '';
+                    const models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+                    for (const m of models) {
+                        const testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
                             method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
+                            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': geminiKey },
                             body: JSON.stringify({ contents: [{ parts: [{ text: 'Hola' }] }] })
                         });
+                        if (testResp.ok) {
+                            testOk = true;
+                            results.push(`<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Gemini:</strong> ¡Conectado y listo! (Modelo: ${m})</div>`);
+                            break;
+                        } else {
+                            const errJson = await testResp.json().catch(() => null);
+                            lastErrMsg = errJson?.error?.message || `HTTP ${testResp.status}`;
+                        }
                     }
-
-                    if (testResp.ok) {
-                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Gemini:</strong> ¡Conectado y listo para generar descripciones con búsqueda en Google!</div>');
-                    } else {
-                        const errJson = await testResp.json().catch(() => null);
-                        const detail = errJson?.error?.message || `HTTP ${testResp.status}`;
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error (${detail}). Verificá la clave en Google AI Studio.</div>`);
+                    if (!testOk) {
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error (${lastErrMsg}). Verificá la clave en Google AI Studio.</div>`);
                     }
                 } catch(e) {
                     results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error de conexión: ${e.message}</div>`);
