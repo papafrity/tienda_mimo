@@ -1500,8 +1500,15 @@ function getOpenRouterKey() {
     try { return localStorage.getItem('mimo_openrouter_key') || ''; } catch(e) { return ''; }
 }
 
+const OPENROUTER_DEFAULT_MODEL = 'qwen/qwen3.8-27b:free';
+const OPENROUTER_DEAD_MODELS = ['qwen/qwen3-32b:free'];
+
 function getOpenRouterModel() {
-    try { return localStorage.getItem('mimo_openrouter_model') || 'qwen/qwen3-32b:free'; } catch(e) { return 'qwen/qwen3-32b:free'; }
+    try {
+        const stored = localStorage.getItem('mimo_openrouter_model') || '';
+        if (!stored || OPENROUTER_DEAD_MODELS.includes(stored)) return OPENROUTER_DEFAULT_MODEL;
+        return stored;
+    } catch(e) { return OPENROUTER_DEFAULT_MODEL; }
 }
 
 async function callOpenRouter(promptText) {
