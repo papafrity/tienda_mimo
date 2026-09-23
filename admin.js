@@ -1419,13 +1419,9 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
-// ─── AI DESCRIPTION GENERATOR (GEMINI → GROQ → PUTER) ─────
-// Cascada: Gemini (con key propia) → Groq (con key propia) → Puter (sin key).
-// Las keys se guardan en localStorage (por navegador).
-
-function getGroqKey() {
-    try { return localStorage.getItem('mimo_groq_key') || ''; } catch(e) { return ''; }
-}
+// ─── AI DESCRIPTION GENERATOR (GEMINI → ZEN → OPENROUTER) ─
+// Cascada: Gemini con grounding (key propia) → Zen free (key propia) → OpenRouter :free (key propia).
+// Las keys y modelos se guardan en localStorage (por navegador).
 
 function getGeminiKey() {
     try { return localStorage.getItem('mimo_gemini_key') || ''; } catch(e) { return ''; }
@@ -1455,10 +1451,14 @@ async function callGemini(promptText) {
     return text;
 }
 
-async function callGroqModel(promptText, key, model) {
-    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+// Helper genérico OpenAI-compatible (Zen y OpenRouter hablan este formato).
+async function callOpenAIChat({ url, key, model, label, extraHeaders, promptText }) {
+    const resp = await fetch(url, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+        headers: Object.assign(
+            { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+            extraHeaders || {}
+        ),
         body: JSON.stringify({
             model,
             messages: [{ role: 'user', content: promptText }],
@@ -1466,67 +1466,55 @@ async function callGroqModel(promptText, key, model) {
         })
     });
     if (!resp.ok) {
-        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Groq', message: 'Groq alcanzó su límite diario o por minuto.' };
-        if (resp.status === 401) throw { code: 'AUTH', label: 'Groq', message: 'API Key de Groq inválida.' };
-        throw { code: 'HTTP', label: 'Groq', message: 'Error al conectar con la API de Groq.' };
+        if (resp.status === 429) throw { code: 'RATE_LIMIT', label, message: `${label} alcanzó su límite. Probá en unos minutos.` };
+        if (resp.status === 401 || resp.status === 403) throw { code: 'AUTH', label, message: `API Key de ${label} inválida o sin permisos.` };
+        throw { code: 'HTTP', label, message: `Error al conectar con ${label} (${resp.status}).` };
     }
     const data = await resp.json();
     const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
-    if (!text) throw { code: 'EMPTY', label: 'Groq', message: 'Groq devolvió una respuesta vacía.' };
+    if (!text || !text.trim()) throw { code: 'EMPTY', label, message: `${label} devolvió una respuesta vacía.` };
     return text.trim();
 }
 
-async function callGroq(promptText) {
-    const key = getGroqKey();
-    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
-    // Modelos vigentes (llama-3.3 fue dado de baja por Groq el 16/08/26).
-    // Se prueba el principal y, si falla por modelo, el alternativo.
-    const models = ['openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
-    let lastErr = null;
-    for (const model of models) {
-        try {
-            return await callGroqModel(promptText, key, model);
-        } catch (e) {
-            lastErr = e;
-            if (e.code === 'AUTH' || e.code === 'NO_KEY') throw e;
-            console.warn(`[Groq:${model}] falló, probando siguiente:`, e.message || e);
-        }
-    }
-    throw lastErr;
+function getZenKey() {
+    try { return localStorage.getItem('mimo_zen_key') || ''; } catch(e) { return ''; }
 }
 
-async function callPuter(promptText) {
-    // IA sin API key (respaldo final). El primer uso abre un popup para
-    // crear/iniciar sesión en Puter (gratis); después funciona directo.
-    if (typeof puter === 'undefined' || !puter.ai || typeof puter.ai.chat !== 'function') {
-        throw { code: 'NO_SDK', label: 'Puter', message: 'No se pudo cargar Puter.js. Revisá tu conexión e intentá de nuevo.' };
-    }
-    let resp;
-    try {
-        // Con web_search el modelo puede verificar specs reales en vez de adivinar.
-        resp = await puter.ai.chat(promptText, { tools: [{ type: 'web_search' }] });
-    } catch (e) {
-        const msg = (e && e.message ? e.message : String(e)) || '';
-        if (/auth|sign|login|permission|denied|cancel/i.test(msg)) {
-            throw { code: 'AUTH', label: 'Puter', message: 'Tenés que iniciar sesión en Puter (popup) para usar esta IA. Es gratis.' };
-        }
-        // Si el modelo no soporta tools, reintentar sin búsqueda web.
-        if (/tool/i.test(msg)) {
-            try {
-                resp = await puter.ai.chat(promptText);
-            } catch (e2) {
-                const msg2 = (e2 && e2.message ? e2.message : String(e2)) || '';
-                throw { code: 'HTTP', label: 'Puter', message: 'Error al conectar con Puter: ' + (msg2 || 'desconocido') };
-            }
-        } else {
-            throw { code: 'HTTP', label: 'Puter', message: 'Error al conectar con Puter: ' + (msg || 'desconocido') };
-        }
-    }
-    const text = typeof resp === 'string' ? resp
-        : (resp && resp.message && typeof resp.message.content === 'string' ? resp.message.content
-        : (resp && typeof resp.text === 'string' ? resp.text : ''));
-    if (!text.trim()) throw { code: 'EMPTY', label: 'Puter', message: 'Puter devolvió una respuesta vacía.' };
-    return text.trim();
+function getZenModel() {
+    try { return localStorage.getItem('mimo_zen_model') || 'space-bunny-free'; } catch(e) { return 'space-bunny-free'; }
+}
+
+async function callZen(promptText) {
+    const key = getZenKey();
+    if (!key) throw { code: 'NO_KEY', label: 'Zen', message: 'No hay key de Zen configurada (botón 🔑).' };
+    return callOpenAIChat({
+        url: 'https://opencode.ai/zen/v1/chat/completions',
+        key,
+        model: getZenModel(),
+        label: 'Zen',
+        promptText
+    });
+}
+
+function getOpenRouterKey() {
+    try { return localStorage.getItem('mimo_openrouter_key') || ''; } catch(e) { return ''; }
+}
+
+function getOpenRouterModel() {
+    try { return localStorage.getItem('mimo_openrouter_model') || 'qwen/qwen3-32b:free'; } catch(e) { return 'qwen/qwen3-32b:free'; }
+}
+
+async function callOpenRouter(promptText) {
+    const key = getOpenRouterKey();
+    if (!key) throw { code: 'NO_KEY', label: 'OpenRouter', message: 'No hay key de OpenRouter configurada (botón 🔑).' };
+    return callOpenAIChat({
+        url: 'https://openrouter.ai/api/v1/chat/completions',
+        key,
+        model: getOpenRouterModel(),
+        label: 'OpenRouter',
+        extraHeaders: { 'HTTP-Referer': location.origin, 'X-Title': 'Mimo Tienda Admin' },
+        promptText
+    });
 }
 
 function buildProductPrompt(withSearch) {
@@ -1582,11 +1570,11 @@ if (generateAIBtn) {
         setStatus('');
 
         // Proveedores en orden de prioridad. Se prueban en cascada:
-        // 1) Gemini con grounding (si hay key). 2) Groq sin búsqueda (si hay key). 3) Puter con web_search (sin key).
+        // 1) Gemini con grounding (si hay key). 2) Zen free (si hay key). 3) OpenRouter :free (si hay key).
         const providers = [
             { label: 'Gemini', fn: () => callGemini(buildProductPrompt(true)) },
-            { label: 'Groq', fn: () => callGroq(buildProductPrompt(false)) },
-            { label: 'Puter', fn: () => callPuter(buildProductPrompt(true)) }
+            { label: 'Zen', fn: () => callZen(buildProductPrompt(false)) },
+            { label: 'OpenRouter', fn: () => callOpenRouter(buildProductPrompt(false)) }
         ];
 
         let lastErr = null;
@@ -1612,7 +1600,7 @@ if (generateAIBtn) {
         if (!success) {
             const msg = lastErr ? lastErr.message : 'Error desconocido.';
             const hint = (lastErr && (lastErr.code === 'NO_KEY' || lastErr.code === 'RATE_LIMIT'))
-                ? '\n\nConfigurá tus keys con el botón 🔑 (Gemini y/o Groq). Puter funciona sin key como último respaldo (pide login gratis una vez).'
+                ? '\n\nConfigurá tus keys con el botón 🔑 (Gemini, Zen y/u OpenRouter).'
                 : '';
             alert(`Error: ${msg}${hint}`);
         }
@@ -1628,8 +1616,11 @@ const aiConfigBtn = document.getElementById('aiConfigBtn');
 const aiConfigModal = document.getElementById('aiConfigModal');
 if (aiConfigBtn && aiConfigModal) {
     aiConfigBtn.addEventListener('click', () => {
-        document.getElementById('groqApiKey').value = getGroqKey();
         document.getElementById('geminiApiKey').value = getGeminiKey();
+        document.getElementById('zenApiKey').value = getZenKey();
+        document.getElementById('zenModel').value = getZenModel();
+        document.getElementById('openRouterApiKey').value = getOpenRouterKey();
+        document.getElementById('openRouterModel').value = getOpenRouterModel();
         aiConfigModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     });
@@ -1644,13 +1635,22 @@ if (aiConfigBtn && aiConfigModal) {
         }
     });
     document.getElementById('aiConfigSave')?.addEventListener('click', () => {
-        const groqKey = document.getElementById('groqApiKey').value.trim();
         const geminiKey = document.getElementById('geminiApiKey').value.trim();
+        const zenKey = document.getElementById('zenApiKey').value.trim();
+        const zenModel = document.getElementById('zenModel').value.trim();
+        const orKey = document.getElementById('openRouterApiKey').value.trim();
+        const orModel = document.getElementById('openRouterModel').value.trim();
         try {
-            if (groqKey) localStorage.setItem('mimo_groq_key', groqKey);
-            else localStorage.removeItem('mimo_groq_key');
             if (geminiKey) localStorage.setItem('mimo_gemini_key', geminiKey);
             else localStorage.removeItem('mimo_gemini_key');
+            if (zenKey) localStorage.setItem('mimo_zen_key', zenKey);
+            else localStorage.removeItem('mimo_zen_key');
+            if (zenModel) localStorage.setItem('mimo_zen_model', zenModel);
+            else localStorage.removeItem('mimo_zen_model');
+            if (orKey) localStorage.setItem('mimo_openrouter_key', orKey);
+            else localStorage.removeItem('mimo_openrouter_key');
+            if (orModel) localStorage.setItem('mimo_openrouter_model', orModel);
+            else localStorage.removeItem('mimo_openrouter_model');
         } catch(e) { /* ignore */ }
         aiConfigModal.classList.remove('active');
         document.body.style.overflow = '';
