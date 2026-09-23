@@ -1419,89 +1419,27 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
-// ─── AI DESCRIPTION GENERATOR (GEMINI → ZEN → OPENROUTER) ─
-// Cascada: Gemini con grounding (key propia) → Zen free (key propia) → OpenRouter :free (key propia).
-// Las keys y modelos se guardan en localStorage (por navegador).
+// ─── AI DESCRIPTION GENERATOR (GEMINI → GROQ → OPENROUTER → POLLINATIONS) ─
+// Cascada inteligente:
+// 1) Gemini (si hay key): gemini-2.0-flash / gemini-flash-latest con specs técnicas.
+// 2) Groq (si hay key): ultra rápida con llama-3.3-70b-versatile (console.groq.com).
+// 3) OpenRouter (si hay key): modelos :free (openrouter.ai/keys).
+// 4) Respaldo Libre (Pollinations AI): SIEMPRE ACTIVO, NO REQUIERE API KEY.
 
 function getGeminiKey() {
     try { return localStorage.getItem('mimo_gemini_key') || ''; } catch(e) { return ''; }
 }
 
-async function callGemini(promptText) {
-    const key = getGeminiKey();
-    if (!key) throw { code: 'NO_KEY', label: 'Gemini', message: 'No hay key de Gemini configurada (botón 🔑).' };
-    const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: promptText }] }],
-            tools: [{ google_search: {} }]
-        })
-    });
-    if (!resp.ok) {
-        if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite diario o por minuto.' };
-        if (resp.status === 400 || resp.status === 403) throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o sin permisos.' };
-        throw { code: 'HTTP', label: 'Gemini', message: `Error al conectar con la API de Gemini (${resp.status}).` };
-    }
-    const data = await resp.json();
-    // Con grounding la respuesta puede venir fragmentada en varios parts: unirlos.
-    const parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts ? data.candidates[0].content.parts : [];
-    const text = parts.filter(pt => pt && typeof pt.text === 'string').map(pt => pt.text).join('').trim();
-    if (!text) throw { code: 'EMPTY', label: 'Gemini', message: 'Gemini devolvió una respuesta vacía.' };
-    return text;
-}
-
-// Helper genérico OpenAI-compatible (Zen y OpenRouter hablan este formato).
-async function callOpenAIChat({ url, key, model, label, extraHeaders, promptText }) {
-    const resp = await fetch(url, {
-        method: 'POST',
-        headers: Object.assign(
-            { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-            extraHeaders || {}
-        ),
-        body: JSON.stringify({
-            model,
-            messages: [{ role: 'user', content: promptText }],
-            temperature: 0.7
-        })
-    });
-    if (!resp.ok) {
-        if (resp.status === 429) throw { code: 'RATE_LIMIT', label, message: `${label} alcanzó su límite. Probá en unos minutos.` };
-        if (resp.status === 401 || resp.status === 403) throw { code: 'AUTH', label, message: `API Key de ${label} inválida o sin permisos.` };
-        throw { code: 'HTTP', label, message: `Error al conectar con ${label} (${resp.status}).` };
-    }
-    const data = await resp.json();
-    const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
-    if (!text || !text.trim()) throw { code: 'EMPTY', label, message: `${label} devolvió una respuesta vacía.` };
-    return text.trim();
-}
-
-function getZenKey() {
-    try { return localStorage.getItem('mimo_zen_key') || ''; } catch(e) { return ''; }
-}
-
-function getZenModel() {
-    try { return localStorage.getItem('mimo_zen_model') || 'space-bunny-free'; } catch(e) { return 'space-bunny-free'; }
-}
-
-async function callZen(promptText) {
-    const key = getZenKey();
-    if (!key) throw { code: 'NO_KEY', label: 'Zen', message: 'No hay key de Zen configurada (botón 🔑).' };
-    return callOpenAIChat({
-        url: 'https://opencode.ai/zen/v1/chat/completions',
-        key,
-        model: getZenModel(),
-        label: 'Zen',
-        promptText
-    });
+function getGroqKey() {
+    try { return localStorage.getItem('mimo_groq_key') || ''; } catch(e) { return ''; }
 }
 
 function getOpenRouterKey() {
     try { return localStorage.getItem('mimo_openrouter_key') || ''; } catch(e) { return ''; }
 }
 
-const OPENROUTER_DEFAULT_MODEL = 'qwen/qwen3.8-27b:free';
-const OPENROUTER_DEAD_MODELS = ['qwen/qwen3-32b:free'];
+const OPENROUTER_DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
+const OPENROUTER_DEAD_MODELS = ['qwen/qwen3-32b:free', 'qwen/qwen3.8-27b:free', 'space-bunny-free'];
 
 function getOpenRouterModel() {
     try {
@@ -1511,6 +1449,131 @@ function getOpenRouterModel() {
     } catch(e) { return OPENROUTER_DEFAULT_MODEL; }
 }
 
+// 1. Google Gemini
+async function callGemini(promptText) {
+    const key = getGeminiKey();
+    if (!key) throw { code: 'NO_KEY', label: 'Gemini', message: 'No hay key de Gemini configurada (botón 🔑).' };
+
+    const modelsToTry = ['gemini-2.0-flash', 'gemini-flash-latest'];
+    let lastErr = null;
+
+    for (const model of modelsToTry) {
+        // Intento A: Con herramienta de búsqueda de Google (specs reales)
+        try {
+            const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }],
+                    tools: [{ google_search: {} }]
+                })
+            });
+
+            if (resp.ok) {
+                const data = await resp.json();
+                const parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts ? data.candidates[0].content.parts : [];
+                const text = parts.filter(pt => pt && typeof pt.text === 'string').map(pt => pt.text).join('').trim();
+                if (text) return text;
+            } else if (resp.status === 429) {
+                throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite de cuota temporal.' };
+            } else if (resp.status === 401 || resp.status === 403) {
+                throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o expirada.' };
+            }
+        } catch (e) {
+            if (e && (e.code === 'RATE_LIMIT' || e.code === 'AUTH')) throw e;
+        }
+
+        // Intento B: Directo sin herramienta (más compatible)
+        try {
+            const resp2 = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${key}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: promptText }] }]
+                })
+            });
+
+            if (resp2.ok) {
+                const data2 = await resp2.json();
+                const parts2 = data2.candidates && data2.candidates[0] && data2.candidates[0].content && data2.candidates[0].content.parts ? data2.candidates[0].content.parts : [];
+                const text2 = parts2.filter(pt => pt && typeof pt.text === 'string').map(pt => pt.text).join('').trim();
+                if (text2) return text2;
+            } else if (resp2.status === 429) {
+                throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite de cuota temporal.' };
+            } else if (resp2.status === 401 || resp2.status === 403) {
+                throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o expirada.' };
+            } else {
+                lastErr = { code: 'HTTP', label: 'Gemini', message: `Error HTTP ${resp2.status} en modelo ${model}.` };
+            }
+        } catch (e2) {
+            if (e2 && (e2.code === 'RATE_LIMIT' || e2.code === 'AUTH')) throw e2;
+            lastErr = e2;
+        }
+    }
+
+    throw lastErr || { code: 'HTTP', label: 'Gemini', message: 'No se pudo conectar con Gemini.' };
+}
+
+// Helper genérico OpenAI-compatible (Groq y OpenRouter)
+async function callOpenAIChat({ url, key, model, label, extraHeaders, promptText }) {
+    const maxAttempts = 2;
+    let lastErr = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        let resp;
+        try {
+            resp = await fetch(url, {
+                method: 'POST',
+                headers: Object.assign(
+                    { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
+                    extraHeaders || {}
+                ),
+                body: JSON.stringify({
+                    model,
+                    messages: [{ role: 'user', content: promptText }],
+                    temperature: 0.7
+                })
+            });
+        } catch (netErr) {
+            throw { code: 'HTTP', label, message: `Sin conexión con ${label}. Revisá tu internet.` };
+        }
+        if (resp.ok) {
+            const data = await resp.json();
+            const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
+            if (!text || !text.trim()) throw { code: 'EMPTY', label, message: `${label} devolvió una respuesta vacía.` };
+            return text.trim();
+        }
+        if (resp.status === 429) {
+            const retryAfterSec = parseInt(resp.headers.get('retry-after') || '0', 10);
+            const waitMs = Math.min(isNaN(retryAfterSec) || retryAfterSec <= 0 ? 15000 : retryAfterSec * 1000, 60000);
+            lastErr = { code: 'RATE_LIMIT', label, message: `${label} alcanzó su límite de cuota.` };
+            if (attempt < maxAttempts) {
+                console.warn(`[${label}] 429, reintentando en ${Math.round(waitMs / 1000)}s...`);
+                await new Promise(r => setTimeout(r, waitMs));
+                continue;
+            }
+            throw lastErr;
+        }
+        if (resp.status === 401 || resp.status === 403) throw { code: 'AUTH', label, message: `API Key de ${label} inválida o sin permisos.` };
+        if (resp.status === 404) throw { code: 'MODEL', label, message: `${label}: el modelo "${model}" no está disponible.` };
+        throw { code: 'HTTP', label, message: `Error al conectar con ${label} (${resp.status}).` };
+    }
+    throw lastErr;
+}
+
+// 2. Groq (Ultra rápida con Llama 3.3 70B)
+async function callGroq(promptText) {
+    const key = getGroqKey();
+    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
+    return callOpenAIChat({
+        url: 'https://api.groq.com/openai/v1/chat/completions',
+        key,
+        model: 'llama-3.3-70b-versatile',
+        label: 'Groq',
+        promptText
+    });
+}
+
+// 3. OpenRouter (Modelos :free)
 async function callOpenRouter(promptText) {
     const key = getOpenRouterKey();
     if (!key) throw { code: 'NO_KEY', label: 'OpenRouter', message: 'No hay key de OpenRouter configurada (botón 🔑).' };
@@ -1524,10 +1587,36 @@ async function callOpenRouter(promptText) {
     });
 }
 
+// 4. Respaldo Libre Instantáneo (Pollinations AI - 100% Sin Key)
+async function callPollinations(promptText) {
+    try {
+        const resp = await fetch('https://text.pollinations.ai/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                messages: [{ role: 'user', content: promptText }]
+            })
+        });
+        if (!resp.ok) {
+            throw new Error(`HTTP ${resp.status}`);
+        }
+        const text = await resp.text();
+        if (!text || !text.trim()) {
+            throw new Error('Respuesta vacía');
+        }
+        let clean = text.trim();
+        if (clean.startsWith('```')) {
+            clean = clean.replace(/^```[a-zA-Z]*\n/, '').replace(/\n```$/, '').trim();
+        }
+        return clean;
+    } catch (e) {
+        throw { code: 'HTTP', label: 'Respaldo Libre (Pollinations)', message: `Error al conectar con el Respaldo Libre: ${e.message || e}` };
+    }
+}
+
 function buildProductPrompt(withSearch) {
     const prodName = document.getElementById('prodName').value.trim();
     const prodCategory = document.getElementById('prodCategory').value.trim();
-    // Precio de oferta opcional para mencionarlo en la descripción
     const prodOffer = document.getElementById('prodOffer').value.trim();
     const offerHint = prodOffer
         ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
@@ -1536,25 +1625,7 @@ function buildProductPrompt(withSearch) {
     const searchIntro = withSearch
         ? `Primero buscá en Google las especificaciones técnicas reales del producto "${prodName}" de la categoría "${prodCategory}" y después escribí SOLO esa lista de características confirmadas por los resultados.`
         : `Escribí SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}".`;
-    return `${searchIntro} No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
-
-REGLAS FUNDAMENTALES:
-1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
-2. Incluí TODAS las características relevantes del producto (cuántas más tenga, más larga será la descripción). No limites la cantidad: un producto con muchos specs debe describirlos casi todos.
-3. Separá cada característica con un solo salto de línea (no dejes líneas en blanco entre bullets).
-4. No uses emojis ni formato Markdown (no asteriscos ** ni símbolos raros). Todo texto plano.
-5. Terminá cada bullet en punto. No dejes espacios "..." ni textos entre corchetes como "[detalle...]".
-
-Usá estos atributos clave según la categoría del producto (describí todos los que apliquen, y agregá otros que veas):
-- Auriculares / parlantes: tipo, cancelación de ruido (solo si está confirmado), batería, conectividad, resistencia al agua, controles, códec de audio.
-- Teclados / mouse / periféricos: tipo (inalámbrico/cableado), conexión, batería o pilas, compatibilidad, diseño, switches, retroiluminación.
-- Smartwatches / relojes: pantalla, batería, sensores, resistencia al agua, compatibilidad con celulares, funciones de salud.
-- TVs / monitores: tamaño, resolución, tipo de panel, conectividad, smart, tasa de refresco, HDR.
-- Celulares / tablets: pantalla, batería, cámara, almacenamiento, procesador, conectividad, carga.
-- Cocinas / heladeras / electrodomésticos: capacidad, tipo, eficiencia energética, funciones, dimensiones, materiales.
-- Otro: describí todos los atributos relevantes del producto, cuantos más haya.
-
-Formato de cada bullet: "• Atributo: detalle completo". No inventes atributos.`;
+    return `${searchIntro} No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}\n\nREGLAS FUNDAMENTALES:\n1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.\n2. Incluí TODAS las características relevantes del producto (cuántas más tenga, más larga será la descripción). No limites la cantidad: un producto con muchos specs debe describirlos casi todos.\n3. Separá cada característica con un solo salto de línea (no dejes líneas en blanco entre bullets).\n4. No uses emojis ni formato Markdown (no asteriscos ** ni símbolos raros). Todo texto plano.\n5. Terminá cada bullet en punto. No dejes espacios "..." ni textos entre corchetes como "[detalle...]".\n\nUsá estos atributos clave según la categoría del producto (describí todos los que apliquen, y agregá otros que veas):\n- Auriculares / parlantes: tipo, cancelación de ruido (solo si está confirmado), batería, conectividad, resistencia al agua, controles, códec de audio.\n- Teclados / mouse / periféricos: tipo (inalámbrico/cableado), conexión, batería o pilas, compatibilidad, diseño, switches, retroiluminación.\n- Smartwatches / relojes: pantalla, batería, sensores, resistencia al agua, compatibilidad con celulares, funciones de salud.\n- TVs / monitores: tamaño, resolución, tipo de panel, conectividad, smart, tasa de refresco, HDR.\n- Celulares / tablets: pantalla, batería, cámara, almacenamiento, procesador, conectividad, carga.\n- Cocinas / heladeras / electrodomésticos: capacidad, tipo, eficiencia energética, funciones, dimensiones, materiales.\n- Otro: describí todos los atributos relevantes del producto, cuantos más haya.\n\nFormato de cada bullet: "• Atributo: detalle completo". No inventes atributos.`;
 }
 
 const generateAIBtn = document.getElementById('generateAIBtn');
@@ -1576,13 +1647,20 @@ if (generateAIBtn) {
         const setStatus = (msg) => { if (aiStatus) aiStatus.textContent = msg; };
         setStatus('');
 
-        // Proveedores en orden de prioridad. Se prueban en cascada:
-        // 1) Gemini con grounding (si hay key). 2) Zen free (si hay key). 3) OpenRouter :free (si hay key).
-        const providers = [
-            { label: 'Gemini', fn: () => callGemini(buildProductPrompt(true)) },
-            { label: 'Zen', fn: () => callZen(buildProductPrompt(false)) },
-            { label: 'OpenRouter', fn: () => callOpenRouter(buildProductPrompt(false)) }
-        ];
+        // Cascada inteligente: si hay keys configuradas se prueban primero,
+        // y siempre termina en Pollinations como red de seguridad gratuita sin key.
+        const providers = [];
+        if (getGeminiKey()) {
+            providers.push({ label: 'Gemini', fn: () => callGemini(buildProductPrompt(true)) });
+        }
+        if (getGroqKey()) {
+            providers.push({ label: 'Groq', fn: () => callGroq(buildProductPrompt(false)) });
+        }
+        if (getOpenRouterKey()) {
+            providers.push({ label: 'OpenRouter', fn: () => callOpenRouter(buildProductPrompt(false)) });
+        }
+        // Respaldo Libre siempre presente como garantía final
+        providers.push({ label: 'Respaldo Libre (Pollinations)', fn: () => callPollinations(buildProductPrompt(false)) });
 
         let lastErr = null;
         let success = false;
@@ -1600,16 +1678,14 @@ if (generateAIBtn) {
                 lastErr = e;
                 console.warn(`[${provider.label}] falló:`, e.message || e);
                 setStatus(`⚠️ ${provider.label}: ${e.message || 'falló'}. Probando siguiente...`);
-                generateAIBtn.innerHTML = `<span>${provider.label} agotado, probando respaldo...</span>`;
+                generateAIBtn.innerHTML = `<span>${provider.label} falló, probando respaldo...</span>`;
             }
         }
 
         if (!success) {
-            const msg = lastErr ? lastErr.message : 'Error desconocido.';
-            const hint = (lastErr && (lastErr.code === 'NO_KEY' || lastErr.code === 'RATE_LIMIT'))
-                ? '\n\nConfigurá tus keys con el botón 🔑 (Gemini, Zen y/u OpenRouter).'
-                : '';
-            alert(`Error: ${msg}${hint}`);
+            const msg = lastErr ? (lastErr.message || JSON.stringify(lastErr)) : 'Error desconocido.';
+            alert(`Error al generar descripción: ${msg}`);
+            setStatus('❌ No se pudo generar la descripción.');
         }
 
         generateAIBtn.innerHTML = originalBtnText;
@@ -1624,46 +1700,165 @@ const aiConfigModal = document.getElementById('aiConfigModal');
 if (aiConfigBtn && aiConfigModal) {
     aiConfigBtn.addEventListener('click', () => {
         document.getElementById('geminiApiKey').value = getGeminiKey();
-        document.getElementById('zenApiKey').value = getZenKey();
-        document.getElementById('zenModel').value = getZenModel();
+        const groqInput = document.getElementById('groqApiKey');
+        if (groqInput) groqInput.value = getGroqKey();
         document.getElementById('openRouterApiKey').value = getOpenRouterKey();
         document.getElementById('openRouterModel').value = getOpenRouterModel();
+        
+        const testRes = document.getElementById('aiTestResults');
+        if (testRes) testRes.style.display = 'none';
+
         aiConfigModal.classList.add('active');
         document.body.style.overflow = 'hidden';
     });
+
     document.getElementById('aiConfigClose')?.addEventListener('click', () => {
         aiConfigModal.classList.remove('active');
         document.body.style.overflow = '';
     });
+
     aiConfigModal.addEventListener('click', e => {
         if (e.target === aiConfigModal) {
             aiConfigModal.classList.remove('active');
             document.body.style.overflow = '';
         }
     });
+
     document.getElementById('aiConfigSave')?.addEventListener('click', () => {
         const geminiKey = document.getElementById('geminiApiKey').value.trim();
-        const zenKey = document.getElementById('zenApiKey').value.trim();
-        const zenModel = document.getElementById('zenModel').value.trim();
+        const groqKey = document.getElementById('groqApiKey')?.value.trim() || '';
         const orKey = document.getElementById('openRouterApiKey').value.trim();
         const orModel = document.getElementById('openRouterModel').value.trim();
+
         try {
             if (geminiKey) localStorage.setItem('mimo_gemini_key', geminiKey);
             else localStorage.removeItem('mimo_gemini_key');
-            if (zenKey) localStorage.setItem('mimo_zen_key', zenKey);
-            else localStorage.removeItem('mimo_zen_key');
-            if (zenModel) localStorage.setItem('mimo_zen_model', zenModel);
-            else localStorage.removeItem('mimo_zen_model');
+
+            if (groqKey) localStorage.setItem('mimo_groq_key', groqKey);
+            else localStorage.removeItem('mimo_groq_key');
+
             if (orKey) localStorage.setItem('mimo_openrouter_key', orKey);
             else localStorage.removeItem('mimo_openrouter_key');
+
             if (orModel) localStorage.setItem('mimo_openrouter_model', orModel);
             else localStorage.removeItem('mimo_openrouter_model');
         } catch(e) { /* ignore */ }
+
         aiConfigModal.classList.remove('active');
         document.body.style.overflow = '';
+        alert('Configuración de IAs guardada correctamente.');
     });
-}
 
+    // Probador de conexiones en vivo
+    const testBtn = document.getElementById('aiConfigTestBtn');
+    if (testBtn) {
+        testBtn.addEventListener('click', async () => {
+            const resultsDiv = document.getElementById('aiTestResults');
+            if (!resultsDiv) return;
+
+            testBtn.disabled = true;
+            testBtn.textContent = '⏳ Probando...';
+            resultsDiv.style.display = 'block';
+            resultsDiv.innerHTML = '<span style="color:var(--text-secondary)">Realizando pruebas de conexión en vivo...</span>';
+
+            const geminiKey = document.getElementById('geminiApiKey').value.trim();
+            const groqKey = document.getElementById('groqApiKey')?.value.trim() || '';
+            const orKey = document.getElementById('openRouterApiKey').value.trim();
+            const orModel = document.getElementById('openRouterModel').value.trim() || OPENROUTER_DEFAULT_MODEL;
+
+            const results = [];
+
+            // 1. Test Gemini
+            if (!geminiKey) {
+                results.push('<div style="margin-bottom:.3rem">⚪ <strong>Gemini:</strong> Sin clave configurada (opcional).</div>');
+            } else {
+                try {
+                    const testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: 'Hola' }] }] })
+                    });
+                    if (testResp.ok) {
+                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Gemini:</strong> ¡Conectado y listo!</div>');
+                    } else {
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error HTTP ${testResp.status} (verificá la clave).</div>`);
+                    }
+                } catch(e) {
+                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error de red: ${e.message}</div>`);
+                }
+            }
+
+            // 2. Test Groq
+            if (!groqKey) {
+                results.push('<div style="margin-bottom:.3rem">⚪ <strong>Groq:</strong> Sin clave configurada (opcional).</div>');
+            } else {
+                try {
+                    const testResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            model: 'llama-3.3-70b-versatile',
+                            messages: [{ role: 'user', content: 'Hola' }],
+                            max_tokens: 5
+                        })
+                    });
+                    if (testResp.ok) {
+                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Groq:</strong> ¡Conectado y ultra rápido!</div>');
+                    } else {
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error HTTP ${testResp.status} (verificá la clave).</div>`);
+                    }
+                } catch(e) {
+                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error de red: ${e.message}</div>`);
+                }
+            }
+
+            // 3. Test OpenRouter
+            if (!orKey) {
+                results.push('<div style="margin-bottom:.3rem">⚪ <strong>OpenRouter:</strong> Sin clave configurada (opcional).</div>');
+            } else {
+                try {
+                    const testResp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${orKey}`,
+                            'Content-Type': 'application/json',
+                            'HTTP-Referer': location.origin,
+                            'X-Title': 'Mimo Tienda Admin'
+                        },
+                        body: JSON.stringify({
+                            model: orModel,
+                            messages: [{ role: 'user', content: 'Hola' }],
+                            max_tokens: 5
+                        })
+                    });
+                    if (testResp.ok) {
+                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>OpenRouter:</strong> ¡Conectado!</div>');
+                    } else {
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>OpenRouter:</strong> Error HTTP ${testResp.status} (modelo o clave).</div>`);
+                    }
+                } catch(e) {
+                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>OpenRouter:</strong> Error de red: ${e.message}</div>`);
+                }
+            }
+
+            // 4. Test Respaldo Libre
+            try {
+                const polResp = await fetch('https://text.pollinations.ai/OK');
+                if (polResp.ok) {
+                    results.push('<div style="color:#2ed573">🟢 <strong>Respaldo Libre (Pollinations):</strong> 100% Operativo (sin clave requerida).</div>');
+                } else {
+                    results.push(`<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> Estado HTTP ${polResp.status}</div>`);
+                }
+            } catch(e) {
+                results.push(`<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> ${e.message}</div>`);
+            }
+
+            resultsDiv.innerHTML = results.join('');
+            testBtn.disabled = false;
+            testBtn.textContent = '🧪 Probar Conexiones';
+        });
+    }
+}
 // ─── ADMIN REVIEWS TOGGLE ─────────────────────────────────
 function initAdminReviewsToggle() {
     const toggle = document.getElementById('adminReviewsToggle');
