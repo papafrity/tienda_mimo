@@ -242,12 +242,13 @@ function renderAdminProducts() {
         const pend = pendingEdits[p.id];
         const costVal = pend && pend.costTouched ? pend.cost : (p.cost ?? '');
         const priceVal = pend && pend.priceTouched ? pend.price : (p.price ?? '');
+        const costCur = (pend && pend.currency) || p.costCurrency || 'ARS';
         tr.innerHTML = `
             <td><input type="checkbox" class="row-select" data-id="${p.id}" ${selectedIds.has(p.id) ? 'checked' : ''} title="Seleccionar"></td>
             <td><img src="${displayImg}" alt="img"></td>
             <td><strong>${p.name}</strong></td>
             <td style="text-transform: capitalize;">${p.category}</td>
-            <td><div class="cell-wrap"><span class="cell-cur">${p.costCurrency === 'USD' ? 'US$' : '$'}</span><input class="cell-input cost-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${costVal}" placeholder="—"></div></td>
+            <td><div class="cell-wrap"><button type="button" class="cell-cur-switch" data-id="${p.id}" data-cur="${costCur}" title="Cambiar moneda (ARS ↔ USD)">${costCur === 'USD' ? 'US$' : 'ARS'}</button><input class="cell-input cost-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${costVal}" placeholder="—"></div></td>
             <td><div class="cell-wrap"><span class="cell-cur">$</span><input class="cell-input price-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${priceVal}"></div></td>
             <td>${p.offerPrice ? '$' + fmt(p.offerPrice) : '-'}</td>
             <td style="text-align:center">
@@ -444,6 +445,21 @@ tbody.addEventListener('keydown', (e) => {
     }
 });
 
+// Switch de moneda ARS ↔ USD por fila: queda pendiente hasta Guardar cambios
+tbody.addEventListener('click', (e) => {
+    const sw = e.target.closest('.cell-cur-switch');
+    if (!sw) return;
+    const id = sw.dataset.id;
+    const next = sw.dataset.cur === 'USD' ? 'ARS' : 'USD';
+    if (!pendingEdits[id]) pendingEdits[id] = {};
+    pendingEdits[id].currency = next;
+    sw.dataset.cur = next;
+    sw.textContent = next === 'USD' ? 'US$' : 'ARS';
+    const tr = sw.closest('tr');
+    if (tr) tr.classList.add('dirty');
+    refreshSaveAllBtn();
+});
+
 async function saveAllEdits() {
     const ids = Object.keys(pendingEdits);
     if (!ids.length) return;
@@ -460,18 +476,23 @@ async function saveAllEdits() {
         const manualPrice = entry.priceTouched ? parseFloat(entry.price) : null;
         if (entry.costTouched && (isNaN(cost) || cost < 0)) { errors.push(p.name + ' (costo inválido)'); continue; }
         if (entry.priceTouched && (isNaN(manualPrice) || manualPrice < 0)) { errors.push(p.name + ' (precio inválido)'); continue; }
-        const currency = p.costCurrency || 'ARS';
+        const currency = entry.currency || p.costCurrency || 'ARS';
+        const currencyChanged = !!entry.currency && entry.currency !== (p.costCurrency || 'ARS');
         let price;
-        if (entry.costTouched && !(currency === 'USD' && !usdRateARS)) {
+        if ((entry.costTouched || currencyChanged) && currency === 'USD' && !usdRateARS) {
+            errors.push(p.name + ' (sin cotización USD, reintentá en unos segundos)');
+            continue;
+        }
+        if (entry.costTouched || currencyChanged) {
             const costARS = currency === 'USD' ? cost * usdRateARS : cost;
             price = calcPriceFromCostInline(costARS, p.margin || 0);
         } else {
             price = manualPrice != null ? manualPrice : p.price;
         }
         try {
-            await db.collection('products').doc(id).update({ cost, price });
+            await db.collection('products').doc(id).update({ cost, price, costCurrency: currency });
             const idx = adminProducts.findIndex(x => x.id === id);
-            if (idx >= 0) { adminProducts[idx].cost = cost; adminProducts[idx].price = price; }
+            if (idx >= 0) { adminProducts[idx].cost = cost; adminProducts[idx].price = price; adminProducts[idx].costCurrency = currency; }
             delete pendingEdits[id];
             ok++;
         } catch (e) {
@@ -1852,3 +1873,70 @@ document.getElementById('adminRecalcAllBtn')?.addEventListener('click', async ()
     btn.textContent = '♻️ Recalcular todos';
     btn.disabled = false;
 });
+
+// ─── HOVER ZOOM LENS (lista + edición) ───────────────────
+// Lente flotante que sigue al cursor. Delegado en document:
+// sobrevive a re-renders y no lo recortan los scroll internos.
+const zoomLens = document.createElement('div');
+zoomLens.className = 'zoom-lens';
+zoomLens.innerHTML = '<img alt="zoom">';
+document.body.appendChild(zoomLens);
+const zoomImg = zoomLens.querySelector('img');
+let zoomTimer = null;
+
+function moveZoom(x, y) {
+    const pad = 12, w = 280, h = 280;
+    let lx = x + 22, ly = y + 22;
+    if (lx + w + pad > window.innerWidth) lx = x - w - 22;
+    if (ly + h + pad > window.innerHeight) ly = window.innerHeight - h - pad;
+    if (lx < pad) lx = pad;
+    if (ly < pad) ly = pad;
+    zoomLens.style.left = lx + 'px';
+    zoomLens.style.top = ly + 'px';
+}
+
+function hideZoom() {
+    clearTimeout(zoomTimer);
+    zoomLens.classList.remove('visible');
+}
+
+function isZoomTarget(el) {
+    if (!el || !el.closest) return null;
+    return el.closest('#adminProductList img') || el.closest('#imgPreviewContainer .preview-img-wrapper img');
+}
+
+document.addEventListener('mouseover', (e) => {
+    const target = isZoomTarget(e.target);
+    if (!target) return;
+    let src = target.src;
+    const listImg = target.closest('#adminProductList img');
+    if (listImg) {
+        const tr = listImg.closest('tr');
+        const idEl = tr && (tr.querySelector('.row-select') || tr.querySelector('.edit-btn'));
+        const p = idEl && adminProducts.find(x => x.id === idEl.dataset.id);
+        if (p) {
+            let full = null;
+            if (p.fullImages) {
+                try { const arr = JSON.parse(p.fullImages); if (arr.length) full = arr[0]; } catch (err) {}
+            }
+            src = full || p.image || target.src;
+        }
+    }
+    clearTimeout(zoomTimer);
+    zoomTimer = setTimeout(() => {
+        if (!src) return;
+        zoomImg.src = src;
+        zoomLens.classList.add('visible');
+        moveZoom(e.clientX, e.clientY);
+    }, 180);
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (zoomLens.classList.contains('visible')) moveZoom(e.clientX, e.clientY);
+});
+
+document.addEventListener('mouseout', (e) => {
+    if (isZoomTarget(e.target)) hideZoom();
+});
+
+document.addEventListener('scroll', hideZoom, true);
