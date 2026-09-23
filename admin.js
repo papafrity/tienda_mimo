@@ -1438,8 +1438,12 @@ function getOpenRouterKey() {
     try { return localStorage.getItem('mimo_openrouter_key') || ''; } catch(e) { return ''; }
 }
 
-const OPENROUTER_DEFAULT_MODEL = 'meta-llama/llama-3.3-70b-instruct:free';
-const OPENROUTER_DEAD_MODELS = ['qwen/qwen3-32b:free', 'qwen/qwen3.8-27b:free', 'space-bunny-free'];
+const OPENROUTER_DEFAULT_MODEL = 'openrouter/auto'; // Auto-router: elige el mejor modelo gratis disponible
+const OPENROUTER_DEAD_MODELS = [
+    'qwen/qwen3-32b:free', 'qwen/qwen3.8-27b:free', 'space-bunny-free',
+    'meta-llama/llama-3.3-70b-instruct:free', 'meta-llama/llama-3.3-70b-instruct',
+    'meta-llama/llama-3.1-70b-instruct:free'
+];
 
 function getOpenRouterModel() {
     try {
@@ -1538,18 +1542,31 @@ async function callOpenAIChat({ url, key, model, label, extraHeaders, promptText
     throw lastErr;
 }
 
-// 2. Groq (Ultra rápida con Llama 3.3 70B)
+// 2. Groq (Ultra rápida — itera modelos activos)
+const GROQ_MODELS = [
+    'qwen/qwen3-27b',            // Qwen 3 27B — rápido y gratuito
+    'meta-llama/llama-4-scout-17b-16e-instruct', // Llama 4 Scout — multimodal
+    'openai/gpt-oss-120b',       // GPT-OSS 120B
+    'openai/gpt-oss-20b',        // GPT-OSS 20B (fallback)
+];
 async function callGroq(promptText) {
     const key = getGroqKey();
     if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
-    return callOpenAIChat({
-        url: 'https://api.groq.com/openai/v1/chat/completions',
-        key,
-        model: 'llama-3.3-70b-versatile',
-        label: 'Groq',
-        promptText
-    });
+    let lastError = null;
+    for (const model of GROQ_MODELS) {
+        try {
+            return await callOpenAIChat({ url: 'https://api.groq.com/openai/v1/chat/completions', key, model, label: 'Groq', promptText });
+        } catch(e) {
+            // Si el modelo no existe, probar el siguiente; si es otro error (ej. clave inválida), lanzar de inmediato
+            if (e?.status === 400 || e?.message?.toLowerCase().includes('does not exist') || e?.message?.toLowerCase().includes('no access')) {
+                lastError = e; continue;
+            }
+            throw e;
+        }
+    }
+    throw lastError || { code: 'NO_MODEL', label: 'Groq', message: 'Ningún modelo de Groq disponible. Revisá los modelos activos en console.groq.com/docs/models.' };
 }
+
 
 // 3. OpenRouter (Modelos :free)
 async function callOpenRouter(promptText) {
@@ -1852,27 +1869,32 @@ if (aiConfigBtn && aiConfigModal) {
             } else if (!groqKey.startsWith('gsk_')) {
                 results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> La clave de Groq debe comenzar con "gsk_...". Creala gratis en console.groq.com/keys.</div>');
             } else {
-                try {
-                    const testResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                        method: 'POST',
-                        headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            model: 'llama-3.3-70b-versatile',
-                            messages: [{ role: 'user', content: 'Hola' }],
-                            max_tokens: 5
-                        })
-                    });
-                    if (testResp.ok) {
-                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Groq:</strong> ¡Conectado y ultra rápido con Llama 3.3 70B!</div>');
-                    } else {
+                let groqOk = false;
+                for (const gModel of GROQ_MODELS) {
+                    try {
+                        const testResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                            method: 'POST',
+                            headers: { 'Authorization': `Bearer ${groqKey}`, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ model: gModel, messages: [{ role: 'user', content: 'Hola' }], max_tokens: 5 })
+                        });
+                        if (testResp.ok) {
+                            results.push(`<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Groq:</strong> ¡Conectado! Usando modelo: <code>${gModel}</code></div>`);
+                            groqOk = true; break;
+                        }
                         const errJson = await testResp.json().catch(() => null);
                         const detail = errJson?.error?.message || `HTTP ${testResp.status}`;
+                        // Si es error de modelo no disponible, probar el siguiente
+                        if (detail.toLowerCase().includes('does not exist') || detail.toLowerCase().includes('no access')) continue;
                         results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error (${detail}). Verificá tu clave en console.groq.com.</div>`);
+                        groqOk = true; break;
+                    } catch(e) {
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error de conexión: ${e.message}</div>`);
+                        groqOk = true; break;
                     }
-                } catch(e) {
-                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error de conexión: ${e.message}</div>`);
                 }
+                if (!groqOk) results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Ningún modelo disponible. Revisá <a href="https://console.groq.com/docs/models" target="_blank">console.groq.com/docs/models</a>.</div>');
             }
+
 
             // 3. Test OpenRouter
             if (!orKey) {
