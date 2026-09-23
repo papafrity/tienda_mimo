@@ -1245,13 +1245,24 @@ async function callPuter(promptText) {
     }
     let resp;
     try {
-        resp = await puter.ai.chat(promptText);
+        // Con web_search el modelo puede verificar specs reales en vez de adivinar.
+        resp = await puter.ai.chat(promptText, { tools: [{ type: 'web_search' }] });
     } catch (e) {
         const msg = (e && e.message ? e.message : String(e)) || '';
         if (/auth|sign|login|permission|denied|cancel/i.test(msg)) {
             throw { code: 'AUTH', label: 'Puter', message: 'Tenés que iniciar sesión en Puter (popup) para usar esta IA. Es gratis.' };
         }
-        throw { code: 'HTTP', label: 'Puter', message: 'Error al conectar con Puter: ' + (msg || 'desconocido') };
+        // Si el modelo no soporta tools, reintentar sin búsqueda web.
+        if (/tool/i.test(msg)) {
+            try {
+                resp = await puter.ai.chat(promptText);
+            } catch (e2) {
+                const msg2 = (e2 && e2.message ? e2.message : String(e2)) || '';
+                throw { code: 'HTTP', label: 'Puter', message: 'Error al conectar con Puter: ' + (msg2 || 'desconocido') };
+            }
+        } else {
+            throw { code: 'HTTP', label: 'Puter', message: 'Error al conectar con Puter: ' + (msg || 'desconocido') };
+        }
     }
     const text = typeof resp === 'string' ? resp
         : (resp && resp.message && typeof resp.message.content === 'string' ? resp.message.content
@@ -1260,7 +1271,7 @@ async function callPuter(promptText) {
     return text.trim();
 }
 
-function buildProductPrompt() {
+function buildProductPrompt(withSearch) {
     const prodName = document.getElementById('prodName').value.trim();
     const prodCategory = document.getElementById('prodCategory').value.trim();
     // Precio de oferta opcional para mencionarlo en la descripción
@@ -1269,7 +1280,10 @@ function buildProductPrompt() {
         ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
         : '';
 
-    return `Primero buscá en Google las especificaciones técnicas reales del producto "${prodName}" de la categoría "${prodCategory}" y después escribí SOLO esa lista de características confirmadas por los resultados. No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
+    const searchIntro = withSearch
+        ? `Primero buscá en Google las especificaciones técnicas reales del producto "${prodName}" de la categoría "${prodCategory}" y después escribí SOLO esa lista de características confirmadas por los resultados.`
+        : `Escribí SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}".`;
+    return `${searchIntro} No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
 
 REGLAS FUNDAMENTALES:
 1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
@@ -1305,14 +1319,16 @@ if (generateAIBtn) {
         generateAIBtn.style.pointerEvents = 'none';
         generateAIBtn.style.opacity = '0.7';
 
-        const promptText = buildProductPrompt();
+        const aiStatus = document.getElementById('aiStatusDisplay');
+        const setStatus = (msg) => { if (aiStatus) aiStatus.textContent = msg; };
+        setStatus('');
 
         // Proveedores en orden de prioridad. Se prueban en cascada:
-        // 1) Gemini (si hay key). 2) Groq (si hay key). 3) Puter (sin key).
+        // 1) Gemini con grounding (si hay key). 2) Groq sin búsqueda (si hay key). 3) Puter con web_search (sin key).
         const providers = [
-            { label: 'Gemini', fn: () => callGemini(promptText) },
-            { label: 'Groq', fn: () => callGroq(promptText) },
-            { label: 'Puter', fn: () => callPuter(promptText) }
+            { label: 'Gemini', fn: () => callGemini(buildProductPrompt(true)) },
+            { label: 'Groq', fn: () => callGroq(buildProductPrompt(false)) },
+            { label: 'Puter', fn: () => callPuter(buildProductPrompt(true)) }
         ];
 
         let lastErr = null;
@@ -1320,14 +1336,17 @@ if (generateAIBtn) {
 
         for (const provider of providers) {
             if (success) break;
+            setStatus(`Probando ${provider.label}...`);
             try {
                 const text = await provider.fn();
                 document.getElementById('prodDesc').value = text;
                 generateAIBtn.innerHTML = `<span>✨ Generar con IA</span>`;
+                setStatus(`✅ Descripción generada con ${provider.label}.`);
                 success = true;
             } catch (e) {
                 lastErr = e;
                 console.warn(`[${provider.label}] falló:`, e.message || e);
+                setStatus(`⚠️ ${provider.label}: ${e.message || 'falló'}. Probando siguiente...`);
                 generateAIBtn.innerHTML = `<span>${provider.label} agotado, probando respaldo...</span>`;
             }
         }
