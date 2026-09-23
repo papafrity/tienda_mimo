@@ -1179,17 +1179,22 @@ async function callGemini(promptText) {
     const resp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${key}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+        body: JSON.stringify({
+            contents: [{ parts: [{ text: promptText }] }],
+            tools: [{ google_search: {} }]
+        })
     });
     if (!resp.ok) {
         if (resp.status === 429) throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite diario o por minuto.' };
         if (resp.status === 400 || resp.status === 403) throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o sin permisos.' };
-        throw { code: 'HTTP', label: 'Gemini', message: 'Error al conectar con la API de Gemini.' };
+        throw { code: 'HTTP', label: 'Gemini', message: `Error al conectar con la API de Gemini (${resp.status}).` };
     }
     const data = await resp.json();
-    const text = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts[0] ? data.candidates[0].content.parts[0].text : '';
+    // Con grounding la respuesta puede venir fragmentada en varios parts: unirlos.
+    const parts = data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts ? data.candidates[0].content.parts : [];
+    const text = parts.filter(pt => pt && typeof pt.text === 'string').map(pt => pt.text).join('').trim();
     if (!text) throw { code: 'EMPTY', label: 'Gemini', message: 'Gemini devolvió una respuesta vacía.' };
-    return text.trim();
+    return text;
 }
 
 async function callGroqModel(promptText, key, model) {
@@ -1264,7 +1269,7 @@ function buildProductPrompt() {
         ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
         : '';
 
-    return `Escribe SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}". No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
+    return `Primero buscá en Google las especificaciones técnicas reales del producto "${prodName}" de la categoría "${prodCategory}" y después escribí SOLO esa lista de características confirmadas por los resultados. No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}
 
 REGLAS FUNDAMENTALES:
 1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.
