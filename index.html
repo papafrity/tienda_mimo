@@ -560,6 +560,47 @@
         </div>
     </div>
 
+    <!-- ─── CHATBOT MIMO ─────────────────────────────────────── -->
+    <div id="mimoChatbot" class="chatbot-wrapper" aria-hidden="true">
+        <!-- Bubble toggle -->
+        <button class="chatbot-bubble magnetic-btn" id="chatbotBubble" aria-label="Abrir chat">
+            <span class="chatbot-bubble-icon chatbot-icon-open">
+                <svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M21 16c0 1.1-.9 2-2 2H5l-4 4V6a2 2 0 012-2h14a2 2 0 012 2v10z"/></svg>
+            </span>
+            <span class="chatbot-bubble-icon chatbot-icon-close" style="display:none">
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </span>
+            <span class="chatbot-notif" id="chatbotNotif">1</span>
+        </button>
+
+        <!-- Chat panel -->
+        <div class="chatbot-panel" id="chatbotPanel">
+            <div class="chatbot-header">
+                <div class="chatbot-avatar">M!</div>
+                <div class="chatbot-header-info">
+                    <span class="chatbot-name">Asistente Mimo</span>
+                    <span class="chatbot-status"><span class="chatbot-dot"></span>En línea</span>
+                </div>
+                <button class="chatbot-close-btn" id="chatbotCloseBtn" aria-label="Cerrar chat">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="chatbot-messages" id="chatbotMessages"></div>
+            <div class="chatbot-suggestions" id="chatbotSuggestions">
+                <button class="chatbot-chip" data-msg="¿Qué productos tienen?">Ver productos</button>
+                <button class="chatbot-chip" data-msg="¿Tienen ofertas?">Ofertas</button>
+                <button class="chatbot-chip" data-msg="¿Cómo hacen los envíos?">Envíos</button>
+                <button class="chatbot-chip" data-msg="¿Cómo puedo pagar?">Formas de pago</button>
+            </div>
+            <div class="chatbot-input-row">
+                <input type="text" class="chatbot-input" id="chatbotInput" placeholder="Escribí tu consulta..." autocomplete="off" maxlength="300">
+                <button class="chatbot-send magnetic-btn" id="chatbotSend" aria-label="Enviar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>

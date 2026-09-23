@@ -333,6 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 products.push({ id: doc.id, ...doc.data() });
             });
             applyDynamicPrices();
+            window.products = products;
             if (products.length === 0) {
                 showEmptyProductsMessage();
             } else {
@@ -2908,3 +2909,217 @@ document.head.appendChild(st);
         if (resultsEl) observer.observe(resultsEl, { childList: true });
     }
 })();
+
+// ─── CHATBOT MIMO (POLLINATIONS AI + ASISTENTE LOCAL) ───
+(function () {
+    const chatbotWrapper = document.getElementById('mimoChatbot');
+    const chatbotBubble = document.getElementById('chatbotBubble');
+    const chatbotCloseBtn = document.getElementById('chatbotCloseBtn');
+    const chatbotMessages = document.getElementById('chatbotMessages');
+    const chatbotInput = document.getElementById('chatbotInput');
+    const chatbotSend = document.getElementById('chatbotSend');
+    const chatbotNotif = document.getElementById('chatbotNotif');
+    const suggestions = document.querySelectorAll('.chatbot-chip');
+
+    if (!chatbotWrapper || !chatbotBubble) return;
+
+    let conversationHistory = [];
+    let isWaitingResponse = false;
+
+    // Mensaje de bienvenida
+    function initWelcomeMessage() {
+        if (chatbotMessages.children.length === 0) {
+            appendMessage('bot', '¡Hola! 👋 Soy el asistente virtual de **Mimo!** ¿En qué te puedo ayudar hoy? Podés preguntarme sobre nuestros productos, precios, envíos o formas de pago.');
+        }
+    }
+
+    // Toggle abrir/cerrar
+    function toggleChat(open) {
+        const isOpen = open !== undefined ? open : !chatbotWrapper.classList.contains('open');
+        if (isOpen) {
+            chatbotWrapper.classList.add('open');
+            chatbotWrapper.setAttribute('aria-hidden', 'false');
+            if (chatbotNotif) chatbotNotif.style.display = 'none';
+            initWelcomeMessage();
+            setTimeout(() => chatbotInput?.focus(), 200);
+        } else {
+            chatbotWrapper.classList.remove('open');
+            chatbotWrapper.setAttribute('aria-hidden', 'true');
+        }
+    }
+
+    chatbotBubble.addEventListener('click', () => toggleChat());
+    if (chatbotCloseBtn) chatbotCloseBtn.addEventListener('click', () => toggleChat(false));
+
+    // Agregar mensaje al panel
+    function appendMessage(sender, text, isTyping = false) {
+        const msgDiv = document.createElement('div');
+        msgDiv.className = `chatbot-msg ${sender}${isTyping ? ' typing' : ''}`;
+        
+        if (isTyping) {
+            msgDiv.id = 'chatbotTypingIndicator';
+            msgDiv.textContent = 'Escribiendo...';
+        } else {
+            // Formateo básico de markdown (negritas y listas)
+            let formatted = text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/\n/g, '<br>');
+            msgDiv.innerHTML = formatted;
+        }
+
+        chatbotMessages.appendChild(msgDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        return msgDiv;
+    }
+
+    function removeTyping() {
+        const el = document.getElementById('chatbotTypingIndicator');
+        if (el) el.remove();
+    }
+
+    // Contexto dinámico de productos de la tienda
+    function buildStoreContext() {
+        const prods = window.products || [];
+        if (!prods.length) {
+            return 'Actualmente no hay productos cargados en catálogo.';
+        }
+
+        const categories = [...new Set(prods.map(p => p.category).filter(Boolean))];
+        const productList = prods.slice(0, 40).map(p => {
+            const price = p.offerPrice && p.offerPrice !== p.price ? p.offerPrice : p.price;
+            return `- ${p.name} (Categoría: ${p.category || 'General'}, Precio: $${Number(price).toLocaleString('es-AR')}${p.badge ? ', Destacado: ' + p.badge : ''})`;
+        }).join('\n');
+
+        return `Eres el asistente virtual amable, profesional y conciso de "Mimo!", una tienda de tecnología premium en Argentina.
+Información de la tienda:
+- Categorías disponibles: ${categories.join(', ')}.
+- Envíos: Envíos a todo el país. Los envíos al interior se realizan mediante empresas de encomienda/cargo a retirar en sucursal con flete a cargo del comprador.
+- Pagos: Mercado Pago, tarjetas de crédito, débito y transferencias.
+- Catálogo de productos disponibles ahora:
+${productList}
+
+Instrucciones:
+1. Responde siempre en español rioplatense o neutro, con tono cordial y servicial.
+2. Si te preguntan por un producto, usa la lista provista. Si no está en la lista, aclara con amabilidad que no lo tienes en stock actualmente pero invítalos a consultar por WhatsApp.
+3. Sé breve y directo (máximo 2 a 3 oraciones por respuesta o una lista corta con viñetas •).
+4. No inventes precios ni características técnicas que no estén en la lista.`;
+    }
+
+    // Llamada gratuita a Pollinations AI (sin key)
+    async function askPollinations(userText) {
+        const systemPrompt = buildStoreContext();
+        
+        const messages = [
+            { role: 'system', content: systemPrompt },
+            ...conversationHistory.slice(-4), // últimos 2 turnos para contexto
+            { role: 'user', content: userText }
+        ];
+
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000); // 12s timeout
+
+        try {
+            const res = await fetch('https://text.pollinations.ai/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: messages,
+                    model: 'openai',
+                    seed: 42,
+                    jsonMode: false
+                }),
+                signal: controller.signal
+            });
+            clearTimeout(timeout);
+
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const text = await res.text();
+            return text.trim();
+        } catch (err) {
+            clearTimeout(timeout);
+            console.warn('Pollinations chatbot fallback:', err);
+            return localFallbackResponse(userText);
+        }
+    }
+
+    // Respuestas locales inmediatas si la IA tarda o falla la red
+    function localFallbackResponse(userText) {
+        const q = userText.toLowerCase();
+        const prods = window.products || [];
+
+        if (q.includes('envio') || q.includes('envío') || q.includes('entregar') || q.includes('flete')) {
+            return 'Realizamos envíos a todo el país. Para el interior, despachamos mediante empresas de cargo y retirás en sucursal abonando el flete al retirar. ¡Llega rápido y seguro!';
+        }
+        if (q.includes('pago') || q.includes('tarjeta') || q.includes('cuota') || q.includes('transferencia')) {
+            return 'Aceptamos todos los medios de pago a través de Mercado Pago: tarjetas de débito, crédito en cuotas y dinero en cuenta.';
+        }
+        if (q.includes('oferta') || q.includes('descuento') || q.includes('promo')) {
+            const offers = prods.filter(p => p.offerPrice && p.offerPrice !== p.price);
+            if (offers.length) {
+                const list = offers.slice(0, 3).map(p => `• **${p.name}** a $${Number(p.offerPrice).toLocaleString('es-AR')}`).join('\n');
+                return `¡Sí! Tenemos estas ofertas activas ahora:\n${list}\n\nPodés verlas en la sección de ofertas.`;
+            }
+            return 'Podés ver las ofertas destacadas del momento en el carrusel de nuestra página principal.';
+        }
+        if (q.includes('producto') || q.includes('tenes') || q.includes('tienen') || q.includes('catalogo') || q.includes('stock')) {
+            const categories = [...new Set(prods.map(p => p.category).filter(Boolean))];
+            if (categories.length) {
+                return `Tenemos productos en las siguientes categorías: **${categories.join(', ')}** (${prods.length} productos en stock). ¿Buscás algo en particular?`;
+            }
+            return 'Podés explorar todos nuestros productos directamente en la tienda o usar la barra de búsqueda 🔍.';
+        }
+        return '¡Gracias por tu consulta! Podés buscar cualquier producto en el buscador de la tienda o consultarnos lo que necesites sobre envíos, pagos y stock.';
+    }
+
+    // Enviar mensaje
+    async function handleSend() {
+        if (isWaitingResponse) return;
+        const text = chatbotInput.value.trim();
+        if (!text) return;
+
+        // Limpiar input y agregar mensaje del usuario
+        chatbotInput.value = '';
+        appendMessage('user', text);
+        conversationHistory.push({ role: 'user', content: text });
+
+        // Indicador de escribiendo
+        isWaitingResponse = true;
+        chatbotSend.disabled = true;
+        appendMessage('bot', '', true);
+
+        try {
+            const answer = await askPollinations(text);
+            removeTyping();
+            appendMessage('bot', answer);
+            conversationHistory.push({ role: 'assistant', content: answer });
+        } catch (e) {
+            removeTyping();
+            appendMessage('bot', localFallbackResponse(text));
+        } finally {
+            isWaitingResponse = false;
+            chatbotSend.disabled = false;
+            chatbotInput.focus();
+        }
+    }
+
+    chatbotSend.addEventListener('click', handleSend);
+    chatbotInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleSend();
+        }
+    });
+
+    // Chips de sugerencia rápida
+    suggestions.forEach(chip => {
+        chip.addEventListener('click', () => {
+            const query = chip.dataset.msg;
+            if (query) {
+                chatbotInput.value = query;
+                handleSend();
+            }
+        });
+    });
+})();
+
