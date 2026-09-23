@@ -1619,13 +1619,21 @@ function buildProductPrompt(withSearch) {
     const prodCategory = document.getElementById('prodCategory').value.trim();
     const prodOffer = document.getElementById('prodOffer').value.trim();
     const offerHint = prodOffer
-        ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Si escribís una descripción, podés mencionar la promoción de forma natural al inicio (ej: "¡Oferta! Este producto está en promoción a $${prodOffer}").`
+        ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Podés mencionarlo al inicio de forma natural si corresponde.`
         : '';
 
-    const searchIntro = withSearch
-        ? `Primero buscá en Google las especificaciones técnicas reales del producto "${prodName}" de la categoría "${prodCategory}" y después escribí SOLO esa lista de características confirmadas por los resultados.`
-        : `Escribí SOLO las especificaciones técnicas más importantes del producto "${prodName}" de la categoría "${prodCategory}".`;
-    return `${searchIntro} No escribas una introducción ni texto de marketing: el nombre del producto ya lo presenta. La descripción debe ser exclusivamente una lista de sus características técnicas.${offerHint}\n\nREGLAS FUNDAMENTALES:\n1. NUNCA inventes características, especificaciones, conectividad (ej: cable USB-C, Bluetooth, wifi) ni accesorios que no estén confirmados. Si no estás seguro de una característica, NO la menciones. Es preferible decir menos que decir algo falso.\n2. Incluí TODAS las características relevantes del producto (cuántas más tenga, más larga será la descripción). No limites la cantidad: un producto con muchos specs debe describirlos casi todos.\n3. Separá cada característica con un solo salto de línea (no dejes líneas en blanco entre bullets).\n4. No uses emojis ni formato Markdown (no asteriscos ** ni símbolos raros). Todo texto plano.\n5. Terminá cada bullet en punto. No dejes espacios "..." ni textos entre corchetes como "[detalle...]".\n\nUsá estos atributos clave según la categoría del producto (describí todos los que apliquen, y agregá otros que veas):\n- Auriculares / parlantes: tipo, cancelación de ruido (solo si está confirmado), batería, conectividad, resistencia al agua, controles, códec de audio.\n- Teclados / mouse / periféricos: tipo (inalámbrico/cableado), conexión, batería o pilas, compatibilidad, diseño, switches, retroiluminación.\n- Smartwatches / relojes: pantalla, batería, sensores, resistencia al agua, compatibilidad con celulares, funciones de salud.\n- TVs / monitores: tamaño, resolución, tipo de panel, conectividad, smart, tasa de refresco, HDR.\n- Celulares / tablets: pantalla, batería, cámara, almacenamiento, procesador, conectividad, carga.\n- Cocinas / heladeras / electrodomésticos: capacidad, tipo, eficiencia energética, funciones, dimensiones, materiales.\n- Otro: describí todos los atributos relevantes del producto, cuantos más haya.\n\nFormato de cada bullet: "• Atributo: detalle completo". No inventes atributos.`;
+    const instruction = withSearch
+        ? `Buscá en Google las especificaciones técnicas reales del producto "${prodName}" de la categoría "${prodCategory}" y redactá una lista con sus características confirmadas.`
+        : `Escribí una lista clara, técnica y profesional de las especificaciones y características principales del producto "${prodName}" de la categoría "${prodCategory}". Si es un modelo específico de marca, utilizá sus datos técnicos de fábrica. Si es un producto genérico, enumerá las prestaciones más valoradas y habituales de este tipo de producto.`;
+
+    return `${instruction} No escribas introducciones, títulos ni frases de marketing (el nombre del producto ya lo presenta en la tienda). La respuesta debe ser DIRECTAMENTE la lista de características.${offerHint}
+
+REGLAS DE FORMATO OBLIGATORIAS:
+1. Formato estricto por línea: "• Atributo: Detalle".
+2. Sin emojis ni caracteres especiales.
+3. No uses formato Markdown como negritas con asteriscos (no pongas ** ni ##). Solo texto plano.
+4. Cada viñeta debe terminar en punto final.
+5. Incluí entre 5 y 10 características clave bien organizadas (materiales, dimensiones o capacidad, conectividad, batería, funciones destacadas, compatibilidad, etc.).`;
 }
 
 const generateAIBtn = document.getElementById('generateAIBtn');
@@ -1694,22 +1702,95 @@ if (generateAIBtn) {
     });
 }
 
-// Configuración de IAs de respaldo (localStorage)
+// ─── CONFIGURACIÓN DE CLAVES IA (AUTO-GUARDADO + VALIDACIÓN) ───
+function saveAIKeysSilently() {
+    const geminiKey = document.getElementById('geminiApiKey')?.value.trim() || '';
+    const groqKey = document.getElementById('groqApiKey')?.value.trim() || '';
+    const orKey = document.getElementById('openRouterApiKey')?.value.trim() || '';
+    const orModel = document.getElementById('openRouterModel')?.value.trim() || '';
+
+    try {
+        if (geminiKey) localStorage.setItem('mimo_gemini_key', geminiKey);
+        else localStorage.removeItem('mimo_gemini_key');
+
+        if (groqKey) localStorage.setItem('mimo_groq_key', groqKey);
+        else localStorage.removeItem('mimo_groq_key');
+
+        if (orKey) localStorage.setItem('mimo_openrouter_key', orKey);
+        else localStorage.removeItem('mimo_openrouter_key');
+
+        if (orModel) localStorage.setItem('mimo_openrouter_model', orModel);
+        else localStorage.removeItem('mimo_openrouter_model');
+
+        const indicator = document.getElementById('aiSaveIndicator');
+        if (indicator) {
+            indicator.style.display = 'block';
+            clearTimeout(window._aiSaveTimer);
+            window._aiSaveTimer = setTimeout(() => { indicator.style.display = 'none'; }, 2500);
+        }
+    } catch(e) {
+        console.error('Error guardando en localStorage:', e);
+    }
+}
+
+function updateKeyFormatFeedback() {
+    const geminiVal = document.getElementById('geminiApiKey')?.value.trim() || '';
+    const geminiStatus = document.getElementById('geminiKeyStatus');
+    if (geminiStatus) {
+        if (!geminiVal) {
+            geminiStatus.innerHTML = '<span style="color:var(--text-secondary)">Debe comenzar con "AIzaSy...". Se autoguarda al escribir.</span>';
+        } else if (geminiVal.startsWith('AIzaSy')) {
+            geminiStatus.innerHTML = '<span style="color:#2ed573">✓ Formato de clave Gemini correcto (AIzaSy...)</span>';
+        } else {
+            geminiStatus.innerHTML = '<span style="color:#ff4757">⚠️ Formato inválido: las claves de Google AI Studio deben empezar con "AIzaSy...". Verificá no haber pegado un token "AQ." ni una URL.</span>';
+        }
+    }
+
+    const groqVal = document.getElementById('groqApiKey')?.value.trim() || '';
+    const groqStatus = document.getElementById('groqKeyStatus');
+    if (groqStatus) {
+        if (!groqVal) {
+            groqStatus.innerHTML = '<span style="color:var(--text-secondary)">Debe comenzar con "gsk_...". Se autoguarda al escribir.</span>';
+        } else if (groqVal.startsWith('gsk_')) {
+            groqStatus.innerHTML = '<span style="color:#2ed573">✓ Formato de clave Groq correcto (gsk_...)</span>';
+        } else {
+            groqStatus.innerHTML = '<span style="color:#ff4757">⚠️ Formato inválido: las claves de Groq deben empezar con "gsk_...".</span>';
+        }
+    }
+}
+
 const aiConfigBtn = document.getElementById('aiConfigBtn');
 const aiConfigModal = document.getElementById('aiConfigModal');
 if (aiConfigBtn && aiConfigModal) {
     aiConfigBtn.addEventListener('click', () => {
-        document.getElementById('geminiApiKey').value = getGeminiKey();
+        const geminiInput = document.getElementById('geminiApiKey');
         const groqInput = document.getElementById('groqApiKey');
+        const orInput = document.getElementById('openRouterApiKey');
+        const orModelInput = document.getElementById('openRouterModel');
+
+        if (geminiInput) geminiInput.value = getGeminiKey();
         if (groqInput) groqInput.value = getGroqKey();
-        document.getElementById('openRouterApiKey').value = getOpenRouterKey();
-        document.getElementById('openRouterModel').value = getOpenRouterModel();
+        if (orInput) orInput.value = getOpenRouterKey();
+        if (orModelInput) orModelInput.value = getOpenRouterModel();
         
+        updateKeyFormatFeedback();
+
         const testRes = document.getElementById('aiTestResults');
         if (testRes) testRes.style.display = 'none';
 
         aiConfigModal.classList.add('active');
         document.body.style.overflow = 'hidden';
+    });
+
+    // Auto-guardado en tiempo real al escribir o pegar
+    ['geminiApiKey', 'groqApiKey', 'openRouterApiKey', 'openRouterModel'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', () => {
+                saveAIKeysSilently();
+                updateKeyFormatFeedback();
+            });
+        }
     });
 
     document.getElementById('aiConfigClose')?.addEventListener('click', () => {
@@ -1725,41 +1806,27 @@ if (aiConfigBtn && aiConfigModal) {
     });
 
     document.getElementById('aiConfigSave')?.addEventListener('click', () => {
-        const geminiKey = document.getElementById('geminiApiKey').value.trim();
-        const groqKey = document.getElementById('groqApiKey')?.value.trim() || '';
-        const orKey = document.getElementById('openRouterApiKey').value.trim();
-        const orModel = document.getElementById('openRouterModel').value.trim();
-
-        try {
-            if (geminiKey) localStorage.setItem('mimo_gemini_key', geminiKey);
-            else localStorage.removeItem('mimo_gemini_key');
-
-            if (groqKey) localStorage.setItem('mimo_groq_key', groqKey);
-            else localStorage.removeItem('mimo_groq_key');
-
-            if (orKey) localStorage.setItem('mimo_openrouter_key', orKey);
-            else localStorage.removeItem('mimo_openrouter_key');
-
-            if (orModel) localStorage.setItem('mimo_openrouter_model', orModel);
-            else localStorage.removeItem('mimo_openrouter_model');
-        } catch(e) { /* ignore */ }
-
+        saveAIKeysSilently();
         aiConfigModal.classList.remove('active');
         document.body.style.overflow = '';
         alert('Configuración de IAs guardada correctamente.');
     });
 
-    // Probador de conexiones en vivo
+    // Probador de conexiones en vivo con diagnóstico detallado
     const testBtn = document.getElementById('aiConfigTestBtn');
     if (testBtn) {
         testBtn.addEventListener('click', async () => {
             const resultsDiv = document.getElementById('aiTestResults');
             if (!resultsDiv) return;
 
+            // Guardar automáticamente lo que esté en los campos
+            saveAIKeysSilently();
+            updateKeyFormatFeedback();
+
             testBtn.disabled = true;
             testBtn.textContent = '⏳ Probando...';
             resultsDiv.style.display = 'block';
-            resultsDiv.innerHTML = '<span style="color:var(--text-secondary)">Realizando pruebas de conexión en vivo...</span>';
+            resultsDiv.innerHTML = '<span style="color:var(--text-secondary)">Realizando pruebas de conexión en vivo con los proveedores...</span>';
 
             const geminiKey = document.getElementById('geminiApiKey').value.trim();
             const groqKey = document.getElementById('groqApiKey')?.value.trim() || '';
@@ -1771,26 +1838,41 @@ if (aiConfigBtn && aiConfigModal) {
             // 1. Test Gemini
             if (!geminiKey) {
                 results.push('<div style="margin-bottom:.3rem">⚪ <strong>Gemini:</strong> Sin clave configurada (opcional).</div>');
+            } else if (!geminiKey.startsWith('AIzaSy')) {
+                results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> La clave ingresada no es válida. Debe ser una clave de Google AI Studio que empieza con "AIzaSy...".</div>');
             } else {
                 try {
-                    const testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
+                    let testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${geminiKey}`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ contents: [{ parts: [{ text: 'Hola' }] }] })
                     });
+                    if (!testResp.ok && testResp.status === 404) {
+                        // Reintento con 1.5 flash
+                        testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ contents: [{ parts: [{ text: 'Hola' }] }] })
+                        });
+                    }
+
                     if (testResp.ok) {
-                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Gemini:</strong> ¡Conectado y listo!</div>');
+                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Gemini:</strong> ¡Conectado y listo para generar descripciones con búsqueda en Google!</div>');
                     } else {
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error HTTP ${testResp.status} (verificá la clave).</div>`);
+                        const errJson = await testResp.json().catch(() => null);
+                        const detail = errJson?.error?.message || `HTTP ${testResp.status}`;
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error (${detail}). Verificá la clave en Google AI Studio.</div>`);
                     }
                 } catch(e) {
-                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error de red: ${e.message}</div>`);
+                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error de conexión: ${e.message}</div>`);
                 }
             }
 
             // 2. Test Groq
             if (!groqKey) {
                 results.push('<div style="margin-bottom:.3rem">⚪ <strong>Groq:</strong> Sin clave configurada (opcional).</div>');
+            } else if (!groqKey.startsWith('gsk_')) {
+                results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> La clave de Groq debe comenzar con "gsk_...". Creala gratis en console.groq.com/keys.</div>');
             } else {
                 try {
                     const testResp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -1803,12 +1885,14 @@ if (aiConfigBtn && aiConfigModal) {
                         })
                     });
                     if (testResp.ok) {
-                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Groq:</strong> ¡Conectado y ultra rápido!</div>');
+                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Groq:</strong> ¡Conectado y ultra rápido con Llama 3.3 70B!</div>');
                     } else {
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error HTTP ${testResp.status} (verificá la clave).</div>`);
+                        const errJson = await testResp.json().catch(() => null);
+                        const detail = errJson?.error?.message || `HTTP ${testResp.status}`;
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error (${detail}). Verificá tu clave en console.groq.com.</div>`);
                     }
                 } catch(e) {
-                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error de red: ${e.message}</div>`);
+                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error de conexión: ${e.message}</div>`);
                 }
             }
 
@@ -1834,7 +1918,9 @@ if (aiConfigBtn && aiConfigModal) {
                     if (testResp.ok) {
                         results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>OpenRouter:</strong> ¡Conectado!</div>');
                     } else {
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>OpenRouter:</strong> Error HTTP ${testResp.status} (modelo o clave).</div>`);
+                        const errJson = await testResp.json().catch(() => null);
+                        const detail = errJson?.error?.message || `HTTP ${testResp.status}`;
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>OpenRouter:</strong> Error (${detail}).</div>`);
                     }
                 } catch(e) {
                     results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>OpenRouter:</strong> Error de red: ${e.message}</div>`);
@@ -1843,14 +1929,22 @@ if (aiConfigBtn && aiConfigModal) {
 
             // 4. Test Respaldo Libre
             try {
-                const polResp = await fetch('https://text.pollinations.ai/OK');
+                const ctrl = new AbortController();
+                const to = setTimeout(() => ctrl.abort(), 6000);
+                const polResp = await fetch('https://text.pollinations.ai/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ messages: [{ role: 'user', content: 'OK' }] }),
+                    signal: ctrl.signal
+                });
+                clearTimeout(to);
                 if (polResp.ok) {
-                    results.push('<div style="color:#2ed573">🟢 <strong>Respaldo Libre (Pollinations):</strong> 100% Operativo (sin clave requerida).</div>');
+                    results.push('<div style="color:#2ed573">🟢 <strong>Respaldo Libre (Pollinations):</strong> Operativo (sin clave requerida).</div>');
                 } else {
-                    results.push(`<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> Estado HTTP ${polResp.status}</div>`);
+                    results.push(`<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> Estado HTTP ${polResp.status} (el servicio gratuito puede estar temporalmente ocupado).</div>`);
                 }
             } catch(e) {
-                results.push(`<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> ${e.message}</div>`);
+                results.push('<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> Servicio ocupado momentáneamente.</div>');
             }
 
             resultsDiv.innerHTML = results.join('');

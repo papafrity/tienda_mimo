@@ -473,24 +473,24 @@
                     <label style="margin:0;font-weight:600">1. Google Gemini</label>
                     <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noopener" style="color:var(--accent-color);font-size:.8rem;text-decoration:none">Obtener gratis ↗</a>
                 </div>
-                <input type="password" id="geminiApiKey" placeholder="AIzaSy... o AQ...." style="width:100%;padding:.75rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
-                <small style="color:var(--text-secondary);font-size:.75rem">Modelo: gemini-2.0-flash / gemini-flash-latest.</small>
+                <input type="text" id="geminiApiKey" placeholder="AIzaSy..." autocomplete="off" spellcheck="false" style="width:100%;padding:.75rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:monospace;font-size:.85rem">
+                <small id="geminiKeyStatus" style="color:var(--text-secondary);font-size:.75rem">Debe comenzar con "AIzaSy...". Se autoguarda al escribir.</small>
             </div>
             <div class="form-group" style="margin-bottom:1rem">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
-                    <label style="margin:0;font-weight:600">2. Groq (Ultra rápida)</label>
+                    <label style="margin:0;font-weight:600">2. Groq (Ultra rápida - Recomendada)</label>
                     <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="color:var(--accent-color);font-size:.8rem;text-decoration:none">Obtener gratis ↗</a>
                 </div>
-                <input type="password" id="groqApiKey" placeholder="gsk_..." style="width:100%;padding:.75rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
-                <small style="color:var(--text-secondary);font-size:.75rem">Modelo: llama-3.3-70b-versatile (máxima velocidad).</small>
+                <input type="text" id="groqApiKey" placeholder="gsk_..." autocomplete="off" spellcheck="false" style="width:100%;padding:.75rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:monospace;font-size:.85rem">
+                <small id="groqKeyStatus" style="color:var(--text-secondary);font-size:.75rem">Debe comenzar con "gsk_...". Se autoguarda al escribir.</small>
             </div>
             <div class="form-group" style="margin-bottom:1rem">
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
                     <label style="margin:0;font-weight:600">3. OpenRouter (Opcional)</label>
                     <a href="https://openrouter.ai/keys" target="_blank" rel="noopener" style="color:var(--accent-color);font-size:.8rem;text-decoration:none">Obtener gratis ↗</a>
                 </div>
-                <input type="password" id="openRouterApiKey" placeholder="sk-or-..." style="width:100%;padding:.75rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem">
-                <input type="text" id="openRouterModel" placeholder="meta-llama/llama-3.3-70b-instruct:free" style="width:100%;padding:.6rem .75rem;margin-top:.4rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:'Outfit',sans-serif;font-size:.8rem">
+                <input type="text" id="openRouterApiKey" placeholder="sk-or-..." autocomplete="off" spellcheck="false" style="width:100%;padding:.75rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:monospace;font-size:.85rem">
+                <input type="text" id="openRouterModel" placeholder="meta-llama/llama-3.3-70b-instruct:free" autocomplete="off" spellcheck="false" style="width:100%;padding:.6rem .75rem;margin-top:.4rem;border-radius:8px;border:1px solid var(--surface-border);background:var(--surface-color);color:#fff;font-family:monospace;font-size:.8rem">
             </div>
             <div style="background:rgba(46,213,115,0.08);border:1px solid rgba(46,213,115,0.25);border-radius:8px;padding:.75rem;margin-bottom:1rem">
                 <strong style="color:#2ed573;font-size:.85rem;display:flex;align-items:center;gap:.4rem">
@@ -501,11 +501,12 @@
                 </p>
             </div>
             <div id="aiTestResults" style="display:none;margin-bottom:1rem;padding:.75rem;border-radius:8px;background:rgba(255,255,255,.03);border:1px solid var(--surface-border);font-size:.8rem;line-height:1.5"></div>
+            <div id="aiSaveIndicator" style="display:none;margin-bottom:.8rem;padding:.5rem .75rem;border-radius:6px;background:rgba(46,213,115,.15);border:1px solid rgba(46,213,115,.3);color:#2ed573;font-size:.8rem;text-align:center">💾 Claves guardadas en este navegador</div>
             <div style="display:flex;gap:.6rem;align-items:center">
                 <button type="button" id="aiConfigTestBtn" class="magnetic-btn" style="flex:1;background:transparent;border:1px solid var(--surface-border);color:var(--text-primary);padding:.75rem;border-radius:8px;cursor:pointer;font-size:.85rem">🧪 Probar Conexiones</button>
                 <button type="button" id="aiConfigSave" class="magnetic-btn" style="flex:1;background:var(--primary);border:none;color:#000;font-weight:700;padding:.75rem;border-radius:8px;cursor:pointer;font-size:.85rem">Guardar</button>
             </div>
-            <small style="color:var(--text-secondary);font-size:.75rem;display:block;text-align:center;margin-top:.7rem">Las claves quedan guardadas de forma segura y privada en este navegador.</small>
+            <small style="color:var(--text-secondary);font-size:.75rem;display:block;text-align:center;margin-top:.7rem">Las claves se guardan en el almacenamiento local de este navegador.</small>
         </div>
     </div>
 
