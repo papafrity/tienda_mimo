@@ -541,6 +541,21 @@ document.addEventListener('DOMContentLoaded', () => {
         saveCart();
         gtag('event', 'add_to_cart', { currency: 'ARS', value: offerVal(product), items: [{ item_id: product.id, item_name: product.name, price: offerVal(product), quantity: 1 }] });
         showToast(`${product.name} agregado al carrito`, 'success');
+        
+        if (btn) {
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '¡Agregado! ✔️';
+            btn.style.backgroundColor = 'rgba(46, 213, 115, 0.15)';
+            btn.style.borderColor = '#2ed573';
+            btn.style.color = '#2ed573';
+            if (window.gsap) gsap.fromTo(btn, { scale: 0.9 }, { scale: 1, duration: 0.5, ease: 'elastic.out(1, 0.4)' });
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.style.backgroundColor = '';
+                btn.style.borderColor = '';
+                btn.style.color = '';
+            }, 1500);
+        }
 
         // Button morph + flying image to cart
         if (btn && btn.classList && btn.classList.contains('add-to-cart')) {
