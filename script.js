@@ -35,33 +35,54 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── CUSTOM CURSOR ──────────────────────────────────────
     const dot = document.getElementById('cursorDot');
     const ring = document.getElementById('cursorRing');
-    let cx = 0, cy = 0, rx = 0, ry = 0;
+    if (ring) ring.style.display = 'none';
 
-    document.addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; });
+    if (dot) {
+        gsap.set(dot, { xPercent: -50, yPercent: -50 });
 
-    function animateCursor() {
-        if (!dot || !ring) return;
-        rx += (cx - rx) * 0.15;
-        ry += (cy - ry) * 0.15;
-        dot.style.transform = `translate(${cx - 4}px, ${cy - 4}px)`;
-        ring.style.left = rx + 'px';
-        ring.style.top = ry + 'px';
-        requestAnimationFrame(animateCursor);
+        let targetEl = null;
+
+        document.addEventListener('mousemove', e => {
+            if (!targetEl) {
+                gsap.to(dot, { x: e.clientX, y: e.clientY, duration: 0.15, ease: 'power2.out' });
+            }
+        });
+
+        const interactables = document.querySelectorAll('a, button, .product-card, .carousel-card, .filter-tab, .cart-btn, .search-toggle');
+        interactables.forEach(el => {
+            el.addEventListener('mouseenter', () => {
+                targetEl = el;
+                const r = el.getBoundingClientRect();
+                gsap.to(dot, { 
+                    x: r.left + r.width / 2, 
+                    y: r.top + r.height / 2, 
+                    width: r.width + 16, 
+                    height: r.height + 16, 
+                    borderRadius: '12px',
+                    backgroundColor: 'rgba(0, 240, 255, 0.08)',
+                    border: '1px solid rgba(0, 240, 255, 0.4)',
+                    duration: 0.3, 
+                    ease: 'back.out(1.5)' 
+                });
+            });
+            el.addEventListener('mouseleave', (e) => {
+                targetEl = null;
+                gsap.to(dot, {
+                    width: 20, 
+                    height: 20, 
+                    borderRadius: '50%',
+                    backgroundColor: 'rgba(0, 240, 255, 0.4)',
+                    border: 'none',
+                    x: e.clientX,
+                    y: e.clientY,
+                    duration: 0.3, 
+                    ease: 'power2.out'
+                });
+            });
+        });
     }
-    animateCursor();
 
-    // Hover grow effect
-    document.querySelectorAll('a, button, .product-card, .carousel-card, .filter-tab, .cart-btn').forEach(el => {
-        el.addEventListener('mouseenter', () => ring.classList.add('hover'));
-        el.addEventListener('mouseleave', () => ring.classList.remove('hover'));
-    });
-    // Card-specific hover (glow ring)
-    document.querySelectorAll('.product-card, .carousel-card').forEach(el => {
-        el.addEventListener('mouseenter', () => { ring.classList.remove('hover'); ring.classList.add('hover-card'); });
-        el.addEventListener('mouseleave', () => ring.classList.remove('hover-card'));
-    });
-
-    // ─── SPLIT TITLE ANIMATION ──────────────────────────────
+    // SPLIT TITLE
     const title = document.getElementById('heroTitle');
     if (title) {
         const text = title.textContent;
@@ -935,20 +956,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const isEntering = (i === ci);
                 const isLeaving = (i === prevCi && i !== ci);
 
-                // Cinematic timing: smooth cascade with premium easings
-                let dur, ease, delay;
-                if (isLeaving) {
-                    // Card leaving center: clears out first so the incoming never overlaps
-                    dur = 0.5; ease = 'expo.out'; delay = 0;
-                } else if (isEntering) {
-                    // Card entering center: waits for the center to clear, then arrives
-                    dur = 0.9; ease = 'expo.out'; delay = 0.45;
-                    card.style.zIndex = 11; // above center during transition
-                } else {
-                    // Side cards: fluid repositioning
-                    dur = 0.85; ease = 'power3.inOut';
-                    delay = abs === 1 ? 0.06 : 0.12;
-                }
+                // Timing simplificado: movimiento sincronico
+                let dur = 0.65;
+                let ease = 'power3.out';
+                let delay = 0;
+                
+                if (isEntering) card.style.zIndex = 11;
 
                 tl.to(card, {
                     x: targetX, scale: targetScale, rotateY: targetRotateY, rotateX: targetRotateX,
@@ -961,25 +974,24 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (isCenter) {
                     card.classList.add('active');
-                    // Animate card info stagger — silky reveal sequence
                     const info = card.querySelector('.carousel-card-info');
                     const badge = card.querySelector('.badge');
                     const title = card.querySelector('h3');
                     const price = card.querySelector('.offer-price') || card.querySelector('.old-price');
                     const btn = card.querySelector('.add-to-cart');
                     const baseEase = 'expo.out';
-                    if (info) tl.fromTo(info, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: baseEase }, 0.55);
-                    if (badge) tl.fromTo(badge, { scale: 0.6, opacity: 0, y: 10 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(2.2)' }, 0.6);
-                    if (title) tl.fromTo(title, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.66);
-                    if (price) tl.fromTo(price, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, 0.73);
-                    if (btn) tl.fromTo(btn, { y: 14, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, 0.8);
+                    
+                    const baseTime = 0.15;
+                    if (info) tl.fromTo(info, { y: 20, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: baseEase }, baseTime);
+                    if (badge) tl.fromTo(badge, { scale: 0.6, opacity: 0, y: 10 }, { scale: 1, opacity: 1, y: 0, duration: 0.5, ease: 'back.out(2.2)' }, baseTime + 0.05);
+                    if (title) tl.fromTo(title, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, baseTime + 0.1);
+                    if (price) tl.fromTo(price, { y: 12, opacity: 0 }, { y: 0, opacity: 1, duration: 0.55, ease: baseEase }, baseTime + 0.15);
+                    if (btn) tl.fromTo(btn, { y: 14, opacity: 0, scale: 0.9 }, { y: 0, opacity: 1, scale: 1, duration: 0.6, ease: 'back.out(1.8)' }, baseTime + 0.2);
                 }
             });
 
-            // Spotlight move — smooth follow (waits for the incoming card)
-            tl.to(spotlight, { left: '50%', duration: 0.9, ease: 'expo.out' }, 0.45);
-
-            // Particles
+            // Spotlight move
+            tl.to(spotlight, { left: '50%', duration: 0.65, ease: 'power3.out' }, 0);            // Particles
             spawnParticles(cards[ci]);
 
             // Dots
