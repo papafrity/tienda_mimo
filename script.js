@@ -199,13 +199,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return changed;
     }
 
-    async function fetchUsdRate() {
-        try {
-            const resp = await fetch('https://dolarapi.com/v1/dolares/blue');
-            const data = await resp.json();
-            if (data && data.venta) usdRateARS = data.venta;
-        } catch(e) { /* ignore */ }
-    }
+    async function fetchUsdRate() { try { const controller = new AbortController(); const id = setTimeout(() => controller.abort(), 3500); const resp = await fetch('https://dolarapi.com/v1/dolares/blue', { signal: controller.signal }); clearTimeout(id); const data = await resp.json(); if (data && data.venta) usdRateARS = data.venta; } catch(e) { console.warn('API timeout'); } }
 
     function renderStarsHtml(rating) {
         const r = Math.round((rating || 0) * 2) / 2;
@@ -269,7 +263,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="product-card tilt-card reveal-up" data-category="${p.category}" data-id="${p.id}" style="transition-delay:${Math.min(idx * .04, .3)}s">
                 <div class="card-glow"></div>
                 <div class="card-spotlight"></div>
-                <div class="product-image"><img src="${p.image}" alt="${p.name}"></div>
+                <div class="product-image"><img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async"></div>
                 <div class="product-info">
                     <span class="category">${p.category}</span>
                     <h3>${p.name}</h3>
@@ -305,7 +299,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.className = 'carousel-card';
             card.dataset.productId = p.id;
             card.innerHTML = `
-                <img src="${p.image}" alt="${p.name}">
+                <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async">
                 <div class="carousel-card-info">
                     <span class="badge">${p.badge || ''}</span>
                     <h3>${p.name}</h3>
@@ -343,6 +337,13 @@ document.addEventListener('DOMContentLoaded', () => {
             initDynamicEvents();
             initCarouselLogic();
             initProductFiltersAndModals();
+
+            // SEO: check if a product is in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pId = urlParams.get("p");
+            if (pId) {
+                setTimeout(() => { if(typeof window.openProductModal === "function") window.openProductModal(pId); }, 300);
+            }
 
             // Recalcular precios cada 10 min con el dólar del momento
             setInterval(async () => {
@@ -648,7 +649,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 cartItems.innerHTML += `
                 <div class="cart-item">
-                    <img src="${item.image}" alt="${item.name}">
+                    <img src="${item.image}" alt="${item.name}" loading="lazy" decoding="async">
                     <div class="cart-item-info">
                         <h4>${item.name}</h4>
                         <p>$${fmt(price)}${up.tier ? ` <span class="tier-badge">Mayorista ${up.tier.minQty}+</span>` : ''}</p>
@@ -1271,6 +1272,7 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
             const p = products.find(x => x.id === prodId);
             if (!p) return;
+            if (new URLSearchParams(window.location.search).get("p") !== prodId) history.pushState(null, "", "?p=" + encodeURIComponent(prodId));
             const modalEl = document.getElementById('productModal');
             const mImg = document.getElementById('modalMainImg');
             const mTh = document.getElementById('modalThumbs');
@@ -1670,7 +1672,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        function closeM() { document.getElementById('productModal').classList.remove('active'); document.body.style.overflow = ''; }
+        function closeM() { document.getElementById('productModal').classList.remove('active'); document.body.style.overflow = ''; if(window.location.search.includes('?p=')) history.pushState(null, '', window.location.pathname); }
 
         // Modal global listeners
         const liveModal = document.getElementById('productModal');
@@ -1785,7 +1787,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 item.classList.add('search-result-item');
                 const displayPrice = (hasOffer(p)) ? p.offerPrice : p.price;
                 item.innerHTML = `
-                    <img src="${p.image}" alt="${p.name}">
+                    <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async">
                     <div class="search-result-info">
                         <h4>${p.name}</h4>
                         <p>$${fmt(displayPrice)}</p>
@@ -1824,7 +1826,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     item.classList.add('search-result-item');
                     const displayPrice = (hasOffer(p)) ? p.offerPrice : p.price;
                     item.innerHTML = `
-                        <img src="${p.image}" alt="${p.name}">
+                        <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async">
                         <div class="search-result-info"><h4>${p.name}</h4><p>$${fmt(displayPrice)}</p></div>
                     `;
                     item.addEventListener('click', () => {
