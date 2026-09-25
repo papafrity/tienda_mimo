@@ -222,16 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchUsdRate() { try { const controller = new AbortController(); const id = setTimeout(() => controller.abort(), 3500); const resp = await fetch('https://dolarapi.com/v1/dolares/blue', { signal: controller.signal }); clearTimeout(id); const data = await resp.json(); if (data && data.venta) usdRateARS = data.venta; } catch(e) { console.warn('API timeout'); } }
 
-    function renderStarsHtml(rating) {
-        const r = Math.round((rating || 0) * 2) / 2;
-        let html = '';
-        for (let i = 1; i <= 5; i++) {
-            if (r >= i) html += '<span class="star">★</span>';
-            else if (r >= i - 0.5) html += '<span class="star half">★</span>';
-            else html += '<span class="star empty">★</span>';
-        }
-        return html;
-    }
+    function renderStarsHtml(rating) { const r = Math.round(rating || 5); let html = ""; for (let i = 1; i <= 5; i++) { if (r >= i) html += "<span class=\"star\">&#9733;</span>"; else html += "<span class=\"star empty\">&#9734;</span>"; } return html; }
 
     function renderProducts() {
         try {
@@ -286,7 +277,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="card-spotlight"></div>
                 <div class="product-image"><img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async"></div>
                 <div class="product-info">
-                    <span class="category">${p.category}</span>
+                    
                     <h3>${p.name}</h3>
                     <div class="stars">${renderStarsHtml(p.rating)}${p.reviewCount ? `<span class="review-count">(${p.reviewCount})</span>` : ''}</div>
                     ${priceHtml}

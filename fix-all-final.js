@@ -1,0 +1,18 @@
+const fs = require("fs");
+let css = fs.readFileSync("styles.css", "utf8");
+css = css.replace("? ENV?O GRATIS (CABA)", "ENVIO GRATIS (CABA)");
+css = css.replace("? ENVÍO GRATIS (CABA)", "ENVIO GRATIS (CABA)");
+css = css.replace(/content:\s*["\u0027]Ver detalles .*?["\u0027]/g, "content: \"Ver detalles ->\"");
+fs.writeFileSync("styles.css", css);
+let js = fs.readFileSync("script.js", "utf8");
+js = js.replace(/<span class="category">\${p\.category}<\/span>/g, "");
+const newRenderStars = "function renderStarsHtml(rating) { const r = Math.round(rating || 5); let html = \"\"; for (let i = 1; i <= 5; i++) { if (r >= i) html += \"<span class=\\\"star\\\">&#9733;</span>\"; else html += \"<span class=\\\"star empty\\\">&#9734;</span>\"; } return html; }";
+js = js.replace(/function renderStarsHtml\(rating\)\s*\{[\s\S]*?return html;\s*\}/, newRenderStars);
+js = js.replace(/\$\{.*?\.repeat\(Math\.round\(r\.score \|\| 5\)\)\}\$\{.*?\.repeat\(5 - Math\.round\(r\.score \|\| 5\)\)\}/g, "${\"&#9733;\".repeat(Math.round(r.score || 5))}${\"&#9734;\".repeat(5 - Math.round(r.score || 5))}");
+fs.writeFileSync("script.js", js);
+let html = fs.readFileSync("index.html", "utf8");
+html = html.replace(/Min \$[^<]+Max \$/g, "Min $ - Max $");
+html = html.replace(/<button class="carousel-btn prev".*?>.*?<\/button>/, "<button class=\"carousel-btn prev\" onclick=\"moveCarousel(-1)\" aria-label=\"Anterior\">&#10094;</button>");
+html = html.replace(/<button class="carousel-btn next".*?>.*?<\/button>/, "<button class=\"carousel-btn next\" onclick=\"moveCarousel(1)\" aria-label=\"Siguiente\">&#10095;</button>");
+fs.writeFileSync("index.html", html);
+console.log("ALL FIXES APPLIED SUCCESSFULLY");

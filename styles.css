@@ -1136,7 +1136,7 @@ body{padding-bottom:70px}
 .carousel-btn { z-index: 50 !important; pointer-events: auto !important; }
 @media(max-width: 480px) {
   .product-card::after, .carousel-card-info::after {
-    content: 'Ver detalles ?';
+    content: "Ver detalles ->";
     display: block;
     text-align: center;
     font-size: 0.8rem;
@@ -1150,7 +1150,7 @@ body{padding-bottom:70px}
 
 @media(max-width: 480px) {
     .carousel-card-info::before {
-        content: "? ENV�O GRATIS (CABA)";
+        content: "ENVIO GRATIS (CABA)";
         display: inline-block;
         font-size: 0.65rem;
         background: #2ed573;
