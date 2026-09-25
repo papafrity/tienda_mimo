@@ -132,8 +132,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── CARD GLOW FOLLOW MOUSE ─────────────────────────────
     document.querySelectorAll('.tilt-card').forEach(card => {
-        const glow = card.querySelector('.card-glow');
-        card.addEventListener('mousemove', e => {
+            const glow = card.querySelector('.card-glow');
+            const spotlight = card.querySelector('.card-spotlight');
+            let xTo = (typeof gsap !== 'undefined') ? gsap.quickTo(card, "rotateY", { duration: 0.08, ease: "power1.out" }) : null;
+            let yTo = (typeof gsap !== 'undefined') ? gsap.quickTo(card, "rotateX", { duration: 0.08, ease: "power1.out" }) : null;
+            let yMove = (typeof gsap !== 'undefined') ? gsap.quickTo(card, "y", { duration: 0.08, ease: "power1.out" }) : null;
+
+            card.addEventListener('mousemove', e => {
                 const r = card.getBoundingClientRect();
                 const x = e.clientX - r.left;
                 const y = e.clientY - r.top;
@@ -142,38 +147,26 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
                 if (spotlight) { spotlight.style.setProperty('--spot-x', x + 'px'); spotlight.style.setProperty('--spot-y', y + 'px'); }
 
-                const rotX = ((y - cy) / cy) * -8;
-                const rotY = ((x - cx) / cx) * 8;
-                if (typeof gsap !== 'undefined') {
-                    gsap.to(card, {
-                        rotateX: rotX,
-                        rotateY: rotY,
-                        y: -6,
-                        duration: 0.25,
-                        ease: 'power1.out',
-                        transformPerspective: 1000,
-                        force3D: true,
-                        overwrite: 'auto'
-                    });
+                const rotX = ((y - cy) / cy) * -9;
+                const rotY = ((x - cx) / cx) * 9;
+                if (xTo && yTo && yMove) {
+                    xTo(rotY);
+                    yTo(rotX);
+                    yMove(-6);
                 } else {
                     card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-6px)`;
                 }
             });
             card.addEventListener('mouseleave', () => {
-                if (typeof gsap !== 'undefined') {
-                    gsap.to(card, {
-                        rotateX: 0,
-                        rotateY: 0,
-                        y: 0,
-                        duration: 0.45,
-                        ease: 'power2.out',
-                        overwrite: 'auto'
-                    });
+                if (xTo && yTo && yMove) {
+                    xTo(0);
+                    yTo(0);
+                    yMove(0);
                 } else {
                     card.style.transform = '';
                 }
             });
-    });
+        });
 
     // ─── HAMBURGER MENU ─────────────────────────────────────
     const hamburger = document.getElementById('hamburger');
@@ -448,15 +441,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<p class="offer-price">$${fmt(offerVal(p))}</p>`;
                 
             const card = document.createElement('div');
-            card.className = 'carousel-card';
+            card.className = 'carousel-card product-card';
             card.dataset.productId = p.id;
             card.innerHTML = `
-                <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async">
-                <div class="carousel-card-info">
-                    
+                <div class="card-glow"></div>
+                <div class="card-spotlight"></div>
+                <div class="product-image"><img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async"></div>
+                <div class="product-info">
                     <h3>${p.name}</h3>
+                    <div class="stars">${renderStarsHtml(p.rating)}${p.reviewCount ? `<span class="review-count">(${p.reviewCount})</span>` : ''}</div>
                     ${priceHtml}
-                    <button class="add-to-cart magnetic-btn" data-product-id="${p.id}" style="margin-top: 10px; width: 100%; border-radius: 20px; font-size: 0.85rem;">Agregar al Carrito</button>
+                    ${tiersHintHtml(p)}
+                    <button class="add-to-cart magnetic-btn" data-product-id="${p.id}">Agregar al Carrito</button>
                 </div>`;
             
             const btn = card.querySelector('.add-to-cart');
@@ -969,60 +965,36 @@ document.addEventListener('DOMContentLoaded', () => {
         // ── Floating animation for active card ──
         let floatingTl = null;
         function startFloating(card) {
-            if (floatingTl) floatingTl.kill();
-            floatingTl = gsap.to(card, {
-                y: '+=8', duration: 2.4, ease: 'sine.inOut', yoyo: true, repeat: -1
-            });
-        }
-
-        // ── Glow pulse for active card ──
-        let glowTl = null;
-        function startGlow(card) {
-            if (glowTl) glowTl.kill();
-            glowTl = gsap.to(card, {
-                boxShadow: '0 0 60px rgba(0,240,255,.3), 0 0 120px rgba(0,240,255,.1)',
-                duration: 2.2, ease: 'sine.inOut', yoyo: true, repeat: -1
-            });
-        }
-
-        // ── Transition particles — elegant burst ──
-        function spawnParticles(card) {
-            if (isMobile()) return;
-            const rect = card.getBoundingClientRect();
-            const wrapRect = wrapper.getBoundingClientRect();
-            const cx = rect.left + rect.width / 2 - wrapRect.left;
-            const cy = rect.top + rect.height / 2 - wrapRect.top;
-            const count = 12;
-            for (let i = 0; i < count; i++) {
-                const p = document.createElement('div');
-                p.className = 'carousel-particle';
-                p.style.left = cx + 'px';
-                p.style.top = cy + 'px';
-                wrapper.appendChild(p);
-                const angle = (Math.PI * 2 / count) * i + Math.random() * 0.3;
-                const dist = 50 + Math.random() * 80;
-                gsap.to(p, {
-                    x: Math.cos(angle) * dist,
-                    y: Math.sin(angle) * dist,
-                    opacity: 0,
-                    scale: 0,
-                    duration: 0.8 + Math.random() * 0.4,
-                    ease: 'power2.out',
-                    onComplete: () => p.remove()
-                });
-            }
+            // Disabled to ensure 100% instant mouse tracking
         }
 
         // ── Mouse parallax on card images — silky follow ──
         function bindCardParallax(card) {
+            let xTo = gsap.quickTo(card, "rotateY", { duration: 0.08, ease: "power1.out" });
+            let yTo = gsap.quickTo(card, "rotateX", { duration: 0.08, ease: "power1.out" });
+
             card.addEventListener('mousemove', e => {
+                if (!card.classList.contains('active')) return;
                 const r = card.getBoundingClientRect();
-                const px = (e.clientX - r.left) / r.width - 0.5;
-                const py = (e.clientY - r.top) / r.height - 0.5;
-                gsap.to(card, { rotateY: px * 7, rotateX: py * -5, duration: 0.3, ease: 'power1.out', transformPerspective: 1000, force3D: true, overwrite: 'auto' });
+                const x = e.clientX - r.left;
+                const y = e.clientY - r.top;
+                const cx = r.width / 2;
+                const cy = r.height / 2;
+
+                const glow = card.querySelector('.card-glow');
+                const spotlight = card.querySelector('.card-spotlight');
+                if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
+                if (spotlight) { spotlight.style.setProperty('--spot-x', x + 'px'); spotlight.style.setProperty('--spot-y', y + 'px'); }
+
+                const rotX = ((y - cy) / cy) * -14;
+                const rotY = ((x - cx) / cx) * 14;
+
+                xTo(rotY);
+                yTo(rotX);
             });
             card.addEventListener('mouseleave', () => {
-                gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.5, ease: 'power2.out', overwrite: 'auto' });
+                xTo(0);
+                yTo(0);
             });
         }
 
@@ -1064,7 +1036,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     animating = false;
                     startFloating(cards[ci]);
                     startGlow(cards[ci]);
-                    bindCardParallax(cards[ci]);
+                    /* parallax already bound */
                 }
             });
 
@@ -1187,7 +1159,7 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProgress();
         startFloating(cards[0]);
         startGlow(cards[0]);
-        bindCardParallax(cards[0]);
+        cards.forEach(c => bindCardParallax(c));
 
         // ── Auto-play ──
         let ap = setInterval(next, 5000);
