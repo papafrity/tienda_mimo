@@ -21,8 +21,8 @@
 </head>
 <body>
     <div class="container">
-        <h1>�Pedido Registrado!</h1>
-        <p>Para finalizar tu compra, realiza la transferencia por el total indicado y env�anos el comprobante por WhatsApp.</p>
+        <h1>¡Pedido Registrado!</h1>
+        <p>Para finalizar tu compra, realiza la transferencia por el total indicado y envíanos el comprobante por WhatsApp.</p>
         
         <div class="data-box" id="dataBox">
             <div class="data-row"><span>Total a pagar:</span> <strong id="totalAmount">Cargando...</strong></div>
@@ -65,7 +65,7 @@
 
         function setupWsBtn() {
             const wsNumber = "5491122334455"; // REPLACE WITH ACTUAL
-            const msg = encodeURIComponent("�Hola! Acabo de hacer una transferencia por $" + orderTotal.toLocaleString("es-AR") + " para el pedido #" + orderId + ". Aqu� te adjunto mi comprobante:");
+            const msg = encodeURIComponent("¡Hola! Acabo de hacer una transferencia por $" + orderTotal.toLocaleString("es-AR") + " para el pedido #" + orderId + ". Aquí te adjunto mi comprobante:");
             document.getElementById("wsBtn").href = "https://wa.me/" + wsNumber + "?text=" + msg;
         }
     </script>
