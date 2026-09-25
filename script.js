@@ -224,16 +224,115 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderStarsHtml(rating) { const r = Math.round(rating || 5); let html = ""; for (let i = 1; i <= 5; i++) { if (r >= i) html += "<span class=\"star\">&#9733;</span>"; else html += "<span class=\"star empty\">&#9734;</span>"; } return html; }
 
+    // ─── SUBCATEGORÍAS CON IMÁGENES REFERENCIALES (ESTILO MERCADO LIBRE FUTURISTA) ───
+    const subCategoriesMap = {
+        tecnologia: [
+            { id: 'celulares', label: 'Celulares', img: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=160&h=160&fit=crop&q=80' },
+            { id: 'auriculares', label: 'Auriculares', img: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=160&h=160&fit=crop&q=80' },
+            { id: 'relojes-fundas', label: 'Smartwatches', img: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=160&h=160&fit=crop&q=80' },
+            { id: 'televisores', label: 'Smart TVs', img: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=160&h=160&fit=crop&q=80' },
+            { id: 'parlantes', label: 'Parlantes', img: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=160&h=160&fit=crop&q=80' },
+            { id: 'gaming', label: 'Gaming', img: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?w=160&h=160&fit=crop&q=80' },
+            { id: 'pc', label: 'Notebooks', img: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=160&h=160&fit=crop&q=80' },
+            { id: 'tvbox', label: 'TV Box / Sticks', img: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=160&h=160&fit=crop&q=80' },
+            { id: 'cargadores-accesorios', label: 'Cargadores', img: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=160&h=160&fit=crop&q=80' },
+            { id: 'gadgets', label: 'Gadgets', img: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=160&h=160&fit=crop&q=80' }
+        ],
+        hogar: [
+            { id: 'hogar-muebles', label: 'Living y Comedor', img: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=160&h=160&fit=crop&q=80' },
+            { id: 'cocinas', label: 'Cocina y Bazar', img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=160&h=160&fit=crop&q=80' },
+            { id: 'bano', label: 'Baño', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=160&h=160&fit=crop&q=80' },
+            { id: 'decoracion', label: 'Decoración', img: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=160&h=160&fit=crop&q=80' },
+            { id: 'iluminacion-gadgets', label: 'Iluminación', img: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=160&h=160&fit=crop&q=80' },
+            { id: 'limpieza', label: 'Limpieza', img: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=160&h=160&fit=crop&q=80' },
+            { id: 'exteriores', label: 'Jardín y Exterior', img: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=160&h=160&fit=crop&q=80' }
+        ],
+        electro: [
+            { id: 'climatizacion', label: 'Aires y Clima', img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=160&h=160&fit=crop&q=80' },
+            { id: 'calefaccion', label: 'Calefacción', img: 'https://images.unsplash.com/photo-1545259741-2ea3ebf61fa3?w=160&h=160&fit=crop&q=80' },
+            { id: 'ventilacion', label: 'Ventilación', img: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=160&h=160&fit=crop&q=80' },
+            { id: 'belleza', label: 'Belleza y Cuidado', img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=160&h=160&fit=crop&q=80' }
+        ],
+        varios: [
+            { id: 'herramientas', label: 'Herramientas', img: 'https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?w=160&h=160&fit=crop&q=80' },
+            { id: 'bicicletas', label: 'Bicicletas', img: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=160&h=160&fit=crop&q=80' },
+            { id: 'movilidad', label: 'Monopatines', img: 'https://images.unsplash.com/photo-1597762299714-49f2b8478d8a?w=160&h=160&fit=crop&q=80' },
+            { id: 'deportes', label: 'Fitness y Deportes', img: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&h=160&fit=crop&q=80' }
+        ]
+    };
+
+    let currentGroup = 'all';
+    let currentSubCategory = 'all';
+
+    function renderSubcategories(group) {
+        const container = document.getElementById('subcategoriesContainer');
+        if (!container) return;
+
+        if (group === 'all' || !subCategoriesMap[group]) {
+            container.style.display = 'none';
+            container.innerHTML = '';
+            return;
+        }
+
+        const items = subCategoriesMap[group];
+        container.style.display = 'flex';
+
+        let html = `
+            <div class="sub-cat-item ${currentSubCategory === 'all' ? 'active' : ''}" data-filter="all">
+                <div class="sub-cat-circle sub-cat-all-circle">
+                    <span class="sub-cat-all-icon">⚡</span>
+                </div>
+                <span class="sub-cat-label">Ver Todo</span>
+            </div>
+        `;
+
+        html += items.map(sub => {
+            const catalogProd = (products || []).find(p => p.category === sub.id && p.image && p.isActive !== false);
+            const imgSrc = (catalogProd && catalogProd.image) ? catalogProd.image : sub.img;
+            const isActive = currentSubCategory === sub.id ? 'active' : '';
+
+            return `
+                <div class="sub-cat-item ${isActive}" data-filter="${sub.id}">
+                    <div class="sub-cat-circle">
+                        <img src="${imgSrc}" alt="${sub.label}" loading="lazy" decoding="async" onerror="this.src='${sub.img}'">
+                    </div>
+                    <span class="sub-cat-label">${sub.label}</span>
+                </div>
+            `;
+        }).join('');
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('.sub-cat-item').forEach(item => {
+            item.addEventListener('click', () => {
+                const subFilter = item.dataset.filter;
+                currentSubCategory = subFilter;
+
+                container.querySelectorAll('.sub-cat-item').forEach(i => {
+                    i.classList.toggle('active', i.dataset.filter === currentSubCategory);
+                });
+
+                renderProducts();
+            });
+        });
+    }
+
     function renderProducts() {
         try {
         const grid = document.getElementById('productGrid');
         if (!grid) return;
-        const activeFilter = document.querySelector('.filter-tab.active')?.dataset?.filter || 'all';
         const sortBy = document.getElementById('sortSelect')?.value || 'default';
         const priceMin = parseFloat(document.getElementById('priceMin')?.value) || 0;
         const priceMax = parseFloat(document.getElementById('priceMax')?.value) || Infinity;
-        let filtered = products.filter(p => p.isActive !== false); // Solo productos activos
-        filtered = activeFilter === 'all' ? [...filtered] : filtered.filter(p => p.category === activeFilter);
+        let filtered = products.filter(p => p.isActive !== false);
+
+        if (currentSubCategory !== 'all') {
+            filtered = filtered.filter(p => p.category === currentSubCategory);
+        } else if (currentGroup !== 'all' && subCategoriesMap[currentGroup]) {
+            const groupCatIds = subCategoriesMap[currentGroup].map(s => s.id);
+            filtered = filtered.filter(p => groupCatIds.includes(p.category));
+        }
+
         filtered = filtered.filter(p => {
             const dp = hasOffer(p) ? p.offerPrice : p.price;
             return dp >= priceMin && dp <= priceMax;
@@ -1255,86 +1354,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── FILTER TABS & MODALS (Dynamic Initialization) ────────
     function initProductFiltersAndModals() {
-
-    const subCategoriesMap = {
-        tecnologia: [
-            { id: 'celulares', label: 'Celulares', icon: '📱' },
-            { id: 'televisores', label: 'TVs', icon: '📺' },
-            { id: 'tvbox', label: 'TV Box', icon: '📦' },
-            { id: 'parlantes', label: 'Parlantes', icon: '🔊' },
-            { id: 'auriculares', label: 'Auriculares', icon: '🎧' },
-            { id: 'gaming', label: 'Gaming', icon: '🎮' },
-            { id: 'pc', label: 'PC', icon: '💻' },
-            { id: 'relojes-fundas', label: 'Smartwatches', icon: '⌚' },
-            { id: 'cargadores-accesorios', label: 'Cargadores', icon: '🔋' },
-            { id: 'gadgets', label: 'Gadgets', icon: '🔌' }
-        ],
-        hogar: [
-            { id: 'hogar-muebles', label: 'Living / Comedor', icon: '🛋️' },
-            { id: 'bano', label: 'Baño', icon: '🚿' },
-            { id: 'decoracion', label: 'Decoración', icon: '🖼️' },
-            { id: 'iluminacion-gadgets', label: 'Iluminación', icon: '💡' },
-            { id: 'limpieza', label: 'Limpieza', icon: '🧹' },
-            { id: 'exteriores', label: 'Exteriores', icon: '🏡' }
-        ],
-        electro: [
-            { id: 'cocinas', label: 'Cocinas', icon: '🍳' },
-            { id: 'calefaccion', label: 'Calefacción', icon: '🔥' },
-            { id: 'climatizacion', label: 'Aires', icon: '❄️' },
-            { id: 'ventilacion', label: 'Ventilación', icon: '💨' },
-            { id: 'belleza', label: 'Belleza', icon: '💇‍♀️' }
-        ],
-        varios: [
-            { id: 'herramientas', label: 'Herramientas', icon: '🛠️' },
-            { id: 'bicicletas', label: 'Bicicletas', icon: '🚲' },
-            { id: 'movilidad', label: 'Movilidad', icon: '🛴' },
-            { id: 'deportes', label: 'Deportes', icon: '⚽' }
-        ]
-    };
-
-    function renderSubcategories(group) {
-        const container = document.getElementById('subcategoriesContainer');
-        if (!container) return;
-        
-        if (group === 'all' || !subCategoriesMap[group]) {
-            container.style.display = 'none';
-            return;
-        }
-        
-        container.style.display = 'flex';
-        container.innerHTML = subCategoriesMap[group].map(sub => `
-            <div class="sub-cat-item" data-filter="${sub.id}">
-                <div class="sub-cat-circle">${sub.icon}</div>
-                <span class="sub-cat-label">${sub.label}</span>
-            </div>
-        `).join('');
-
-        // Attach events to new sub-category items
-        container.querySelectorAll('.sub-cat-item').forEach(item => {
-            item.addEventListener('click', () => {
-                container.querySelectorAll('.sub-cat-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-                window.currentFilter = item.dataset.filter;
-                renderProducts();
-            });
-        });
-    }
-
         try {
-        const tabs = document.querySelectorAll('.filter-tab');
-        
-        // Remove old active states
-        tabs.forEach(tab => {
-            const newTab = tab.cloneNode(true);
-            tab.parentNode.replaceChild(newTab, tab);
-        });
-        const freshTabs = document.querySelectorAll('.filter-tab');
+            const tabs = document.querySelectorAll('.filter-tab');
+            
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(btn => btn.classList.remove('active'));
+                    tab.classList.add('active');
 
-        freshTabs.forEach(tab => tab.addEventListener('click', () => {
-            freshTabs.forEach(btn => btn.classList.remove('active'));
-            tab.classList.add('active');
-            renderProducts();
-        }));
+                    const group = tab.dataset.group || 'all';
+                    currentGroup = group;
+                    currentSubCategory = 'all';
+
+                    renderSubcategories(group);
+                    renderProducts();
+                });
+            });
+
+            // Si hay un tab activo de antemano, renderizar sus subcategorías
+            const activeTab = document.querySelector('.filter-tab.active');
+            if (activeTab) {
+                currentGroup = activeTab.dataset.group || 'all';
+                renderSubcategories(currentGroup);
+            }
+
 
         // ─── SORT & PRICE FILTER EVENTS ──────────────────────────────
         const sortSelect = document.getElementById('sortSelect');
@@ -2136,7 +2179,7 @@ document.head.appendChild(st);
         once: true
     });
 
-    // ─── BACK TO TOP BUTTON ─────────────────────────────────
+    // ─── BACK TO TOP BUTTON (TELEPORT INSTANTÁNEO) ───────────
     const backToTop = document.getElementById('backToTop');
     if (backToTop) {
         ScrollTrigger.create({
@@ -2146,13 +2189,45 @@ document.head.appendChild(st);
             onEnter: () => backToTop.classList.add('visible'),
             onLeaveBack: () => backToTop.classList.remove('visible')
         });
-        backToTop.addEventListener('click', () => {
-            if (typeof smoother !== "undefined" && smoother) {
-                gsap.to(smoother, { scrollTop: 0, duration: 1, ease: "power2.inOut" });
-                try { smoother.scrollTo(0, true); } catch(e){}
+
+        backToTop.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // 1. Matar cualquier animación activa de GSAP
+            if (typeof gsap !== 'undefined') {
+                gsap.killTweensOf(window);
+                if (typeof smoother !== 'undefined' && smoother) {
+                    gsap.killTweensOf(smoother);
+                }
             }
-            window.scrollTo({top: 0, behavior: "smooth"});
-        });    }
+
+            // 2. Desactivar temporalmente el scroll-behavior smooth del navegador
+            const html = document.documentElement;
+            const body = document.body;
+            html.style.setProperty('scroll-behavior', 'auto', 'important');
+            body.style.setProperty('scroll-behavior', 'auto', 'important');
+
+            // 3. Teletransportar ScrollSmoother instantáneamente sin transición (false)
+            if (typeof smoother !== 'undefined' && smoother) {
+                try {
+                    smoother.scrollTo(0, false);
+                    smoother.scrollTop(0);
+                } catch(err) {}
+            }
+
+            // 4. Teletransportar scroll nativo a 0 instantáneamente
+            window.scrollTo(0, 0);
+            html.scrollTop = 0;
+            body.scrollTop = 0;
+
+            // 5. Restaurar comportamiento luego del parpadeo
+            setTimeout(() => {
+                html.style.removeProperty('scroll-behavior');
+                body.style.removeProperty('scroll-behavior');
+            }, 60);
+        });
+    }
 })();
 
 // ─── INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
