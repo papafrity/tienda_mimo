@@ -998,8 +998,8 @@ body{padding-bottom:70px}
 .skeleton-btn{height:42px;border-radius:12px;background:rgba(255,255,255,.04);margin-top:1rem}
 
 /* ─── WAVE DIVIDER (Footer) ────────────────────────────── */
-.wave-divider{position:relative;z-index:1;line-height:0;margin-bottom:-1px}
-.wave-divider svg{display:block;width:100%;height:80px}
+.wave-divider{position:relative;z-index:1;line-height:0;margin-bottom:-1px; height:80px; background: linear-gradient(to bottom, transparent, #030303);}
+.wave-divider svg{display:none;}
 .wave-path{fill:#030303}
 @keyframes waveMove{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
 
@@ -1406,4 +1406,44 @@ body{padding-bottom:70px}
 /* GLOBAL OVERRIDE FOR BACK TO TOP */
 .back-to-top {
     bottom: 6.5rem !important;
+}
+
+
+/* LOAD MORE BUTTON FIX */
+#loadMoreBtn {
+    background: transparent !important;
+    color: var(--accent-color) !important;
+    border: 1px solid var(--accent-color) !important;
+    border-radius: 50px !important;
+    padding: 0.8rem 2.5rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+    display: block;
+    margin: 2rem auto;
+}
+#loadMoreBtn:hover {
+    background: var(--gradient-glow) !important;
+    color: #000 !important;
+    border-color: transparent !important;
+}
+
+
+/* GLOBAL BUTTON FIXES (RESTORE DARK/ACCENT STYLES) */
+.checkout-btn, .checkout-submit-btn {
+    background: var(--gradient-glow) !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: 30px !important;
+    font-size: 1.1rem !important;
+    font-weight: 700 !important;
+    cursor: pointer !important;
+    transition: all 0.3s !important;
+    padding: 1rem !important;
+    width: 100% !important;
+}
+.checkout-btn:hover, .checkout-submit-btn:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 10px 20px rgba(0, 240, 255, 0.3) !important;
 }
