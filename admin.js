@@ -1,4 +1,4 @@
-// ─── FIREBASE GOOGLE AUTH ─────────────────────────────────
+﻿// â”€â”€â”€ FIREBASE GOOGLE AUTH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const auth = firebase.auth();
 const googleProvider = new firebase.auth.GoogleAuthProvider();
 
@@ -7,8 +7,8 @@ const dashboard = document.getElementById('dashboard');
 const loginBtn = document.getElementById('loginBtn');
 const loginError = document.getElementById('loginError');
 
-// Tu UID de administrador autorizado. Se configura automáticamente en el primer login.
-// Si necesitás cambiarlo, borrá el valor guardado en localStorage 'mimo_admin_uid'.
+// Tu UID de administrador autorizado. Se configura automÃ¡ticamente en el primer login.
+// Si necesitÃ¡s cambiarlo, borrÃ¡ el valor guardado en localStorage 'mimo_admin_uid'.
 let ADMIN_UID = localStorage.getItem('mimo_admin_uid') || '';
 
 function showDashboard() {
@@ -22,7 +22,7 @@ function showLogin() {
     dashboard.classList.add('hidden');
 }
 
-// Escuchar cambios en el estado de autenticación
+// Escuchar cambios en el estado de autenticaciÃ³n
 auth.onAuthStateChanged((user) => {
     if (user) {
         // Si no hay admin UID guardado, este es el primer login. Guardar el UID.
@@ -30,7 +30,7 @@ auth.onAuthStateChanged((user) => {
             ADMIN_UID = user.uid;
             localStorage.setItem('mimo_admin_uid', user.uid);
             alert(
-                '✅ ¡Primera configuración exitosa!\n\n' +
+                'âœ… Â¡Primera configuraciÃ³n exitosa!\n\n' +
                 'Tu UID de administrador es:\n' + user.uid + '\n\n' +
                 'Copialo y pegalo en las Reglas de Firestore donde dice TU_UID_AQUI.\n' +
                 'Este mensaje solo aparece una vez.'
@@ -41,7 +41,7 @@ auth.onAuthStateChanged((user) => {
         if (user.uid === ADMIN_UID) {
             showDashboard();
         } else {
-            loginError.textContent = '❌ Esta cuenta de Google no está autorizada como administrador.';
+            loginError.textContent = 'âŒ Esta cuenta de Google no estÃ¡ autorizada como administrador.';
             auth.signOut();
         }
     } else {
@@ -49,7 +49,7 @@ auth.onAuthStateChanged((user) => {
     }
 });
 
-// Botón de login con Google
+// BotÃ³n de login con Google
 loginBtn.addEventListener('click', async () => {
     loginError.textContent = '';
     loginBtn.disabled = true;
@@ -61,9 +61,9 @@ loginBtn.addEventListener('click', async () => {
     } catch (error) {
         console.error('Error de login:', error);
         if (error.code === 'auth/popup-closed-by-user') {
-            loginError.textContent = 'Cerraste la ventana de inicio de sesión. Intentá de nuevo.';
+            loginError.textContent = 'Cerraste la ventana de inicio de sesiÃ³n. IntentÃ¡ de nuevo.';
         } else if (error.code === 'auth/popup-blocked') {
-            loginError.textContent = 'Tu navegador bloqueó la ventana emergente. Permitila e intentá de nuevo.';
+            loginError.textContent = 'Tu navegador bloqueÃ³ la ventana emergente. Permitila e intentÃ¡ de nuevo.';
         } else {
             loginError.textContent = 'Error: ' + error.message;
         }
@@ -71,29 +71,29 @@ loginBtn.addEventListener('click', async () => {
     loginBtn.disabled = false;
     loginBtn.innerHTML = `
         <svg width="20" height="20" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
-        Iniciar sesión con Google`;
+        Iniciar sesiÃ³n con Google`;
 });
 
-// Botón de logout
+// BotÃ³n de logout
 document.getElementById('logoutBtn').addEventListener('click', () => {
     auth.signOut();
 });
 
-// Agregar animación de spin para el botón de carga
+// Agregar animaciÃ³n de spin para el botÃ³n de carga
 const spinStyle = document.createElement('style');
 spinStyle.textContent = '@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }';
 document.head.appendChild(spinStyle);
 
-// ─── HELPER FUNCTIONS ─────────────────────────────────────
+// â”€â”€â”€ HELPER FUNCTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function fmt(n) { return Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
 
 function renderStarsHtml(rating) {
     const r = Math.round((rating || 0) * 2) / 2;
     let html = '';
     for (let i = 1; i <= 5; i++) {
-        if (r >= i) html += '<span style="color:#ffd700">★</span>';
-        else if (r >= i - 0.5) html += '<span style="background:linear-gradient(90deg,#ffd700 50%,#555 50%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">★</span>';
-        else html += '<span style="color:#555">★</span>';
+        if (r >= i) html += '<span style="color:#ffd700">â˜…</span>';
+        else if (r >= i - 0.5) html += '<span style="background:linear-gradient(90deg,#ffd700 50%,#555 50%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">â˜…</span>';
+        else html += '<span style="color:#555">â˜…</span>';
     }
     return html;
 }
@@ -114,9 +114,9 @@ function showFirebaseErrorAlert(action, error) {
     if (error.code === 'permission-denied' || errMsg.includes('permission') || errMsg.includes('insufficient')) {
         const currentUser = firebase.auth().currentUser;
         if (currentUser) {
-            msg += `\n\n💡 TIP DE SEGURIDAD:\nTu cuenta actual de Google está autenticada en Firebase con el UID:\n\n${currentUser.uid}\n\nAsegúrate de copiar este código exactamente y pegarlo en tus Reglas de Firestore en la consola de Firebase.`;
+            msg += `\n\nðŸ’¡ TIP DE SEGURIDAD:\nTu cuenta actual de Google estÃ¡ autenticada en Firebase con el UID:\n\n${currentUser.uid}\n\nAsegÃºrate de copiar este cÃ³digo exactamente y pegarlo en tus Reglas de Firestore en la consola de Firebase.`;
         } else {
-            msg += `\n\n⚠️ No estás autenticado actualmente en Firebase. Por favor inicia sesión con Google.`;
+            msg += `\n\nâš ï¸ No estÃ¡s autenticado actualmente en Firebase. Por favor inicia sesiÃ³n con Google.`;
         }
     }
     alert(msg);
@@ -146,10 +146,10 @@ async function loadAdminReviews(prodId) {
             card.innerHTML = `
                 <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.3rem">
                     <div>
-                        <strong style="color:var(--text-primary)">${r.userName || 'Anónimo'}</strong>
+                        <strong style="color:var(--text-primary)">${r.userName || 'AnÃ³nimo'}</strong>
                         <span style="color:var(--text-secondary);margin-left:.4rem">${dateStr}</span>
                     </div>
-                    <button class="del-review-btn" data-id="${doc.id}" data-prod="${prodId}" style="background:none;border:none;color:#ff4757;cursor:pointer;font-size:1rem;padding:0 0 0 .5rem" title="Eliminar reseña">&times;</button>
+                    <button class="del-review-btn" data-id="${doc.id}" data-prod="${prodId}" style="background:none;border:none;color:#ff4757;cursor:pointer;font-size:1rem;padding:0 0 0 .5rem" title="Eliminar reseÃ±a">&times;</button>
                 </div>
                 <div>${renderStarsHtml(r.rating)}</div>
                 ${r.comment ? `<p style="color:var(--text-secondary);margin:.3rem 0 0 0;line-height:1.4">${r.comment}</p>` : ''}
@@ -158,7 +158,7 @@ async function loadAdminReviews(prodId) {
         });
         list.querySelectorAll('.del-review-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
-                if (!confirm('¿Eliminar esta reseña?')) return;
+                if (!confirm('Â¿Eliminar esta reseÃ±a?')) return;
                 try {
                     await db.collection("products").doc(btn.dataset.prod).collection("reviews").doc(btn.dataset.id).delete();
                     const snap2 = await db.collection("products").doc(btn.dataset.prod).collection("reviews").get();
@@ -169,13 +169,13 @@ async function loadAdminReviews(prodId) {
                     loadAdminReviews(prodId);
                 } catch(e) {
                     console.error(e);
-                    showFirebaseErrorAlert('eliminar reseña', e);
+                    showFirebaseErrorAlert('eliminar reseÃ±a', e);
                 }
             });
         });
     } catch(e) {
         console.error(e);
-        list.innerHTML = '<div style="text-align:center;color:#ff4757;font-size:.85rem;padding:.5rem">Error al cargar reseñas</div>';
+        list.innerHTML = '<div style="text-align:center;color:#ff4757;font-size:.85rem;padding:.5rem">Error al cargar reseÃ±as</div>';
     }
 }
 
@@ -205,7 +205,7 @@ function renderAdminProducts() {
     tbody.innerHTML = '';
     const migrateBtn = document.getElementById('migrateBtn');
     if (adminProducts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">No hay productos. Usa "Cargar Catálogo Inicial" para iniciar.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">No hay productos. Usa "Cargar CatÃ¡logo Inicial" para iniciar.</td></tr>';
         if (migrateBtn) migrateBtn.style.display = '';
         return;
     }
@@ -248,17 +248,17 @@ function renderAdminProducts() {
             <td><img src="${displayImg}" alt="img"></td>
             <td><strong>${p.name}</strong></td>
             <td style="text-transform: capitalize;">${p.category}</td>
-            <td><div class="cell-wrap"><button type="button" class="cell-cur-switch" data-id="${p.id}" data-cur="${costCur}" title="Cambiar moneda (ARS ↔ USD)">${costCur === 'USD' ? 'US$' : 'ARS'}</button><input class="cell-input cost-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${costVal}" placeholder="—"></div></td>
+            <td><div class="cell-wrap"><button type="button" class="cell-cur-switch" data-id="${p.id}" data-cur="${costCur}" title="Cambiar moneda (ARS â†” USD)">${costCur === 'USD' ? 'US$' : 'ARS'}</button><input class="cell-input cost-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${costVal}" placeholder="â€”"></div></td>
             <td><div class="cell-wrap"><span class="cell-cur">$</span><input class="cell-input price-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${priceVal}"></div></td>
             <td>${p.offerPrice ? '$' + fmt(p.offerPrice) : '-'}</td>
             <td style="text-align:center">
                 <span class="status-badge ${p.isActive !== false ? 'active' : 'paused'}">
-                    ${p.isActive !== false ? '🟢 Activo' : '🔴 Pausado'}
+                    ${p.isActive !== false ? 'ðŸŸ¢ Activo' : 'ðŸ”´ Pausado'}
                 </span>
             </td>
             <td>
-                <button class="action-btn edit-btn" data-id="${p.id}" title="Editar">✏️</button>
-                <button class="action-btn del del-btn" data-id="${p.id}" title="Borrar">🗑️</button>
+                <button class="action-btn edit-btn" data-id="${p.id}" title="Editar">âœï¸</button>
+                <button class="action-btn del del-btn" data-id="${p.id}" title="Borrar">ðŸ—‘ï¸</button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -273,7 +273,7 @@ function renderAdminProducts() {
     updateBulkBar();
 }
 
-// ─── SELECCIÓN MÚLTIPLE + ACCIONES EN LOTE ──────────────
+// â”€â”€â”€ SELECCIÃ“N MÃšLTIPLE + ACCIONES EN LOTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const selectedIds = new Set();
 let seqQueue = [];
 let seqIdx = -1;
@@ -321,7 +321,7 @@ document.getElementById('bulkClearBtn').addEventListener('click', () => {
 async function bulkDelete() {
     const ids = [...selectedIds];
     if (!ids.length) return;
-    if (!confirm(`¿Borrar ${ids.length} producto${ids.length === 1 ? '' : 's'}? Esta acción no se puede deshacer.`)) return;
+    if (!confirm(`Â¿Borrar ${ids.length} producto${ids.length === 1 ? '' : 's'}? Esta acciÃ³n no se puede deshacer.`)) return;
     try {
         for (let i = 0; i < ids.length; i += 400) {
             const batch = db.batch();
@@ -329,7 +329,7 @@ async function bulkDelete() {
             await batch.commit();
         }
         selectedIds.clear();
-        alert(`🗑️ ${ids.length} producto${ids.length === 1 ? '' : 's'} borrado${ids.length === 1 ? '' : 's'}.`);
+        alert(`ðŸ—‘ï¸ ${ids.length} producto${ids.length === 1 ? '' : 's'} borrado${ids.length === 1 ? '' : 's'}.`);
         loadProducts();
     } catch (e) {
         console.error('Error borrando en lote:', e);
@@ -347,7 +347,7 @@ async function bulkSetActive(active) {
             await batch.commit();
         }
         selectedIds.clear();
-        alert(`${active ? '🟢' : '🔴'} ${ids.length} producto${ids.length === 1 ? '' : 's'} ${active ? 'activado' : 'pausado'}${ids.length === 1 ? '' : 's'}.`);
+        alert(`${active ? 'ðŸŸ¢' : 'ðŸ”´'} ${ids.length} producto${ids.length === 1 ? '' : 's'} ${active ? 'activado' : 'pausado'}${ids.length === 1 ? '' : 's'}.`);
         loadProducts();
     } catch (e) {
         console.error('Error actualizando en lote:', e);
@@ -359,7 +359,7 @@ document.getElementById('bulkDeleteBtn').addEventListener('click', bulkDelete);
 document.getElementById('bulkPauseBtn').addEventListener('click', () => bulkSetActive(false));
 document.getElementById('bulkActivateBtn').addEventListener('click', () => bulkSetActive(true));
 
-// ─── EDICIÓN SECUENCIAL ─────────────────────────────────
+// â”€â”€â”€ EDICIÃ“N SECUENCIAL â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function updateSeqUI() {
     const prog = document.getElementById('seqProgress');
     const skip = document.getElementById('skipBtn');
@@ -405,8 +405,8 @@ document.getElementById('skipBtn').addEventListener('click', () => {
     }
 });
 
-// ─── EDICIÓN INLINE DE COSTO/PRECIO EN LA LISTA ─────────
-// Los cambios quedan "pendientes" (punto ámbar) hasta pulsar Guardar cambios.
+// â”€â”€â”€ EDICIÃ“N INLINE DE COSTO/PRECIO EN LA LISTA â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Los cambios quedan "pendientes" (punto Ã¡mbar) hasta pulsar Guardar cambios.
 const pendingEdits = {};
 const MP_FEE_INLINE = 0.0649;
 
@@ -421,7 +421,7 @@ function refreshSaveAllBtn() {
     const n = Object.keys(pendingEdits).length;
     btn.disabled = n === 0;
     btn.style.opacity = n === 0 ? '.4' : '1';
-    btn.innerHTML = n === 0 ? '💾 Guardar cambios' : `💾 Guardar cambios <span class="save-dot">${n}</span>`;
+    btn.innerHTML = n === 0 ? 'ðŸ’¾ Guardar cambios' : `ðŸ’¾ Guardar cambios <span class="save-dot">${n}</span>`;
 }
 
 tbody.addEventListener('input', (e) => {
@@ -445,7 +445,7 @@ tbody.addEventListener('keydown', (e) => {
     }
 });
 
-// Switch de moneda ARS ↔ USD por fila: queda pendiente hasta Guardar cambios
+// Switch de moneda ARS â†” USD por fila: queda pendiente hasta Guardar cambios
 tbody.addEventListener('click', (e) => {
     const sw = e.target.closest('.cell-cur-switch');
     if (!sw) return;
@@ -465,7 +465,7 @@ async function saveAllEdits() {
     if (!ids.length) return;
     const btn = document.getElementById('saveAllBtn');
     btn.disabled = true;
-    btn.textContent = '⏳ Guardando...';
+    btn.textContent = 'â³ Guardando...';
     let ok = 0;
     const errors = [];
     for (const id of ids) {
@@ -474,13 +474,13 @@ async function saveAllEdits() {
         if (!p) { delete pendingEdits[id]; continue; }
         const cost = entry.costTouched ? parseFloat(entry.cost) : (p.cost || 0);
         const manualPrice = entry.priceTouched ? parseFloat(entry.price) : null;
-        if (entry.costTouched && (isNaN(cost) || cost < 0)) { errors.push(p.name + ' (costo inválido)'); continue; }
-        if (entry.priceTouched && (isNaN(manualPrice) || manualPrice < 0)) { errors.push(p.name + ' (precio inválido)'); continue; }
+        if (entry.costTouched && (isNaN(cost) || cost < 0)) { errors.push(p.name + ' (costo invÃ¡lido)'); continue; }
+        if (entry.priceTouched && (isNaN(manualPrice) || manualPrice < 0)) { errors.push(p.name + ' (precio invÃ¡lido)'); continue; }
         const currency = entry.currency || p.costCurrency || 'ARS';
         const currencyChanged = !!entry.currency && entry.currency !== (p.costCurrency || 'ARS');
         let price;
         if ((entry.costTouched || currencyChanged) && currency === 'USD' && !usdRateARS) {
-            errors.push(p.name + ' (sin cotización USD, reintentá en unos segundos)');
+            errors.push(p.name + ' (sin cotizaciÃ³n USD, reintentÃ¡ en unos segundos)');
             continue;
         }
         if (entry.costTouched || currencyChanged) {
@@ -502,8 +502,8 @@ async function saveAllEdits() {
     }
     refreshSaveAllBtn();
     renderAdminProducts();
-    if (errors.length) alert('⚠️ ' + ok + ' guardados. Revisar: ' + errors.join(', '));
-    else alert('✅ ' + ok + ' productos actualizados.');
+    if (errors.length) alert('âš ï¸ ' + ok + ' guardados. Revisar: ' + errors.join(', '));
+    else alert('âœ… ' + ok + ' productos actualizados.');
 }
 
 document.getElementById('saveAllBtn').addEventListener('click', saveAllEdits);
@@ -520,7 +520,7 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
     modal.classList.remove('active');
 });
 
-// Botones rápidos de margen: solo rellenan el formulario del producto en edición
+// Botones rÃ¡pidos de margen: solo rellenan el formulario del producto en ediciÃ³n
 document.querySelectorAll('#productForm .margin-btn').forEach(btn => {
     btn.addEventListener('click', () => {
         document.getElementById('prodMargin').value = btn.dataset.margin;
@@ -579,7 +579,7 @@ function openModal(id = null) {
             // Check if primary image is a local path
             if (p.image && isLocalFilePath(p.image)) {
                 document.getElementById('prodImg').value = '';
-                alert("Atención: Este producto tenía guardada una ruta de archivo local de tu PC (por ejemplo C:\\ o file://). Hemos limpiado el campo de la imagen para evitar errores. Por favor, sube una nueva imagen usando el botón 'Subir desde PC/Móvil' o pega un enlace de internet válido.");
+                alert("AtenciÃ³n: Este producto tenÃ­a guardada una ruta de archivo local de tu PC (por ejemplo C:\\ o file://). Hemos limpiado el campo de la imagen para evitar errores. Por favor, sube una nueva imagen usando el botÃ³n 'Subir desde PC/MÃ³vil' o pega un enlace de internet vÃ¡lido.");
             } else {
                 document.getElementById('prodImg').value = p.image || '';
             }
@@ -607,7 +607,7 @@ function openModal(id = null) {
     document.getElementById('prodImg').dispatchEvent(new Event('input'));
     // Update profit display
     document.getElementById('prodPrice').dispatchEvent(new Event('input'));
-    // Update live cost conversion (USD → ARS)
+    // Update live cost conversion (USD â†’ ARS)
     updateCostARSDisplay();
 }
 
@@ -618,7 +618,7 @@ form.addEventListener('submit', async (e) => {
     let finalImages = [...currentUploadedImages];
     let typedUrl = document.getElementById('prodImg').value.trim();
     
-    // Si escribió un link pero olvidó hacer clic en "+ Agregar URL", agregarlo automáticamente
+    // Si escribiÃ³ un link pero olvidÃ³ hacer clic en "+ Agregar URL", agregarlo automÃ¡ticamente
     if (typedUrl) {
         typedUrl = typedUrl.replace(/^["']|["']$/g, '').trim();
         if (!isLocalFilePath(typedUrl) && !finalImages.includes(typedUrl)) {
@@ -626,7 +626,7 @@ form.addEventListener('submit', async (e) => {
         }
     }
     
-    // Validar que tengamos al menos una imagen en la colección
+    // Validar que tengamos al menos una imagen en la colecciÃ³n
     if (finalImages.length === 0) {
         finalImages.push('https://placehold.co/400x400/1a1a2e/00f0ff?text=Mimo!');
     }
@@ -634,7 +634,7 @@ form.addEventListener('submit', async (e) => {
     // Filtrar rutas locales
     finalImages = finalImages.filter(img => !isLocalFilePath(img));
     
-    // La imagen principal será la primera de la lista
+    // La imagen principal serÃ¡ la primera de la lista
     const mainImgUrl = finalImages[0];
     
     const productData = {
@@ -675,7 +675,7 @@ form.addEventListener('submit', async (e) => {
                 selectedIds.clear();
                 updateSeqUI();
                 modal.classList.remove('active');
-                alert('✅ Secuencia completa.');
+                alert('âœ… Secuencia completa.');
             }
         } else {
             modal.classList.remove('active');
@@ -690,10 +690,10 @@ form.addEventListener('submit', async (e) => {
     saveBtn.disabled = false;
 });
 
-// ─── CURRENCY CONVERSION ────────────────────────────────
+// â”€â”€â”€ CURRENCY CONVERSION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 let usdRateARS = null;
 let usdRateFetchedAt = 0;
-const USD_REFRESH_MS = 10 * 60 * 1000; // recargar la cotización cada 10 min
+const USD_REFRESH_MS = 10 * 60 * 1000; // recargar la cotizaciÃ³n cada 10 min
 
 async function fetchUsdRate() {
     try {
@@ -730,10 +730,10 @@ function updateCostARSDisplay() {
     if (currency === 'USD' && cost > 0) {
         if (usdRateARS) {
             const ars = cost * usdRateARS;
-            el.textContent = `= $${fmt(Math.round(ars))} ARS (costo en pesos, Dólar Blue $${fmt(Math.round(usdRateARS))})`;
+            el.textContent = `= $${fmt(Math.round(ars))} ARS (costo en pesos, DÃ³lar Blue $${fmt(Math.round(usdRateARS))})`;
             el.style.color = '#2ed573';
         } else {
-            el.textContent = 'Consultando cotización del dólar...';
+            el.textContent = 'Consultando cotizaciÃ³n del dÃ³lar...';
             el.style.color = 'var(--text-secondary)';
         }
     } else {
@@ -742,7 +742,7 @@ function updateCostARSDisplay() {
 }
 
 // Auto-calculate price
-const MP_FEE = 0.0649; // 6.49% Mercado Pago comisión inmediata
+const MP_FEE = 0.0649; // 6.49% Mercado Pago comisiÃ³n inmediata
 function updateCalculatedPrice() {
     const costARS = getCostInARS();
     const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
@@ -760,8 +760,8 @@ function updateCalculatedPrice() {
     updateTierPrices();
 }
 
-// ─── PRECIOS POR CANTIDAD (MAYORISTA) ─────────────────────
-// Tramo 1 = costo/precio base. Tramos 2-4: misma fórmula (margen + MP + redondeo).
+// â”€â”€â”€ PRECIOS POR CANTIDAD (MAYORISTA) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Tramo 1 = costo/precio base. Tramos 2-4: misma fÃ³rmula (margen + MP + redondeo).
 function calcFinalPrice(costARS, margin) {
     const basePrice = costARS * (1 + (margin / 100));
     const rawFinal = basePrice * (1 + MP_FEE);
@@ -781,7 +781,7 @@ function updateTierPrices() {
         const el = document.getElementById('tier' + n + 'Price');
         if (!el) return;
         const costARS = getTierCostInARS(n);
-        el.textContent = costARS > 0 ? '$' + fmt(calcFinalPrice(costARS, margin)) : '—';
+        el.textContent = costARS > 0 ? '$' + fmt(calcFinalPrice(costARS, margin)) : 'â€”';
     });
 }
 
@@ -852,7 +852,7 @@ document.getElementById('prodPrice').addEventListener('input', () => {
 });
 
 async function deleteProduct(id) {
-    if (confirm("¿Estás seguro de que quieres borrar este producto?")) {
+    if (confirm("Â¿EstÃ¡s seguro de que quieres borrar este producto?")) {
         try {
             await db.collection("products").doc(id).delete();
             loadProducts();
@@ -865,31 +865,31 @@ async function deleteProduct(id) {
 
 // Migrate Initial Data
 document.getElementById('migrateBtn').addEventListener('click', async () => {
-    if(!confirm("Esto cargará los 12 productos iniciales en Firebase. Solo debes hacerlo 1 vez. ¿Continuar?")) return;
+    if(!confirm("Esto cargarÃ¡ los 12 productos iniciales en Firebase. Solo debes hacerlo 1 vez. Â¿Continuar?")) return;
     const btn = document.getElementById('migrateBtn');
     btn.textContent = 'Cargando...';
     btn.disabled = true;
     
     const initialProducts = [
-        { name: "Sony WH-1000XM5", category: "auriculares", price: 349.00, oldPrice: 349.00, offerPrice: 244.30, badge: "-30%", isFeatured: true, description: "Cancelación de ruido líder en la industria. 30 horas de batería. Audio Hi-Res.", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop"]' },
-        { name: "MimoPods Pro Max", category: "auriculares", price: 199.00, description: "Cancelación activa de ruido. Audio espacial. Chip M2. Resistencia al agua IPX4.", image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop"]' },
-        { name: "JBL Charge 5", category: "parlantes", price: 179.00, offerPrice: 179.00, badge: "Más Vendido", isFeatured: true, description: "Sonido potente JBL Original Pro. Resistencia al agua IP67. 20 horas de batería.", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&h=600&fit=crop"]' },
-        { name: "Marshall Stanmore II", category: "parlantes", price: 349.00, description: "Diseño clásico Marshall. Bluetooth 5.0. Multi-host. Sonido amplio y dinámico.", image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&h=600&fit=crop"]' },
+        { name: "Sony WH-1000XM5", category: "auriculares", price: 349.00, oldPrice: 349.00, offerPrice: 244.30, badge: "-30%", isFeatured: true, description: "CancelaciÃ³n de ruido lÃ­der en la industria. 30 horas de baterÃ­a. Audio Hi-Res.", image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=600&h=600&fit=crop"]' },
+        { name: "MimoPods Pro Max", category: "auriculares", price: 199.00, description: "CancelaciÃ³n activa de ruido. Audio espacial. Chip M2. Resistencia al agua IPX4.", image: "https://images.unsplash.com/photo-1583394838336-acd977736f90?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1583394838336-acd977736f90?w=600&h=600&fit=crop"]' },
+        { name: "JBL Charge 5", category: "parlantes", price: 179.00, offerPrice: 179.00, badge: "MÃ¡s Vendido", isFeatured: true, description: "Sonido potente JBL Original Pro. Resistencia al agua IP67. 20 horas de baterÃ­a.", image: "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=600&h=600&fit=crop"]' },
+        { name: "Marshall Stanmore II", category: "parlantes", price: 349.00, description: "DiseÃ±o clÃ¡sico Marshall. Bluetooth 5.0. Multi-host. Sonido amplio y dinÃ¡mico.", image: "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1545454675-3531b543be5d?w=600&h=600&fit=crop"]' },
         { name: "Amazon Fire TV Stick 4K", category: "tvbox", price: 49.99, oldPrice: 49.99, offerPrice: 42.49, badge: "-15%", isFeatured: true, description: "Streaming en 4K Ultra HD. Wi-Fi 6. Control por voz con Alexa.", image: "https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=600&h=600&fit=crop"]' },
-        { name: "Google Chromecast 4K", category: "tvbox", price: 59.99, description: "Google TV integrado. Resolución 4K HDR. Control remoto con Google Assistant.", image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&h=600&fit=crop"]' },
-        { name: "Samsung 55\" QLED 4K", category: "televisores", price: 699.00, oldPrice: 699.00, offerPrice: 559.20, badge: "-20%", isFeatured: true, description: "Pantalla QLED 55 pulgadas. Resolución 4K. Quantum Processor. Smart Hub.", image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&h=600&fit=crop"]' },
-        { name: "LG OLED 65\" C3", category: "televisores", price: 1299.00, description: "OLED evo 65 pulgadas. Negro perfecto. Dolby Vision IQ y Atmos. Procesador α9 Gen6.", image: "https://images.unsplash.com/photo-1461151304267-38535e780c79?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1461151304267-38535e780c79?w=600&h=600&fit=crop"]' },
-        { name: "Cocina Inducción Premium", category: "cocinas", price: 899.00, offerPrice: 899.00, badge: "Más Vendido", isFeatured: true, description: "4 zonas de inducción. Horno eléctrico 70L. Panel táctil digital.", image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=600&fit=crop"]' },
-        { name: "Cocina Mixta 6 Hornallas", category: "cocinas", price: 649.00, description: "6 hornallas (4 gas + 2 eléctricas). Horno con grill. Encendido automático.", image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=600&h=600&fit=crop"]' },
+        { name: "Google Chromecast 4K", category: "tvbox", price: 59.99, description: "Google TV integrado. ResoluciÃ³n 4K HDR. Control remoto con Google Assistant.", image: "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=600&h=600&fit=crop"]' },
+        { name: "Samsung 55\" QLED 4K", category: "televisores", price: 699.00, oldPrice: 699.00, offerPrice: 559.20, badge: "-20%", isFeatured: true, description: "Pantalla QLED 55 pulgadas. ResoluciÃ³n 4K. Quantum Processor. Smart Hub.", image: "https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=600&h=600&fit=crop"]' },
+        { name: "LG OLED 65\" C3", category: "televisores", price: 1299.00, description: "OLED evo 65 pulgadas. Negro perfecto. Dolby Vision IQ y Atmos. Procesador Î±9 Gen6.", image: "https://images.unsplash.com/photo-1461151304267-38535e780c79?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1461151304267-38535e780c79?w=600&h=600&fit=crop"]' },
+        { name: "Cocina InducciÃ³n Premium", category: "cocinas", price: 899.00, offerPrice: 899.00, badge: "MÃ¡s Vendido", isFeatured: true, description: "4 zonas de inducciÃ³n. Horno elÃ©ctrico 70L. Panel tÃ¡ctil digital.", image: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=600&h=600&fit=crop"]' },
+        { name: "Cocina Mixta 6 Hornallas", category: "cocinas", price: 649.00, description: "6 hornallas (4 gas + 2 elÃ©ctricas). Horno con grill. Encendido automÃ¡tico.", image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=600&h=600&fit=crop"]' },
         { name: "Heladera Side by Side Inox", category: "heladeras", price: 1199.00, description: "Side by Side. 580L de capacidad. Dispensador de agua y hielo. No Frost.", image: "https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1571175443880-49e1d25b2bc5?w=600&h=600&fit=crop"]' },
-        { name: "Heladera NoFrost 400L", category: "heladeras", price: 799.00, description: "400L de capacidad. Sistema No Frost. Cajón de frutas y verduras.", image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=600&h=600&fit=crop"]' }
+        { name: "Heladera NoFrost 400L", category: "heladeras", price: 799.00, description: "400L de capacidad. Sistema No Frost. CajÃ³n de frutas y verduras.", image: "https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=400&h=300&fit=crop", fullImages: '["https://images.unsplash.com/photo-1584568694244-14fbdf83bd30?w=600&h=600&fit=crop"]' }
     ];
 
     try {
         for (const p of initialProducts) {
             await db.collection("products").add(p);
         }
-        btn.textContent = 'Cargado ✓';
+        btn.textContent = 'Cargado âœ“';
         setTimeout(() => btn.style.display = 'none', 2000);
         loadProducts();
     } catch(e) {
@@ -900,48 +900,6 @@ document.getElementById('migrateBtn').addEventListener('click', async () => {
     }
 });
 
-// Remove duplicates logic
-document.getElementById('migrateBtn').insertAdjacentHTML('afterend', `
-    <button id="cleanDuplicatesBtn" class="magnetic-btn" style="background: rgba(255,50,50,0.2); color: #ff4757; border: 1px solid #ff4757; padding: 0.6rem 1.2rem; border-radius: 8px; cursor: pointer; margin-left: 10px;">
-        Limpiar Duplicados
-    </button>
-`);
-document.getElementById('cleanDuplicatesBtn').addEventListener('click', async () => {
-    if (!confirm("¿Seguro que quieres eliminar los productos duplicados (dejando solo uno de cada uno)?")) return;
-    const btn = document.getElementById('cleanDuplicatesBtn');
-    btn.disabled = true;
-    btn.textContent = "Limpiando...";
-    
-    try {
-        const snapshot = await db.collection("products").get({ source: 'server' });
-        const seenNames = new Set();
-        const batch = db.batch();
-        let deletedCount = 0;
-        
-        snapshot.forEach(doc => {
-            const data = doc.data();
-            if (seenNames.has(data.name)) {
-                batch.delete(doc.ref);
-                deletedCount++;
-            } else {
-                seenNames.add(data.name);
-            }
-        });
-        
-        if (deletedCount > 0) {
-            await batch.commit();
-            alert(`Se eliminaron ${deletedCount} productos duplicados.`);
-        } else {
-            alert("No se encontraron productos duplicados.");
-        }
-        loadProducts();
-    } catch (e) {
-        console.error(e);
-        alert("Error limpiando duplicados.");
-    }
-    btn.textContent = "Limpiar Duplicados";
-    btn.disabled = false;
-});
 
 // Global preview renderer
 function renderImagePreviews() {
@@ -1047,12 +1005,12 @@ if (addImgUrlBtn) {
     addImgUrlBtn.addEventListener('click', () => {
         let url = prodImgInput.value.trim();
         if (!url) {
-            alert('Por favor, ingresá una URL válida antes de agregar.');
+            alert('Por favor, ingresÃ¡ una URL vÃ¡lida antes de agregar.');
             return;
         }
         url = url.replace(/^["']|["']$/g, '').trim();
         if (isLocalFilePath(url)) {
-            alert('Error: No podés usar una ruta de tu PC (file://).');
+            alert('Error: No podÃ©s usar una ruta de tu PC (file://).');
             return;
         }
         
@@ -1062,9 +1020,9 @@ if (addImgUrlBtn) {
             renderImagePreviews();
             // Empty the URL input field so the user can easily paste another one!
             prodImgInput.value = '';
-            showToast('Imagen agregada con éxito', 'success');
+            showToast('Imagen agregada con Ã©xito', 'success');
         } else {
-            alert('Esta imagen ya está agregada.');
+            alert('Esta imagen ya estÃ¡ agregada.');
         }
     });
 }
@@ -1085,7 +1043,7 @@ clearImgBtn.addEventListener('click', () => {
     renderImagePreviews();
 });
 
-// ─── COST CALCULATOR LOGIC ─────────────────────────────────
+// â”€â”€â”€ COST CALCULATOR LOGIC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const toggleCalcBtn = document.getElementById('toggleCalcBtn');
 const calculatorBody = document.getElementById('calculatorBody');
 const calcCurrency = document.getElementById('calcCurrency');
@@ -1130,7 +1088,7 @@ if (toggleCalcBtn && calculatorBody) {
     }
 
     async function fetchUsdRate() {
-        if (fetchRateBtn) fetchRateBtn.textContent = '⏳';
+        if (fetchRateBtn) fetchRateBtn.textContent = 'â³';
         try {
             const res = await fetch('https://dolarapi.com/v1/dolares/blue');
             if (!res.ok) throw new Error('API Error');
@@ -1139,7 +1097,7 @@ if (toggleCalcBtn && calculatorBody) {
                 calcUsdRate.value = Math.round(data.venta);
                 if (rateSource) {
                     const date = new Date(data.fechaActualizacion);
-                    rateSource.textContent = `Dólar Blue: $${data.venta} (Act: ${date.toLocaleTimeString()})`;
+                    rateSource.textContent = `DÃ³lar Blue: $${data.venta} (Act: ${date.toLocaleTimeString()})`;
                     rateSource.style.color = '#2ed573';
                 }
                 calculateCosts();
@@ -1151,7 +1109,7 @@ if (toggleCalcBtn && calculatorBody) {
                 rateSource.style.color = '#ff4757';
             }
         } finally {
-            if (fetchRateBtn) fetchRateBtn.textContent = '🔄 API';
+            if (fetchRateBtn) fetchRateBtn.textContent = 'ðŸ”„ API';
         }
     }
 
@@ -1183,7 +1141,7 @@ if (toggleCalcBtn && calculatorBody) {
     calculateCosts();
 }
 
-// ─── SHIPPING RATES ──────────────────────────────────────────
+// â”€â”€â”€ SHIPPING RATES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const ratesBody = document.getElementById('shippingRatesBody');
 
 async function loadShippingRates() {
@@ -1196,17 +1154,17 @@ async function loadShippingRates() {
             tr.innerHTML = `<td><strong>${prov}</strong></td>
                 <td>$${rate.base}</td>
                 <td>$${rate.perKg}</td>
-                <td><button class="action-btn del del-rate-btn" data-prov="${prov}" title="Eliminar">🗑️</button></td>`;
+                <td><button class="action-btn del del-rate-btn" data-prov="${prov}" title="Eliminar">ðŸ—‘ï¸</button></td>`;
             ratesBody.appendChild(tr);
         });
         if (Object.keys(rates).length === 0) {
-            ratesBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--text-secondary)">No hay tarifas configuradas. Agregá una abajo.</td></tr>';
+            ratesBody.innerHTML = '<tr><td colspan="4" style="text-align:center;padding:1.5rem;color:var(--text-secondary)">No hay tarifas configuradas. AgregÃ¡ una abajo.</td></tr>';
         }
         // Attach delete handlers
         document.querySelectorAll('.del-rate-btn').forEach(btn => {
             btn.addEventListener('click', async () => {
                 const prov = btn.dataset.prov;
-                if (!confirm(`¿Eliminar tarifa para ${prov}?`)) return;
+                if (!confirm(`Â¿Eliminar tarifa para ${prov}?`)) return;
                 try {
                     const doc = await db.collection('config').doc('shipping').get();
                     const rates = doc.exists ? doc.data().rates || {} : {};
@@ -1215,7 +1173,7 @@ async function loadShippingRates() {
                     loadShippingRates();
                 } catch (error) {
                     console.error('Error deleting rate:', error);
-                    showFirebaseErrorAlert('eliminar la tarifa de envío', error);
+                    showFirebaseErrorAlert('eliminar la tarifa de envÃ­o', error);
                 }
             });
         });
@@ -1228,7 +1186,7 @@ document.getElementById('addRateBtn').addEventListener('click', async () => {
     const prov = document.getElementById('newRateProvince').value.trim();
     const base = parseFloat(document.getElementById('newRateBase').value);
     const perKg = parseFloat(document.getElementById('newRatePerKg').value);
-    if (!prov || isNaN(base) || isNaN(perKg)) { alert('Completá todos los campos.'); return; }
+    if (!prov || isNaN(base) || isNaN(perKg)) { alert('CompletÃ¡ todos los campos.'); return; }
     try {
         const doc = await db.collection('config').doc('shipping').get();
         const rates = doc.exists ? doc.data().rates || {} : {};
@@ -1240,30 +1198,66 @@ document.getElementById('addRateBtn').addEventListener('click', async () => {
         loadShippingRates();
     } catch (e) {
         console.error('Error adding rate:', e);
-        showFirebaseErrorAlert('agregar la tarifa de envío', e);
+        showFirebaseErrorAlert('agregar la tarifa de envÃ­o', e);
     }
 });
 
 // Load rates on init
 loadShippingRates();
 
-// ─── STATISTICS ──────────────────────────────────────────────
-async function loadStats() {
+// â”€â”€â”€ STATISTICS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function loadStats(period = 'all') {
     try {
         const snapshot = await db.collection('orders').get();
         let totalRevenue = 0, paidCount = 0, totalCount = 0;
         const productCount = {};
+        
+        const dateFilter = document.getElementById('statDateFilter').value;
+        const monthFilter = document.getElementById('statMonthFilter').value;
+        const yearFilter = document.getElementById('statYearFilter').value;
+
+        const now = new Date();
+        const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const startOfWeek = new Date(startOfDay);
+        startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+        const startOfYear = new Date(now.getFullYear(), 0, 1);
 
         snapshot.forEach(doc => {
             const o = doc.data();
-            totalCount++;
-            if (o.status === 'paid') {
-                paidCount++;
-                totalRevenue += o.total || 0;
-                (o.cart || []).forEach(item => {
-                    const key = item.name || item.id;
-                    productCount[key] = (productCount[key] || 0) + item.qty;
-                });
+            const orderDate = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt)) : null;
+            
+            let include = true;
+            if (orderDate) {
+                // Check custom filters first
+                if (dateFilter) {
+                    const [y, m, d] = dateFilter.split('-');
+                    if (orderDate.getFullYear() != y || orderDate.getMonth() + 1 != m || orderDate.getDate() != d) include = false;
+                } else if (monthFilter) {
+                    const [y, m] = monthFilter.split('-');
+                    if (orderDate.getFullYear() != y || orderDate.getMonth() + 1 != m) include = false;
+                } else if (yearFilter) {
+                    if (orderDate.getFullYear() != yearFilter) include = false;
+                } else {
+                    // Check predefined period filters
+                    if (period === 'year' && orderDate < startOfYear) include = false;
+                    if (period === 'month' && orderDate < startOfMonth) include = false;
+                    if (period === 'week' && orderDate < startOfWeek) include = false;
+                }
+            } else {
+                if (dateFilter || monthFilter || yearFilter || period !== 'all') include = false;
+            }
+
+            if (include) {
+                totalCount++;
+                if (o.status === 'paid') {
+                    paidCount++;
+                    totalRevenue += o.total || 0;
+                    (o.cart || []).forEach(item => {
+                        const key = item.name || item.id;
+                        productCount[key] = (productCount[key] || 0) + item.qty;
+                    });
+                }
             }
         });
 
@@ -1274,7 +1268,7 @@ async function loadStats() {
         const sorted = Object.entries(productCount).sort((a, b) => b[1] - a[1]).slice(0, 10);
         const list = document.getElementById('topProductsList');
         list.innerHTML = sorted.length === 0
-            ? '<div style="color:var(--text-secondary);font-size:.85rem;padding:.5rem 0">Sin ventas aún</div>'
+            ? '<div style="color:var(--text-secondary);font-size:.85rem;padding:.5rem 0">Sin ventas aÃºn</div>'
             : sorted.map(([name, qty], i) => `
                 <div style="display:flex;align-items:center;gap:.8rem;padding:.3rem 0">
                     <span style="color:var(--text-secondary);font-size:.8rem;min-width:20px;font-weight:700">${i + 1}.</span>
@@ -1290,14 +1284,38 @@ async function loadStats() {
     }
 }
 
-document.getElementById('refreshStatsBtn').addEventListener('click', loadStats);
+document.getElementById('refreshStatsBtn').addEventListener('click', () => loadStats(document.querySelector('.stat-filter.active')?.dataset.filter || 'all'));
+document.getElementById('statDateFilter')?.addEventListener('change', () => {
+    document.getElementById('statMonthFilter').value = '';
+    document.getElementById('statYearFilter').value = '';
+    document.querySelectorAll('.stat-filter').forEach(btn => btn.classList.remove('active'));
+    loadStats();
+});
+document.getElementById('statMonthFilter')?.addEventListener('change', () => {
+    document.getElementById('statDateFilter').value = '';
+    document.getElementById('statYearFilter').value = '';
+    document.querySelectorAll('.stat-filter').forEach(btn => btn.classList.remove('active'));
+    loadStats();
+});
+document.getElementById('statYearFilter')?.addEventListener('input', () => {
+    document.getElementById('statDateFilter').value = '';
+    document.getElementById('statMonthFilter').value = '';
+    document.querySelectorAll('.stat-filter').forEach(btn => btn.classList.remove('active'));
+    loadStats();
+});
+
 loadStats();
 
-// ─── ORDER MANAGEMENT ─────────────────────────────────────
-const statusLabels = { initiated:'⚪ Iniciado', pending:'🟡 Pendiente', paid:'🟢 Pagado', shipped:'🔵 Enviado', delivered:'✅ Entregado', cancelled:'🔴 Cancelado' };
+// â”€â”€â”€ ORDER MANAGEMENT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+const statusLabels = { initiated:'âšª Iniciado', pending:'ðŸŸ¡ Pendiente', paid:'ðŸŸ¢ Pagado', shipped:'ðŸ”µ Enviado', delivered:'âœ… Entregado', cancelled:'ðŸ”´ Cancelado' };
 const statusFlow = { initiated:['paid','cancelled'], pending:['paid','cancelled'], paid:['shipped','cancelled'], shipped:['delivered','cancelled'], delivered:[], cancelled:[] };
 
-async function loadOrders(filter = 'all') {
+async function loadOrders() {
+    const filter = document.getElementById('orderStatusFilter').value || 'all';
+    const dateFilter = document.getElementById('orderDateFilter')?.value || '';
+    const locationFilter = (document.getElementById('orderLocationFilter')?.value || '').toLowerCase();
+    const clientFilter = (document.getElementById('orderClientFilter')?.value || '').toLowerCase();
+
     const tbody = document.getElementById('ordersList');
     if (!tbody) return;
     try {
@@ -1305,28 +1323,49 @@ async function loadOrders(filter = 'all') {
         if (filter !== 'all') query = query.where('status', '==', filter);
         const snapshot = await query.get();
         tbody.innerHTML = '';
-        if (snapshot.empty) {
-            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-secondary)">No hay pedidos' + (filter !== 'all' ? ` con estado ${statusLabels[filter]}` : '') + '.</td></tr>';
-            return;
-        }
+        
+        let matchCount = 0;
+        
         snapshot.forEach(doc => {
             const o = doc.data();
             const id = doc.id;
-            const date = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt)).toLocaleDateString('es-AR') : '-';
+            const dateObj = o.createdAt ? (o.createdAt.toDate ? o.createdAt.toDate() : new Date(o.createdAt)) : null;
+            const dateStr = dateObj ? dateObj.toLocaleDateString('es-AR') : '-';
+            
+            // Client Filter
+            const cName = (o.customer?.name || '').toLowerCase();
+            if (clientFilter && !cName.includes(clientFilter)) return;
+            
+            // Location Filter
+            const cLoc = `${o.customer?.province || ''} ${o.customer?.city || ''} ${o.shippingProvince || ''}`.toLowerCase();
+            if (locationFilter && !cLoc.includes(locationFilter)) return;
+            
+            // Date Filter
+            if (dateFilter && dateObj) {
+                const [y, m, d] = dateFilter.split('-');
+                if (dateObj.getFullYear() != y || dateObj.getMonth() + 1 != m || dateObj.getDate() != d) return;
+            }
+
+            matchCount++;
+            
             const tr = document.createElement('tr');
             tr.innerHTML = `
-                <td><strong>${o.customer?.name || '—'}</strong></td>
-                <td>$${fmt(o.total || 0)}${o.shippingCost ? '<br><small style="color:var(--text-secondary)">+ envío $' + fmt(o.shippingCost) + '</small>' : ''}</td>
+                <td><strong>${o.customer?.name || 'â€”'}</strong></td>
+                <td>$${fmt(o.total || 0)}${o.shippingCost ? '<br><small style="color:var(--text-secondary)">+ envÃ­o $' + fmt(o.shippingCost) + '</small>' : ''}</td>
                 <td>${(o.cart || []).reduce((s, i) => s + i.qty, 0)} items</td>
-                <td>${o.customer?.province || o.shippingProvince || '—'}</td>
-                <td style="font-size:.85rem;white-space:nowrap">${date}</td>
+                <td>${o.customer?.province || o.shippingProvince || 'â€”'}</td>
+                <td style="font-size:.85rem;white-space:nowrap">${dateStr}</td>
                 <td><span style="display:inline-block;padding:.2rem .6rem;border-radius:20px;font-size:.8rem;background:${o.status === 'paid' ? 'rgba(46,213,115,.15)' : o.status === 'shipped' ? 'rgba(0,240,255,.15)' : o.status === 'delivered' ? 'rgba(46,213,115,.1)' : o.status === 'cancelled' ? 'rgba(255,71,87,.15)' : o.status === 'initiated' ? 'rgba(255,255,255,.05)' : 'rgba(255,193,7,.15)'};color:${o.status === 'paid' ? '#2ed573' : o.status === 'shipped' ? '#00f0ff' : o.status === 'delivered' ? '#2ed573' : o.status === 'cancelled' ? '#ff4757' : o.status === 'initiated' ? '#888' : '#ffc107'}">${statusLabels[o.status] || o.status}</span></td>
                 <td>
-                    <button class="action-btn view-order-btn" data-id="${id}" title="Ver detalle">👁️</button>
-                    ${(statusFlow[o.status] || []).map(next => `<button class="action-btn status-btn" data-id="${id}" data-next="${next}" title="Marcar como ${statusLabels[next]}">${next === 'cancelled' ? '❌' : next === 'paid' ? '💳' : next === 'shipped' ? '📦' : '✅'}</button>`).join('')}
+                    <button class="action-btn view-order-btn" data-id="${id}" title="Ver detalle">ðŸ‘ï¸</button>
+                    ${(statusFlow[o.status] || []).map(next => `<button class="action-btn status-btn" data-id="${id}" data-next="${next}" title="Marcar como ${statusLabels[next]}">${next === 'cancelled' ? 'âŒ' : next === 'paid' ? 'ðŸ’³' : next === 'shipped' ? 'ðŸ“¦' : 'âœ…'}</button>`).join('')}
                 </td>`;
             tbody.appendChild(tr);
         });
+
+        if (matchCount === 0) {
+            tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:2rem;color:var(--text-secondary)">No se encontraron pedidos con estos filtros.</td></tr>';
+        }
 
         document.querySelectorAll('.view-order-btn').forEach(btn => {
             btn.addEventListener('click', () => viewOrder(btn.dataset.id));
@@ -1335,10 +1374,10 @@ async function loadOrders(filter = 'all') {
             btn.addEventListener('click', async () => {
                 const id = btn.dataset.id;
                 const next = btn.dataset.next;
-                if (!confirm(`¿Cambiar estado a "${statusLabels[next]}"?`)) return;
+                if (!confirm(`Â¿Cambiar estado a "${statusLabels[next]}"?`)) return;
                 try {
                     await db.collection('orders').doc(id).update({ status: next, updatedAt: firebase.firestore.FieldValue.serverTimestamp() });
-                    loadOrders(document.getElementById('orderStatusFilter').value);
+                    loadOrders();
                 } catch (e) { 
                     console.error('Error updating order:', e); 
                     showFirebaseErrorAlert('actualizar el pedido', e);
@@ -1359,15 +1398,15 @@ async function viewOrder(id) {
         const content = document.getElementById('orderDetailContent');
         content.innerHTML = `
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem;background:var(--surface-color);padding:1rem;border-radius:10px">
-                <div><strong>Cliente:</strong> ${o.customer?.name || '—'}</div>
-                <div><strong>Email:</strong> ${o.customer?.email || '—'}</div>
-                <div><strong>Teléfono:</strong> ${o.customer?.phone || '—'}</div>
-                <div><strong>DNI:</strong> ${o.customer?.dni || '—'}</div>
-                <div><strong>Dirección:</strong> ${o.customer?.address || '—'}, ${o.customer?.city || '—'}, ${o.customer?.province || o.shippingProvince || '—'}</div>
-                <div><strong>CP:</strong> ${o.customer?.zip || '—'}</div>
+                <div><strong>Cliente:</strong> ${o.customer?.name || 'â€”'}</div>
+                <div><strong>Email:</strong> ${o.customer?.email || 'â€”'}</div>
+                <div><strong>TelÃ©fono:</strong> ${o.customer?.phone || 'â€”'}</div>
+                <div><strong>DNI:</strong> ${o.customer?.dni || 'â€”'}</div>
+                <div><strong>DirecciÃ³n:</strong> ${o.customer?.address || 'â€”'}, ${o.customer?.city || 'â€”'}, ${o.customer?.province || o.shippingProvince || 'â€”'}</div>
+                <div><strong>CP:</strong> ${o.customer?.zip || 'â€”'}</div>
                 <div><strong>Fecha:</strong> ${date}</div>
                 <div><strong>Estado:</strong> ${statusLabels[o.status] || o.status}</div>
-                ${o.shippingCost ? `<div><strong>Envío:</strong> $${fmt(o.shippingCost)}</div>` : ''}
+                ${o.shippingCost ? `<div><strong>EnvÃ­o:</strong> $${fmt(o.shippingCost)}</div>` : ''}
                 ${o.paymentId ? `<div><strong>MP ID:</strong> ${o.paymentId}</div>` : ''}
             </div>
             <table class="admin-table" style="font-size:.85rem">
@@ -1394,15 +1433,17 @@ document.getElementById('orderModal').addEventListener('click', (e) => {
     }
 });
 
-document.getElementById('orderStatusFilter').addEventListener('change', function() {
-    loadOrders(this.value);
-});
+document.getElementById('orderStatusFilter').addEventListener('change', () => loadOrders());
+document.getElementById('orderDateFilter')?.addEventListener('change', () => loadOrders());
+document.getElementById('orderLocationFilter')?.addEventListener('input', () => loadOrders());
+document.getElementById('orderClientFilter')?.addEventListener('input', () => loadOrders());
+
 document.getElementById('reloadOrdersBtn').addEventListener('click', () => {
-    loadOrders(document.getElementById('orderStatusFilter').value);
+    loadOrders();
 });
 loadOrders();
 
-// ─── GOOGLE IMAGES SEARCH (OPCIÓN 2B) ─────────────────────────
+// â”€â”€â”€ GOOGLE IMAGES SEARCH// â”€â”€â”€ GOOGLE IMAGES SEARCH (OPCIÃ“N 2B) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 const searchGoogleImagesBtn = document.getElementById('searchGoogleImagesBtn');
 
 searchGoogleImagesBtn.addEventListener('click', () => {
@@ -1411,7 +1452,7 @@ searchGoogleImagesBtn.addEventListener('click', () => {
         ? encodeURIComponent(name.replace(/[""']/g, '').substring(0, 150))
         : '';
     if (!query) {
-        alert('Primero escribí el nombre del producto para buscar.');
+        alert('Primero escribÃ­ el nombre del producto para buscar.');
         return;
     }
     window.open(`https://www.google.com/search?tbm=isch&q=${query}`, '_blank');
@@ -1419,10 +1460,10 @@ searchGoogleImagesBtn.addEventListener('click', () => {
 
 // Google Custom Search feature has been removed as per user request.
 
-// ─── AI DESCRIPTION GENERATOR (GEMINI → GROQ → OPENROUTER → POLLINATIONS) ─
+// â”€â”€â”€ AI DESCRIPTION GENERATOR (GEMINI â†’ GROQ â†’ OPENROUTER â†’ POLLINATIONS) â”€
 // Cascada inteligente:
-// 1) Gemini (si hay key): gemini-2.0-flash / gemini-flash-latest con specs técnicas.
-// 2) Groq (si hay key): ultra rápida con llama-3.3-70b-versatile (console.groq.com).
+// 1) Gemini (si hay key): gemini-2.0-flash / gemini-flash-latest con specs tÃ©cnicas.
+// 2) Groq (si hay key): ultra rÃ¡pida con llama-3.3-70b-versatile (console.groq.com).
 // 3) OpenRouter (si hay key): modelos :free (openrouter.ai/keys).
 // 4) Respaldo Libre (Pollinations AI): SIEMPRE ACTIVO, NO REQUIERE API KEY.
 
@@ -1456,7 +1497,7 @@ function getOpenRouterModel() {
 // 1. Google Gemini
 async function callGemini(promptText) {
     const key = getGeminiKey();
-    if (!key) throw { code: 'NO_KEY', label: 'Gemini', message: 'No hay key de Gemini configurada (botón 🔑).' };
+    if (!key) throw { code: 'NO_KEY', label: 'Gemini', message: 'No hay key de Gemini configurada (botÃ³n ðŸ”‘).' };
 
     const modelsToTry = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
     let lastErr = null;
@@ -1481,9 +1522,9 @@ async function callGemini(promptText) {
                 const text = parts.filter(pt => pt && typeof pt.text === 'string').map(pt => pt.text).join('').trim();
                 if (text) return text;
             } else if (resp.status === 429) {
-                throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzó su límite de cuota temporal.' };
+                throw { code: 'RATE_LIMIT', label: 'Gemini', message: 'Gemini alcanzÃ³ su lÃ­mite de cuota temporal.' };
             } else if (resp.status === 401 || resp.status === 403) {
-                throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini inválida o expirada.' };
+                throw { code: 'AUTH', label: 'Gemini', message: 'API Key de Gemini invÃ¡lida o expirada.' };
             } else {
                 lastErr = { code: 'HTTP', label: 'Gemini', message: `Error HTTP ${resp.status} en modelo ${model}.` };
             }
@@ -1496,7 +1537,7 @@ async function callGemini(promptText) {
     throw lastErr || { code: 'HTTP', label: 'Gemini', message: 'No se pudo conectar con Gemini.' };
 }
 
-// Helper genérico OpenAI-compatible (Groq y OpenRouter)
+// Helper genÃ©rico OpenAI-compatible (Groq y OpenRouter)
 async function callOpenAIChat({ url, key, model, label, extraHeaders, promptText }) {
     const maxAttempts = 2;
     let lastErr = null;
@@ -1516,18 +1557,18 @@ async function callOpenAIChat({ url, key, model, label, extraHeaders, promptText
                 })
             });
         } catch (netErr) {
-            throw { code: 'HTTP', label, message: `Sin conexión con ${label}. Revisá tu internet.` };
+            throw { code: 'HTTP', label, message: `Sin conexiÃ³n con ${label}. RevisÃ¡ tu internet.` };
         }
         if (resp.ok) {
             const data = await resp.json();
             const text = data.choices && data.choices[0] && data.choices[0].message ? data.choices[0].message.content : '';
-            if (!text || !text.trim()) throw { code: 'EMPTY', label, message: `${label} devolvió una respuesta vacía.` };
+            if (!text || !text.trim()) throw { code: 'EMPTY', label, message: `${label} devolviÃ³ una respuesta vacÃ­a.` };
             return text.trim();
         }
         if (resp.status === 429) {
             const retryAfterSec = parseInt(resp.headers.get('retry-after') || '0', 10);
             const waitMs = Math.min(isNaN(retryAfterSec) || retryAfterSec <= 0 ? 15000 : retryAfterSec * 1000, 60000);
-            lastErr = { code: 'RATE_LIMIT', label, message: `${label} alcanzó su límite de cuota.` };
+            lastErr = { code: 'RATE_LIMIT', label, message: `${label} alcanzÃ³ su lÃ­mite de cuota.` };
             if (attempt < maxAttempts) {
                 console.warn(`[${label}] 429, reintentando en ${Math.round(waitMs / 1000)}s...`);
                 await new Promise(r => setTimeout(r, waitMs));
@@ -1535,43 +1576,43 @@ async function callOpenAIChat({ url, key, model, label, extraHeaders, promptText
             }
             throw lastErr;
         }
-        if (resp.status === 401 || resp.status === 403) throw { code: 'AUTH', label, message: `API Key de ${label} inválida o sin permisos.` };
-        if (resp.status === 404) throw { code: 'MODEL', label, message: `${label}: el modelo "${model}" no está disponible.` };
+        if (resp.status === 401 || resp.status === 403) throw { code: 'AUTH', label, message: `API Key de ${label} invÃ¡lida o sin permisos.` };
+        if (resp.status === 404) throw { code: 'MODEL', label, message: `${label}: el modelo "${model}" no estÃ¡ disponible.` };
         throw { code: 'HTTP', label, message: `Error al conectar con ${label} (${resp.status}).` };
     }
     throw lastErr;
 }
 
-// 2. Groq (Ultra rápida — itera modelos activos)
+// 2. Groq (Ultra rÃ¡pida â€” itera modelos activos)
 const GROQ_MODELS = [
-    'qwen/qwen3-27b',            // Qwen 3 27B — rápido y gratuito
-    'meta-llama/llama-4-scout-17b-16e-instruct', // Llama 4 Scout — multimodal
+    'qwen/qwen3-27b',            // Qwen 3 27B â€” rÃ¡pido y gratuito
+    'meta-llama/llama-4-scout-17b-16e-instruct', // Llama 4 Scout â€” multimodal
     'openai/gpt-oss-120b',       // GPT-OSS 120B
     'openai/gpt-oss-20b',        // GPT-OSS 20B (fallback)
 ];
 async function callGroq(promptText) {
     const key = getGroqKey();
-    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botón 🔑).' };
+    if (!key) throw { code: 'NO_KEY', label: 'Groq', message: 'No hay key de Groq configurada (botÃ³n ðŸ”‘).' };
     let lastError = null;
     for (const model of GROQ_MODELS) {
         try {
             return await callOpenAIChat({ url: 'https://api.groq.com/openai/v1/chat/completions', key, model, label: 'Groq', promptText });
         } catch(e) {
-            // Si el modelo no existe, probar el siguiente; si es otro error (ej. clave inválida), lanzar de inmediato
+            // Si el modelo no existe, probar el siguiente; si es otro error (ej. clave invÃ¡lida), lanzar de inmediato
             if (e?.status === 400 || e?.message?.toLowerCase().includes('does not exist') || e?.message?.toLowerCase().includes('no access')) {
                 lastError = e; continue;
             }
             throw e;
         }
     }
-    throw lastError || { code: 'NO_MODEL', label: 'Groq', message: 'Ningún modelo de Groq disponible. Revisá los modelos activos en console.groq.com/docs/models.' };
+    throw lastError || { code: 'NO_MODEL', label: 'Groq', message: 'NingÃºn modelo de Groq disponible. RevisÃ¡ los modelos activos en console.groq.com/docs/models.' };
 }
 
 
 // 3. OpenRouter (Modelos :free)
 async function callOpenRouter(promptText) {
     const key = getOpenRouterKey();
-    if (!key) throw { code: 'NO_KEY', label: 'OpenRouter', message: 'No hay key de OpenRouter configurada (botón 🔑).' };
+    if (!key) throw { code: 'NO_KEY', label: 'OpenRouter', message: 'No hay key de OpenRouter configurada (botÃ³n ðŸ”‘).' };
     return callOpenAIChat({
         url: 'https://openrouter.ai/api/v1/chat/completions',
         key,
@@ -1582,7 +1623,7 @@ async function callOpenRouter(promptText) {
     });
 }
 
-// 4. Respaldo Libre Instantáneo (Pollinations AI - 100% Sin Key)
+// 4. Respaldo Libre InstantÃ¡neo (Pollinations AI - 100% Sin Key)
 async function callPollinations(promptText) {
     try {
         const resp = await fetch('https://text.pollinations.ai/', {
@@ -1597,7 +1638,7 @@ async function callPollinations(promptText) {
         }
         const text = await resp.text();
         if (!text || !text.trim()) {
-            throw new Error('Respuesta vacía');
+            throw new Error('Respuesta vacÃ­a');
         }
         let clean = text.trim();
         if (clean.startsWith('```')) {
@@ -1614,21 +1655,21 @@ function buildProductPrompt(withSearch) {
     const prodCategory = document.getElementById('prodCategory').value.trim();
     const prodOffer = document.getElementById('prodOffer').value.trim();
     const offerHint = prodOffer
-        ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. Podés mencionarlo al inicio de forma natural si corresponde.`
+        ? `\nEl producto tiene un precio promocional de $${prodOffer} ARS. PodÃ©s mencionarlo al inicio de forma natural si corresponde.`
         : '';
 
     const instruction = withSearch
-        ? `Buscá en Google las especificaciones técnicas reales del producto "${prodName}" de la categoría "${prodCategory}" y redactá una lista con sus características confirmadas.`
-        : `Escribí una lista clara, técnica y profesional de las especificaciones y características principales del producto "${prodName}" de la categoría "${prodCategory}". Si es un modelo específico de marca, utilizá sus datos técnicos de fábrica. Si es un producto genérico, enumerá las prestaciones más valoradas y habituales de este tipo de producto.`;
+        ? `BuscÃ¡ en Google las especificaciones tÃ©cnicas reales del producto "${prodName}" de la categorÃ­a "${prodCategory}" y redactÃ¡ una lista con sus caracterÃ­sticas confirmadas.`
+        : `EscribÃ­ una lista clara, tÃ©cnica y profesional de las especificaciones y caracterÃ­sticas principales del producto "${prodName}" de la categorÃ­a "${prodCategory}". Si es un modelo especÃ­fico de marca, utilizÃ¡ sus datos tÃ©cnicos de fÃ¡brica. Si es un producto genÃ©rico, enumerÃ¡ las prestaciones mÃ¡s valoradas y habituales de este tipo de producto.`;
 
-    return `${instruction} No escribas introducciones, títulos ni frases de marketing (el nombre del producto ya lo presenta en la tienda). La respuesta debe ser DIRECTAMENTE la lista de características.${offerHint}
+    return `${instruction} No escribas introducciones, tÃ­tulos ni frases de marketing (el nombre del producto ya lo presenta en la tienda). La respuesta debe ser DIRECTAMENTE la lista de caracterÃ­sticas.${offerHint}
 
 REGLAS DE FORMATO OBLIGATORIAS:
-1. Formato estricto por línea: "• Atributo: Detalle".
+1. Formato estricto por lÃ­nea: "â€¢ Atributo: Detalle".
 2. Sin emojis ni caracteres especiales.
 3. No uses formato Markdown como negritas con asteriscos (no pongas ** ni ##). Solo texto plano.
-4. Cada viñeta debe terminar en punto final.
-5. Incluí entre 5 y 10 características clave bien organizadas (materiales, dimensiones o capacidad, conectividad, batería, funciones destacadas, compatibilidad, etc.).`;
+4. Cada viÃ±eta debe terminar en punto final.
+5. IncluÃ­ entre 5 y 10 caracterÃ­sticas clave bien organizadas (materiales, dimensiones o capacidad, conectividad, baterÃ­a, funciones destacadas, compatibilidad, etc.).`;
 }
 
 const generateAIBtn = document.getElementById('generateAIBtn');
@@ -1642,7 +1683,7 @@ if (generateAIBtn) {
         }
 
         const originalBtnText = generateAIBtn.innerHTML;
-        generateAIBtn.innerHTML = '<span>⏳ Generando...</span>';
+        generateAIBtn.innerHTML = '<span>â³ Generando...</span>';
         generateAIBtn.style.pointerEvents = 'none';
         generateAIBtn.style.opacity = '0.7';
 
@@ -1662,7 +1703,7 @@ if (generateAIBtn) {
         if (getOpenRouterKey()) {
             providers.push({ label: 'OpenRouter', fn: () => callOpenRouter(buildProductPrompt(false)) });
         }
-        // Respaldo Libre siempre presente como garantía final
+        // Respaldo Libre siempre presente como garantÃ­a final
         providers.push({ label: 'Respaldo Libre (Pollinations)', fn: () => callPollinations(buildProductPrompt(false)) });
 
         let lastErr = null;
@@ -1674,21 +1715,21 @@ if (generateAIBtn) {
             try {
                 const text = await provider.fn();
                 document.getElementById('prodDesc').value = text;
-                generateAIBtn.innerHTML = `<span>✨ Generar con IA</span>`;
-                setStatus(`✅ Descripción generada con ${provider.label}.`);
+                generateAIBtn.innerHTML = `<span>âœ¨ Generar con IA</span>`;
+                setStatus(`âœ… DescripciÃ³n generada con ${provider.label}.`);
                 success = true;
             } catch (e) {
                 lastErr = e;
-                console.warn(`[${provider.label}] falló:`, e.message || e);
-                setStatus(`⚠️ ${provider.label}: ${e.message || 'falló'}. Probando siguiente...`);
-                generateAIBtn.innerHTML = `<span>${provider.label} falló, probando respaldo...</span>`;
+                console.warn(`[${provider.label}] fallÃ³:`, e.message || e);
+                setStatus(`âš ï¸ ${provider.label}: ${e.message || 'fallÃ³'}. Probando siguiente...`);
+                generateAIBtn.innerHTML = `<span>${provider.label} fallÃ³, probando respaldo...</span>`;
             }
         }
 
         if (!success) {
             const msg = lastErr ? (lastErr.message || JSON.stringify(lastErr)) : 'Error desconocido.';
-            alert(`Error al generar descripción: ${msg}`);
-            setStatus('❌ No se pudo generar la descripción.');
+            alert(`Error al generar descripciÃ³n: ${msg}`);
+            setStatus('âŒ No se pudo generar la descripciÃ³n.');
         }
 
         generateAIBtn.innerHTML = originalBtnText;
@@ -1697,7 +1738,7 @@ if (generateAIBtn) {
     });
 }
 
-// ─── CONFIGURACIÓN DE CLAVES IA (AUTO-GUARDADO + VALIDACIÓN) ───
+// â”€â”€â”€ CONFIGURACIÃ“N DE CLAVES IA (AUTO-GUARDADO + VALIDACIÃ“N) â”€â”€â”€
 function saveAIKeysSilently() {
     const geminiKey = document.getElementById('geminiApiKey')?.value.trim() || '';
     const groqKey = document.getElementById('groqApiKey')?.value.trim() || '';
@@ -1735,9 +1776,9 @@ function updateKeyFormatFeedback() {
         if (!geminiVal) {
             geminiStatus.innerHTML = '<span style="color:var(--text-secondary)">Debe comenzar con "AQ." o "AIzaSy...". Se autoguarda al escribir.</span>';
         } else if (geminiVal.startsWith('AQ.') || geminiVal.startsWith('AIzaSy')) {
-            geminiStatus.innerHTML = '<span style="color:#2ed573">✓ Formato de clave Gemini correcto</span>';
+            geminiStatus.innerHTML = '<span style="color:#2ed573">âœ“ Formato de clave Gemini correcto</span>';
         } else {
-            geminiStatus.innerHTML = '<span style="color:#ff4757">⚠️ Formato inválido: las claves de Google AI Studio deben empezar con "AQ." o "AIzaSy...".</span>';
+            geminiStatus.innerHTML = '<span style="color:#ff4757">âš ï¸ Formato invÃ¡lido: las claves de Google AI Studio deben empezar con "AQ." o "AIzaSy...".</span>';
         }
     }
 
@@ -1747,9 +1788,9 @@ function updateKeyFormatFeedback() {
         if (!groqVal) {
             groqStatus.innerHTML = '<span style="color:var(--text-secondary)">Debe comenzar con "gsk_...". Se autoguarda al escribir.</span>';
         } else if (groqVal.startsWith('gsk_')) {
-            groqStatus.innerHTML = '<span style="color:#2ed573">✓ Formato de clave Groq correcto (gsk_...)</span>';
+            groqStatus.innerHTML = '<span style="color:#2ed573">âœ“ Formato de clave Groq correcto (gsk_...)</span>';
         } else {
-            groqStatus.innerHTML = '<span style="color:#ff4757">⚠️ Formato inválido: las claves de Groq deben empezar con "gsk_...".</span>';
+            groqStatus.innerHTML = '<span style="color:#ff4757">âš ï¸ Formato invÃ¡lido: las claves de Groq deben empezar con "gsk_...".</span>';
         }
     }
 }
@@ -1804,24 +1845,24 @@ if (aiConfigBtn && aiConfigModal) {
         saveAIKeysSilently();
         aiConfigModal.classList.remove('active');
         document.body.style.overflow = '';
-        alert('Configuración de IAs guardada correctamente.');
+        alert('ConfiguraciÃ³n de IAs guardada correctamente.');
     });
 
-    // Probador de conexiones en vivo con diagnóstico detallado
+    // Probador de conexiones en vivo con diagnÃ³stico detallado
     const testBtn = document.getElementById('aiConfigTestBtn');
     if (testBtn) {
         testBtn.addEventListener('click', async () => {
             const resultsDiv = document.getElementById('aiTestResults');
             if (!resultsDiv) return;
 
-            // Guardar automáticamente lo que esté en los campos
+            // Guardar automÃ¡ticamente lo que estÃ© en los campos
             saveAIKeysSilently();
             updateKeyFormatFeedback();
 
             testBtn.disabled = true;
-            testBtn.textContent = '⏳ Probando...';
+            testBtn.textContent = 'â³ Probando...';
             resultsDiv.style.display = 'block';
-            resultsDiv.innerHTML = '<span style="color:var(--text-secondary)">Realizando pruebas de conexión en vivo con los proveedores...</span>';
+            resultsDiv.innerHTML = '<span style="color:var(--text-secondary)">Realizando pruebas de conexiÃ³n en vivo con los proveedores...</span>';
 
             const geminiKey = document.getElementById('geminiApiKey').value.trim();
             const groqKey = document.getElementById('groqApiKey')?.value.trim() || '';
@@ -1832,9 +1873,9 @@ if (aiConfigBtn && aiConfigModal) {
 
             // 1. Test Gemini
             if (!geminiKey) {
-                results.push('<div style="margin-bottom:.3rem">⚪ <strong>Gemini:</strong> Sin clave configurada (opcional).</div>');
+                results.push('<div style="margin-bottom:.3rem">âšª <strong>Gemini:</strong> Sin clave configurada (opcional).</div>');
             } else if (!geminiKey.startsWith('AIzaSy') && !geminiKey.startsWith('AQ.')) {
-                results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> La clave debe comenzar con "AQ." o "AIzaSy...".</div>');
+                results.push('<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>Gemini:</strong> La clave debe comenzar con "AQ." o "AIzaSy...".</div>');
             } else {
                 try {
                     let testOk = false;
@@ -1848,7 +1889,7 @@ if (aiConfigBtn && aiConfigModal) {
                         });
                         if (testResp.ok) {
                             testOk = true;
-                            results.push(`<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Gemini:</strong> ¡Conectado y listo! (Modelo: ${m})</div>`);
+                            results.push(`<div style="color:#2ed573;margin-bottom:.3rem">ðŸŸ¢ <strong>Gemini:</strong> Â¡Conectado y listo! (Modelo: ${m})</div>`);
                             break;
                         } else {
                             const errJson = await testResp.json().catch(() => null);
@@ -1856,18 +1897,18 @@ if (aiConfigBtn && aiConfigModal) {
                         }
                     }
                     if (!testOk) {
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error (${lastErrMsg}). Verificá la clave en Google AI Studio.</div>`);
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>Gemini:</strong> Error (${lastErrMsg}). VerificÃ¡ la clave en Google AI Studio.</div>`);
                     }
                 } catch(e) {
-                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Gemini:</strong> Error de conexión: ${e.message}</div>`);
+                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>Gemini:</strong> Error de conexiÃ³n: ${e.message}</div>`);
                 }
             }
 
             // 2. Test Groq
             if (!groqKey) {
-                results.push('<div style="margin-bottom:.3rem">⚪ <strong>Groq:</strong> Sin clave configurada (opcional).</div>');
+                results.push('<div style="margin-bottom:.3rem">âšª <strong>Groq:</strong> Sin clave configurada (opcional).</div>');
             } else if (!groqKey.startsWith('gsk_')) {
-                results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> La clave de Groq debe comenzar con "gsk_...". Creala gratis en console.groq.com/keys.</div>');
+                results.push('<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>Groq:</strong> La clave de Groq debe comenzar con "gsk_...". Creala gratis en console.groq.com/keys.</div>');
             } else {
                 let groqOk = false;
                 for (const gModel of GROQ_MODELS) {
@@ -1878,27 +1919,27 @@ if (aiConfigBtn && aiConfigModal) {
                             body: JSON.stringify({ model: gModel, messages: [{ role: 'user', content: 'Hola' }], max_tokens: 5 })
                         });
                         if (testResp.ok) {
-                            results.push(`<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>Groq:</strong> ¡Conectado! Usando modelo: <code>${gModel}</code></div>`);
+                            results.push(`<div style="color:#2ed573;margin-bottom:.3rem">ðŸŸ¢ <strong>Groq:</strong> Â¡Conectado! Usando modelo: <code>${gModel}</code></div>`);
                             groqOk = true; break;
                         }
                         const errJson = await testResp.json().catch(() => null);
                         const detail = errJson?.error?.message || `HTTP ${testResp.status}`;
                         // Si es error de modelo no disponible, probar el siguiente
                         if (detail.toLowerCase().includes('does not exist') || detail.toLowerCase().includes('no access')) continue;
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error (${detail}). Verificá tu clave en console.groq.com.</div>`);
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>Groq:</strong> Error (${detail}). VerificÃ¡ tu clave en console.groq.com.</div>`);
                         groqOk = true; break;
                     } catch(e) {
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Error de conexión: ${e.message}</div>`);
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>Groq:</strong> Error de conexiÃ³n: ${e.message}</div>`);
                         groqOk = true; break;
                     }
                 }
-                if (!groqOk) results.push('<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>Groq:</strong> Ningún modelo disponible. Revisá <a href="https://console.groq.com/docs/models" target="_blank">console.groq.com/docs/models</a>.</div>');
+                if (!groqOk) results.push('<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>Groq:</strong> NingÃºn modelo disponible. RevisÃ¡ <a href="https://console.groq.com/docs/models" target="_blank">console.groq.com/docs/models</a>.</div>');
             }
 
 
             // 3. Test OpenRouter
             if (!orKey) {
-                results.push('<div style="margin-bottom:.3rem">⚪ <strong>OpenRouter:</strong> Sin clave configurada (opcional).</div>');
+                results.push('<div style="margin-bottom:.3rem">âšª <strong>OpenRouter:</strong> Sin clave configurada (opcional).</div>');
             } else {
                 try {
                     const testResp = await fetch('https://openrouter.ai/api/v1/chat/completions', {
@@ -1916,14 +1957,14 @@ if (aiConfigBtn && aiConfigModal) {
                         })
                     });
                     if (testResp.ok) {
-                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">🟢 <strong>OpenRouter:</strong> ¡Conectado!</div>');
+                        results.push('<div style="color:#2ed573;margin-bottom:.3rem">ðŸŸ¢ <strong>OpenRouter:</strong> Â¡Conectado!</div>');
                     } else {
                         const errJson = await testResp.json().catch(() => null);
                         const detail = errJson?.error?.message || `HTTP ${testResp.status}`;
-                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>OpenRouter:</strong> Error (${detail}).</div>`);
+                        results.push(`<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>OpenRouter:</strong> Error (${detail}).</div>`);
                     }
                 } catch(e) {
-                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">🔴 <strong>OpenRouter:</strong> Error de red: ${e.message}</div>`);
+                    results.push(`<div style="color:#ff4757;margin-bottom:.3rem">ðŸ”´ <strong>OpenRouter:</strong> Error de red: ${e.message}</div>`);
                 }
             }
 
@@ -1939,21 +1980,21 @@ if (aiConfigBtn && aiConfigModal) {
                 });
                 clearTimeout(to);
                 if (polResp.ok) {
-                    results.push('<div style="color:#2ed573">🟢 <strong>Respaldo Libre (Pollinations):</strong> Operativo (sin clave requerida).</div>');
+                    results.push('<div style="color:#2ed573">ðŸŸ¢ <strong>Respaldo Libre (Pollinations):</strong> Operativo (sin clave requerida).</div>');
                 } else {
-                    results.push(`<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> Estado HTTP ${polResp.status} (el servicio gratuito puede estar temporalmente ocupado).</div>`);
+                    results.push(`<div style="color:#ffa500">ðŸŸ¡ <strong>Respaldo Libre:</strong> Estado HTTP ${polResp.status} (el servicio gratuito puede estar temporalmente ocupado).</div>`);
                 }
             } catch(e) {
-                results.push('<div style="color:#ffa500">🟡 <strong>Respaldo Libre:</strong> Servicio ocupado momentáneamente.</div>');
+                results.push('<div style="color:#ffa500">ðŸŸ¡ <strong>Respaldo Libre:</strong> Servicio ocupado momentÃ¡neamente.</div>');
             }
 
             resultsDiv.innerHTML = results.join('');
             testBtn.disabled = false;
-            testBtn.textContent = '🧪 Probar Conexiones';
+            testBtn.textContent = 'ðŸ§ª Probar Conexiones';
         });
     }
 }
-// ─── ADMIN REVIEWS TOGGLE ─────────────────────────────────
+// â”€â”€â”€ ADMIN REVIEWS TOGGLE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function initAdminReviewsToggle() {
     const toggle = document.getElementById('adminReviewsToggle');
     const panel = document.getElementById('adminReviewsPanel');
@@ -1967,7 +2008,7 @@ function initAdminReviewsToggle() {
 }
 initAdminReviewsToggle();
 
-// ─── TABS LOGIC ───────────────────────────────────────────
+// â”€â”€â”€ TABS LOGIC â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 function updateTabIndicator(btn) {
     const tabsBar = document.querySelector('.admin-tabs');
     if (!tabsBar || !btn) return;
@@ -2013,7 +2054,7 @@ window.addEventListener('resize', () => {
     if (activeTab) updateTabIndicator(activeTab);
 });
 
-// ─── ADMIN REVIEWS TAB ───────────────────────────────────
+// â”€â”€â”€ ADMIN REVIEWS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 async function loadReviewsProductSelect() {
     const select = document.getElementById('adminReviewsProductSelect');
     if (!select) return;
@@ -2021,12 +2062,12 @@ async function loadReviewsProductSelect() {
     select.innerHTML = '<option value="">Cargando productos...</option>';
     try {
         const snap = await db.collection("products").orderBy("name").get();
-        select.innerHTML = '<option value="">Seleccioná un producto...</option>';
+        select.innerHTML = '<option value="">Todos los productos</option>';
         snap.forEach(doc => {
             const p = doc.data();
             const opt = document.createElement('option');
             opt.value = doc.id;
-            opt.textContent = `${p.name} (${p.reviewCount || 0}⭐)`;
+            opt.textContent = `${p.name} (${p.reviewCount || 0}â­)`;
             select.appendChild(opt);
         });
         if (selectedVal) select.value = selectedVal;
@@ -2036,116 +2077,144 @@ async function loadReviewsProductSelect() {
     }
 }
 
-function renderReviewsTab(prodId) {
+async function renderReviewsTab(prodId = 'all') {
     const container = document.getElementById('adminReviewsTabList');
     if (!container) return;
-    container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:.85rem;padding:2rem">Cargando reseñas...</div>';
+    container.innerHTML = '<div style="text-align:center;color:var(--text-secondary);font-size:.85rem;padding:2rem">Cargando reseÃ±as...</div>';
 
-    db.collection("products").doc(prodId).collection("reviews").orderBy("date", "desc").limit(100).get()
-        .then(async snap => {
-            container.innerHTML = '';
-            if (snap.empty) {
-                container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:2rem;font-size:.9rem">Este producto no tiene reseñas todavía.</p>';
-                return;
-            }
+    try {
+        let allReviews = [];
+        let prodName = 'Todos los Productos';
+        
+        if (prodId === 'all' || !prodId) {
+            const prods = await db.collection("products").get();
+            const promises = [];
+            prods.forEach(doc => {
+                const p = doc.data();
+                const pId = doc.id;
+                promises.push(
+                    db.collection("products").doc(pId).collection("reviews").get().then(snap => {
+                        snap.forEach(rDoc => {
+                            allReviews.push({ id: rDoc.id, prodId: pId, prodName: p.name, ...rDoc.data() });
+                        });
+                    })
+                );
+            });
+            await Promise.all(promises);
+        } else {
             const prodDoc = await db.collection("products").doc(prodId).get();
-            const prodName = prodDoc.exists ? prodDoc.data().name : 'Producto';
-            const header = document.createElement('div');
-            header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:.5rem 0';
-            header.innerHTML = `
-                <span style="color:var(--text-primary);font-weight:600;font-size:.95rem">${prodName} — <span style="color:var(--text-secondary);font-weight:400">${snap.size} reseña(s)</span></span>
-                <button class="recalc-rating-btn magnetic-btn" data-prod="${prodId}" style="background:transparent;border:1px solid var(--accent-color);color:var(--accent-color);padding:.4rem .8rem;border-radius:8px;font-size:.8rem;cursor:pointer">🔄 Recalcular rating</button>
-            `;
-            container.appendChild(header);
-
+            prodName = prodDoc.exists ? prodDoc.data().name : 'Producto';
+            const snap = await db.collection("products").doc(prodId).collection("reviews").get();
             snap.forEach(doc => {
-                const r = doc.data();
-                const dateStr = r.date?.toDate?.() ? r.date.toDate().toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
-                const card = document.createElement('div');
-                card.style.cssText = 'background:rgba(255,255,255,.02);border:1px solid var(--surface-border);border-radius:10px;padding:.8rem 1rem';
-                card.innerHTML = `
-                    <div style="display:flex;justify-content:space-between;align-items:flex-start">
-                        <div style="flex:1">
-                            <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">
-                                <strong style="color:var(--text-primary);font-size:.9rem">${r.userName || 'Anónimo'}</strong>
-                                <span style="color:var(--text-secondary);font-size:.75rem">${dateStr}</span>
-                                <span style="font-size:.75rem;color:var(--text-secondary)">(ID: ${doc.id.slice(0,8)}...)</span>
-                            </div>
-                            <div style="margin-bottom:.3rem">${renderStarsHtml(r.rating || 0)}</div>
-                            ${r.comment ? `<p style="color:var(--text-secondary);font-size:.85rem;line-height:1.4;margin:0">${r.comment}</p>` : ''}
-                        </div>
-                        <button class="del-review-tab-btn" data-id="${doc.id}" data-prod="${prodId}" style="background:none;border:none;color:#ff4757;cursor:pointer;font-size:1.2rem;padding:.2rem .4rem;flex-shrink:0" title="Eliminar reseña">&times;</button>
-                    </div>
-                `;
-                container.appendChild(card);
+                allReviews.push({ id: doc.id, prodId: prodId, prodName: prodName, ...doc.data() });
             });
-
-            // Delete handlers
-            container.querySelectorAll('.del-review-tab-btn').forEach(btn => {
-                btn.addEventListener('click', async () => {
-                    if (!confirm('¿Eliminar esta reseña definitivamente?')) return;
-                    try {
-                        await db.collection("products").doc(btn.dataset.prod).collection("reviews").doc(btn.dataset.id).delete();
-                        // Recalculate product rating after deletion
-                        const snap2 = await db.collection("products").doc(prodId).collection("reviews").get();
-                        let total = 0, count = 0;
-                        snap2.forEach(d => { total += d.data().rating || 0; count++; });
-                        const avg = count > 0 ? total / count : 0;
-                        try { await db.collection("products").doc(prodId).update({ rating: avg, reviewCount: count }); } catch(e) {}
-                        renderReviewsTab(prodId);
-                        showToast('Reseña eliminada', 'success');
-                    } catch(e) {
-                        console.error(e);
-                        showToast('Error al eliminar reseña', 'error');
-                    }
-                });
-            });
-
-            // Recalculate handler
-            const recalcBtn = container.querySelector('.recalc-rating-btn');
-            if (recalcBtn) {
-                recalcBtn.addEventListener('click', async () => {
-                    try {
-                        const snap2 = await db.collection("products").doc(prodId).collection("reviews").get();
-                        let total = 0, count = 0;
-                        snap2.forEach(d => { total += d.data().rating || 0; count++; });
-                        const avg = count > 0 ? total / count : 0;
-                        await db.collection("products").doc(prodId).update({ rating: avg, reviewCount: count });
-                        showToast(`Rating recalculado: ${avg.toFixed(1)}⭐ (${count} reseñas)`, 'success');
-                    } catch(e) {
-                        console.error(e);
-                        showToast('Error al recalcular', 'error');
-                    }
-                });
-            }
-        })
-        .catch(e => {
-            console.error(e);
-            container.innerHTML = '<p style="text-align:center;color:#ff4757;padding:2rem">Error al cargar reseñas</p>';
+        }
+        
+        allReviews.sort((a, b) => {
+            const tA = a.date?.toDate ? a.date.toDate().getTime() : 0;
+            const tB = b.date?.toDate ? b.date.toDate().getTime() : 0;
+            return tB - tA; // Newest first
         });
+
+        container.innerHTML = '';
+        if (allReviews.length === 0) {
+            container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:2rem;font-size:.9rem">AÃºn no hay reseÃ±as.</p>';
+            return;
+        }
+
+        const header = document.createElement('div');
+        header.style.cssText = 'display:flex;justify-content:space-between;align-items:center;padding:.5rem 0';
+        header.innerHTML = `
+            <span style="color:var(--text-primary);font-weight:600;font-size:.95rem">${prodName} â€” <span style="color:var(--text-secondary);font-weight:400">${allReviews.length} reseÃ±a(s)</span></span>
+            ${prodId !== 'all' && prodId ? `<button class="recalc-rating-btn magnetic-btn" data-prod="${prodId}" style="background:transparent;border:1px solid var(--accent-color);color:var(--accent-color);padding:.4rem .8rem;border-radius:8px;font-size:.8rem;cursor:pointer">ðŸ”„ Recalcular rating</button>` : ''}
+        `;
+        container.appendChild(header);
+
+        allReviews.forEach(r => {
+            const dateStr = r.date?.toDate?.() ? r.date.toDate().toLocaleDateString('es-AR', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+            const card = document.createElement('div');
+            card.style.cssText = 'background:rgba(255,255,255,.02);border:1px solid var(--surface-border);border-radius:10px;padding:.8rem 1rem';
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:flex-start">
+                    <div style="flex:1">
+                        <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.3rem">
+                            <strong style="color:var(--text-primary);font-size:.9rem">${r.userName || 'AnÃ³nimo'}</strong>
+                            <span style="color:var(--text-secondary);font-size:.75rem">${dateStr}</span>
+                            <span style="font-size:.75rem;color:var(--text-secondary)">(En: ${r.prodName})</span>
+                        </div>
+                        <div style="margin-bottom:.3rem">${renderStarsHtml(r.rating || 0)}</div>
+                        ${r.comment ? `<p style="color:var(--text-secondary);font-size:.85rem;line-height:1.4;margin:0">${r.comment}</p>` : ''}
+                    </div>
+                    <button class="del-review-tab-btn" data-id="${r.id}" data-prod="${r.prodId}" style="background:none;border:none;color:#ff4757;cursor:pointer;font-size:1.2rem;padding:.2rem .4rem;flex-shrink:0" title="Eliminar reseÃ±a">&times;</button>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+
+        // Delete handlers
+        container.querySelectorAll('.del-review-tab-btn').forEach(btn => {
+            btn.addEventListener('click', async () => {
+                if (!confirm('Â¿Eliminar esta reseÃ±a definitivamente?')) return;
+                try {
+                    await db.collection("products").doc(btn.dataset.prod).collection("reviews").doc(btn.dataset.id).delete();
+                    // Recalculate product rating after deletion
+                    const snap2 = await db.collection("products").doc(btn.dataset.prod).collection("reviews").get();
+                    let total = 0, count = 0;
+                    snap2.forEach(d => { total += d.data().rating || 0; count++; });
+                    const avg = count > 0 ? total / count : 0;
+                    try { await db.collection("products").doc(btn.dataset.prod).update({ rating: avg, reviewCount: count }); } catch(e) {}
+                    renderReviewsTab(prodId);
+                    showToast('ReseÃ±a eliminada', 'success');
+                } catch(e) {
+                    console.error(e);
+                    showToast('Error al eliminar reseÃ±a', 'error');
+                }
+            });
+        });
+
+        // Recalculate handler
+        const recalcBtn = container.querySelector('.recalc-rating-btn');
+        if (recalcBtn) {
+            recalcBtn.addEventListener('click', async () => {
+                try {
+                    const snap2 = await db.collection("products").doc(prodId).collection("reviews").get();
+                    let total = 0, count = 0;
+                    snap2.forEach(d => { total += d.data().rating || 0; count++; });
+                    const avg = count > 0 ? total / count : 0;
+                    await db.collection("products").doc(prodId).update({ rating: avg, reviewCount: count });
+                    showToast(`Rating recalculado: ${avg.toFixed(1)}â­ (${count} reseÃ±as)`, 'success');
+                } catch(e) {
+                    console.error(e);
+                    showToast('Error al recalcular', 'error');
+                }
+            });
+        }
+    } catch (e) {
+        console.error(e);
+        container.innerHTML = '<p style="text-align:center;color:#ff4757;padding:2rem">Error al cargar reseÃ±as</p>';
+    }
 }
 
 document.getElementById('adminReviewsProductSelect')?.addEventListener('change', function() {
-    const prodId = this.value;
-    const container = document.getElementById('adminReviewsTabList');
-    if (!prodId) {
-        container.innerHTML = '<p style="color:var(--text-secondary);text-align:center;padding:2rem">Seleccioná un producto para ver sus reseñas.</p>';
-        return;
-    }
-    renderReviewsTab(prodId);
+    renderReviewsTab(this.value || 'all');
 });
 
 document.getElementById('adminReviewsRefreshBtn')?.addEventListener('click', () => {
     const select = document.getElementById('adminReviewsProductSelect');
-    const prodId = select?.value;
+    const prodId = select?.value || 'all';
     loadReviewsProductSelect();
-    if (prodId) renderReviewsTab(prodId);
+    renderReviewsTab(prodId);
+});
+
+// Added Initial load for Reviews tab
+document.querySelector('.tab-btn[data-tab="tab-reviews"]')?.addEventListener('click', () => {
+    renderReviewsTab(document.getElementById('adminReviewsProductSelect')?.value || 'all');
 });
 
 document.getElementById('adminRecalcAllBtn')?.addEventListener('click', async () => {
-    if (!confirm('¿Recalcular el rating de TODOS los productos según sus reseñas actuales?')) return;
+    if (!confirm('Â¿Recalcular el rating de TODOS los productos segÃºn sus reseÃ±as actuales?')) return;
     const btn = document.getElementById('adminRecalcAllBtn');
-    btn.textContent = '⏳ Recalculando...';
+    btn.textContent = 'â³ Recalculando...';
     btn.disabled = true;
     try {
         const prods = await db.collection("products").get();
@@ -2158,7 +2227,7 @@ document.getElementById('adminRecalcAllBtn')?.addEventListener('click', async ()
             await doc.ref.update({ rating: avg, reviewCount: count });
             updated++;
         }
-        showToast(`✅ ${updated} productos actualizados con su rating real`, 'success');
+        showToast(`âœ… ${updated} productos actualizados con su rating real`, 'success');
         const select = document.getElementById('adminReviewsProductSelect');
         if (select?.value) renderReviewsTab(select.value);
         loadReviewsProductSelect();
@@ -2166,11 +2235,11 @@ document.getElementById('adminRecalcAllBtn')?.addEventListener('click', async ()
         console.error(e);
         showToast('Error al recalcular', 'error');
     }
-    btn.textContent = '♻️ Recalcular todos';
+    btn.textContent = 'â™»ï¸ Recalcular todos';
     btn.disabled = false;
 });
 
-// ─── HOVER ZOOM LENS (lista + edición) ───────────────────
+// â”€â”€â”€ HOVER ZOOM LENS (lista + ediciÃ³n) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // Lente flotante que sigue al cursor. Delegado en document:
 // sobrevive a re-renders y no lo recortan los scroll internos.
 const zoomLens = document.createElement('div');
@@ -2292,7 +2361,7 @@ const saveManRevBtn = document.getElementById('saveManRevBtn');
 if(saveManRevBtn) {
     saveManRevBtn.addEventListener('click', async () => {
         const prodId = document.getElementById('adminReviewsProductSelect').value;
-        const name = document.getElementById('manRevName').value.trim() || 'An�nimo';
+        const name = document.getElementById('manRevName').value.trim() || 'Anï¿½nimo';
         const score = parseInt(document.getElementById('manRevScore').value) || 5;
         const comment = document.getElementById('manRevComment').value.trim();
         const dateStr = document.getElementById('manRevDate').value;
@@ -2310,16 +2379,16 @@ if(saveManRevBtn) {
                 comment: comment,
                 date: firebase.firestore.Timestamp.fromDate(date)
             });
-            alert('Rese�a a�adida correctamente.');
+            alert('Reseï¿½a aï¿½adida correctamente.');
             addReviewModal.classList.add('hidden');
             document.getElementById('manRevComment').value = '';
             loadAdminReviews(prodId);
         } catch(err) {
-            console.error('Error guardando rese�a:', err);
-            alert('Error guardando rese�a');
+            console.error('Error guardando reseï¿½a:', err);
+            alert('Error guardando reseï¿½a');
         }
         saveManRevBtn.disabled = false;
-        saveManRevBtn.textContent = 'Guardar Rese�a';
+        saveManRevBtn.textContent = 'Guardar Reseï¿½a';
     });
 }
 
@@ -2348,12 +2417,55 @@ if (saveSettingsBtn) {
                 alias: document.getElementById("adminTransferAlias").value,
                 name: document.getElementById("adminTransferName").value
             });
-            alert("Configuraci�n guardada correctamente");
+            alert("Configuraciï¿½n guardada correctamente");
         } catch (e) {
             console.error(e);
-            alert("Error guardando configuraci�n");
+            alert("Error guardando configuraciï¿½n");
         }
-        saveSettingsBtn.textContent = "Guardar Configuraci�n";
+        saveSettingsBtn.textContent = "Guardar Configuraciï¿½n";
         saveSettingsBtn.disabled = false;
     });
 }
+
+
+// â”€â”€â”€ ADMIN SETTINGS TAB â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function loadSettings() {
+    try {
+        const doc = await db.collection('settings').doc('transfer').get();
+        if (doc.exists) {
+            const data = doc.data();
+            if (document.getElementById('adminTransferDiscount')) document.getElementById('adminTransferDiscount').value = data.discount || '';
+            if (document.getElementById('adminTransferCbu')) document.getElementById('adminTransferCbu').value = data.cbu || '';
+            if (document.getElementById('adminTransferAlias')) document.getElementById('adminTransferAlias').value = data.alias || '';
+            if (document.getElementById('adminTransferName')) document.getElementById('adminTransferName').value = data.name || '';
+        }
+    } catch (e) {
+        console.error("Error al cargar configuraciÃ³n", e);
+    }
+}
+
+document.getElementById('saveSettingsBtn')?.addEventListener('click', async () => {
+    const btn = document.getElementById('saveSettingsBtn');
+    btn.disabled = true;
+    btn.textContent = 'Guardando...';
+    try {
+        const discount = parseFloat(document.getElementById('adminTransferDiscount').value) || 0;
+        const cbu = document.getElementById('adminTransferCbu').value.trim();
+        const alias = document.getElementById('adminTransferAlias').value.trim();
+        const name = document.getElementById('adminTransferName').value.trim();
+        
+        await db.collection('settings').doc('transfer').set({
+            discount, cbu, alias, name, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        showToast('ConfiguraciÃ³n guardada exitosamente', 'success');
+    } catch (e) {
+        console.error("Error al guardar configuraciÃ³n", e);
+        showToast('Error al guardar configuraciÃ³n', 'error');
+    }
+    btn.disabled = false;
+    btn.textContent = 'Guardar ConfiguraciÃ³n';
+});
+
+document.querySelector('.tab-btn[data-tab="tab-settings"]')?.addEventListener('click', loadSettings);
+
