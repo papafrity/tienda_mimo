@@ -1,0 +1,79 @@
+
+const fs = require("fs");
+
+const transferHtml = `<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transferencia Bancaria | Mimo!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { min-height: 100vh; background: #06080d; font-family: "Outfit", sans-serif; color: #fff; display: flex; align-items: center; justify-content: center; }
+        .container { max-width: 500px; padding: 2.5rem; background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 24px; text-align: center; }
+        h1 { font-size: 2rem; margin-bottom: 1rem; color: #00f0ff; }
+        p { color: rgba(255,255,255,0.7); line-height: 1.5; margin-bottom: 1.5rem; }
+        .data-box { background: rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.2); border-radius: 12px; padding: 1.5rem; text-align: left; margin-bottom: 1.5rem; }
+        .data-row { display: flex; justify-content: space-between; margin-bottom: 0.8rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.8rem; }
+        .data-row:last-child { margin-bottom: 0; border-bottom: none; padding-bottom: 0; }
+        .data-row strong { color: #00f0ff; }
+        .btn-ws { display: inline-block; background: #25D366; color: #fff; text-decoration: none; padding: 1rem 2rem; border-radius: 50px; font-weight: bold; width: 100%; transition: 0.3s; }
+        .btn-ws:hover { background: #1ebe58; transform: translateY(-2px); }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>¡Pedido Registrado!</h1>
+        <p>Para finalizar tu compra, realiza la transferencia por el total indicado y envíanos el comprobante por WhatsApp.</p>
+        
+        <div class="data-box" id="dataBox">
+            <div class="data-row"><span>Total a pagar:</span> <strong id="totalAmount">Cargando...</strong></div>
+            <div class="data-row"><span>CBU / CVU:</span> <strong id="tCbu">...</strong></div>
+            <div class="data-row"><span>Alias:</span> <strong id="tAlias">...</strong></div>
+            <div class="data-row"><span>Titular:</span> <strong id="tName">...</strong></div>
+        </div>
+
+        <a href="#" id="wsBtn" class="btn-ws">Enviar Comprobante por WhatsApp</a>
+    </div>
+
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="firebase-config.js"></script>
+    
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const orderId = urlParams.get("id");
+        let orderTotal = 0;
+
+        if (orderId) {
+            db.collection("orders").doc(orderId).get().then(doc => {
+                if (doc.exists) {
+                    orderTotal = doc.data().total;
+                    document.getElementById("totalAmount").textContent = "$" + orderTotal.toLocaleString("es-AR", {minimumFractionDigits: 2});
+                    setupWsBtn();
+                }
+            });
+        }
+
+        db.collection("settings").doc("transfer").get().then(doc => {
+            if (doc.exists) {
+                const d = doc.data();
+                document.getElementById("tCbu").textContent = d.cbu || "-";
+                document.getElementById("tAlias").textContent = d.alias || "-";
+                document.getElementById("tName").textContent = d.name || "-";
+            }
+        });
+
+        function setupWsBtn() {
+            const wsNumber = "5491122334455"; // REPLACE WITH ACTUAL
+            const msg = encodeURIComponent("¡Hola! Acabo de hacer una transferencia por $" + orderTotal.toLocaleString("es-AR") + " para el pedido #" + orderId + ". Aquí te adjunto mi comprobante:");
+            document.getElementById("wsBtn").href = "https://wa.me/" + wsNumber + "?text=" + msg;
+        }
+    </script>
+</body>
+</html>`;
+fs.writeFileSync("transferencia.html", transferHtml);
+console.log("Transfer page created");
+

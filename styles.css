@@ -1129,3 +1129,36 @@ body{padding-bottom:70px}
     
     .product-card .card-glow, .product-card .card-spotlight { display: none !important; }
 }
+
+/* FIX CLICKS ON MOBILE */
+.bg-glow, .card-glow, .card-spotlight, .cursor-aura, .carousel-particle, .hero-deco, .hero-visual { pointer-events: none !important; }
+.hero-btn { position: relative; z-index: 50 !important; }
+.carousel-btn { z-index: 50 !important; pointer-events: auto !important; }
+@media(max-width: 480px) {
+  .product-card::after, .carousel-card-info::after {
+    content: 'Ver detalles ?';
+    display: block;
+    text-align: center;
+    font-size: 0.8rem;
+    color: #00f0ff;
+    margin-top: 0.5rem;
+    opacity: 0.9;
+    font-weight: 600;
+  }
+}
+
+
+@media(max-width: 480px) {
+    .carousel-card-info::before {
+        content: "? ENV�O GRATIS (CABA)";
+        display: inline-block;
+        font-size: 0.65rem;
+        background: #2ed573;
+        color: #000;
+        padding: 0.2rem 0.5rem;
+        border-radius: 4px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.4rem;
+    }
+}

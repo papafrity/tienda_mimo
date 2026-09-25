@@ -2322,3 +2322,38 @@ if(saveManRevBtn) {
         saveManRevBtn.textContent = 'Guardar Rese�a';
     });
 }
+
+
+// --- SETTINGS TAB LOGIC ---
+const saveSettingsBtn = document.getElementById("saveSettingsBtn");
+if (saveSettingsBtn) {
+    // Load existing settings
+    db.collection("settings").doc("transfer").get().then(doc => {
+        if (doc.exists) {
+            const data = doc.data();
+            if(document.getElementById("adminTransferDiscount")) document.getElementById("adminTransferDiscount").value = data.discount || 0;
+            if(document.getElementById("adminTransferCbu")) document.getElementById("adminTransferCbu").value = data.cbu || "";
+            if(document.getElementById("adminTransferAlias")) document.getElementById("adminTransferAlias").value = data.alias || "";
+            if(document.getElementById("adminTransferName")) document.getElementById("adminTransferName").value = data.name || "";
+        }
+    });
+
+    saveSettingsBtn.addEventListener("click", async () => {
+        saveSettingsBtn.textContent = "Guardando...";
+        saveSettingsBtn.disabled = true;
+        try {
+            await db.collection("settings").doc("transfer").set({
+                discount: parseFloat(document.getElementById("adminTransferDiscount").value) || 0,
+                cbu: document.getElementById("adminTransferCbu").value,
+                alias: document.getElementById("adminTransferAlias").value,
+                name: document.getElementById("adminTransferName").value
+            });
+            alert("Configuraci�n guardada correctamente");
+        } catch (e) {
+            console.error(e);
+            alert("Error guardando configuraci�n");
+        }
+        saveSettingsBtn.textContent = "Guardar Configuraci�n";
+        saveSettingsBtn.disabled = false;
+    });
+}

@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', () => {
             card.innerHTML = `
                 <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async">
                 <div class="carousel-card-info">
-                    <span class="badge">${p.badge || ''}</span>
+                    
                     <h3>${p.name}</h3>
                     ${priceHtml}
                     <button class="add-to-cart magnetic-btn" data-product-id="${p.id}" style="margin-top: 10px; width: 100%; border-radius: 20px; font-size: 0.85rem;">Agregar al Carrito</button>
@@ -1245,7 +1245,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.ok && data.init_point) {
                     // Redirect to Mercado Pago checkout
-                    window.location.href = data.init_point;
+                    if (typeof fbq === "function") fbq("track", "InitiateCheckout");
+                        window.location.href = data.init_point;
                 } else {
                     console.error('Error de Mercado Pago:', data);
                     showToast('No se pudo procesar el pago: ' + (data.message || 'Error desconocido'), 'error', 5000);
