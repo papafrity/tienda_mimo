@@ -386,8 +386,8 @@
 
     <!-- Product Detail Modal -->
     <div class="modal-overlay" id="productModal">
-        <button class="modal-nav modal-prev" id="modalPrev" aria-label="Producto anterior">â€¹</button>
-        <button class="modal-nav modal-next" id="modalNext" aria-label="Producto siguiente">â€º</button>
+        <button class="modal-nav modal-prev" id="modalPrev" aria-label="Producto anterior">&#10094;</button>
+        <button class="modal-nav modal-next" id="modalNext" aria-label="Producto siguiente">&#10095;</button>
         <div class="modal-content">
             <button class="modal-close" id="modalClose">&times;</button>
             <div class="modal-body">
@@ -399,7 +399,7 @@
                     <span class="modal-category" id="modalCategory"></span>
                     <h2 id="modalTitle"></h2>
                     <p class="modal-price" id="modalPrice"></p>
-                    <button class="modal-tiers-toggle" id="modalTiersToggle" type="button" style="display:none">Precios mayoristas <span class="tiers-arrow">â–¾</span></button>
+                    <button class="modal-tiers-toggle" id="modalTiersToggle" type="button" style="display:none">Precios mayoristas <span class="tiers-arrow">&#9662;</span></button>
                     <div class="modal-tiers-list" id="modalTiersList" style="display:none"></div>
                     <div class="modal-desc-wrap" id="modalDescWrap">
                         <p class="modal-description" id="modalDescription"></p>
@@ -411,7 +411,7 @@
             <!-- Reviews Section -->
             <div class="modal-reviews-section" id="modalReviewsSection">
                 <div class="reviews-header">
-                    <h3>⭐ Opiniones de clientes <span id="modalReviewCount" style="color:var(--text-secondary);font-size:.9rem;font-weight:400"></span></h3>
+                    <h3>&#11088; Opiniones de clientes <span id="modalReviewCount" style="color:var(--text-secondary);font-size:.9rem;font-weight:400"></span></h3>
                     <button type="button" class="review-toggle-btn magnetic-btn" id="toggleReviewForm">Dejar mi reseña</button>
                 </div>
                 <div class="review-form-container" id="reviewFormContainer" style="display:none;">
@@ -419,11 +419,11 @@
                         <div class="review-form-row">
                             <input type="text" id="reviewUserName" placeholder="Tu nombre (opcional)" maxlength="40">
                             <div class="star-picker" id="starPicker">
-                                <span class="pick-star" data-star="1">â˜…</span>
-                                <span class="pick-star" data-star="2">â˜…</span>
-                                <span class="pick-star" data-star="3">â˜…</span>
-                                <span class="pick-star" data-star="4">â˜…</span>
-                                <span class="pick-star" data-star="5">â˜…</span>
+                                <span class="pick-star" data-star="1">&#9733;</span>
+                                <span class="pick-star" data-star="2">&#9733;</span>
+                                <span class="pick-star" data-star="3">&#9733;</span>
+                                <span class="pick-star" data-star="4">&#9733;</span>
+                                <span class="pick-star" data-star="5">&#9733;</span>
                             </div>
                         </div>
                         <textarea id="reviewComment" placeholder="Contanos tu experiencia con este producto..." rows="3" maxlength="500"></textarea>
@@ -541,7 +541,7 @@
                     
                     <!-- VIA CARGO WARNING -->
                     <div style="margin: 1rem 0; padding: 1rem; background: rgba(255, 165, 2, 0.1); border-left: 4px solid #ffa502; border-radius: 8px;">
-                        <p style="margin: 0; font-size: 0.9rem; color: #ffa502; font-weight: 600;">âš ï¸ Información importante sobre envíos</p>
+                        <p style="margin: 0; font-size: 0.9rem; color: #ffa502; font-weight: 600;">&#9888; Información importante sobre envíos</p>
                         <p style="margin: 0.3rem 0 0 0; font-size: 0.85rem; color: #dcdde1; line-height: 1.4;">
                             Para envíos a todo el país mediante <strong>Vía Cargo</strong>, existe un recargo adicional que deberá ser abonado por el cliente en la sucursal correspondiente al momento de retirar el producto.
                         </p>
@@ -554,7 +554,7 @@
                     <div class="form-row">
                         <div class="form-group" style="flex: 2;">
                             <label for="checkoutAddress">Dirección Completa (Calle, Número, Piso/Depto) *</label>
-                            <input type="text" id="checkoutAddress" required placeholder="Av. Colón 1234, 4Â° B">
+                            <input type="text" id="checkoutAddress" required placeholder="Av. Colón 1234, 4° B">
                         </div>
                         <div class="form-group">
                             <label for="checkoutZip">Código Postal *</label>
@@ -564,12 +564,12 @@
                     <div class="form-group" style="margin-bottom: 1.5rem;">
                         <label for="checkoutPaymentMethod">Medio de Pago *</label>
                         <select id="checkoutPaymentMethod" required style="width: 100%; padding: 1rem; border-radius: 10px; border: 1px solid var(--surface-border); background: rgba(255, 255, 255, 0.05); color: #fff; font-family: var(--font-main); font-size: 1rem; outline: none; margin-top: 0.5rem; cursor: pointer;">
-                            <option value="mp" style="background:#000; color:#fff;">?? Mercado Pago (Tarjetas, Cuotas, Dinero en cuenta)</option>
-                            <option value="transfer" style="background:#000; color:#fff;" id="transferOption">?? Transferencia Bancaria (Descuento)</option>
+                            <option value="mp" style="background:#000; color:#fff;">&#128179; Mercado Pago (Tarjetas, Cuotas, Dinero en cuenta)</option>
+                            <option value="transfer" style="background:#000; color:#fff;" id="transferOption">&#127974; Transferencia Bancaria (Descuento)</option>
                         </select>
                     </div>
                     <div class="shipping-warning">
-                        <span class="shipping-warning-icon">âš ï¸</span>
+                        <span class="shipping-warning-icon">&#9888;</span>
                         <div class="shipping-warning-text">
                             <strong>Importante:</strong> Los envíos al interior del país se realizan a través de empresas de cargo. El cliente deberá abonar el flete correspondiente al momento de retirar el producto en la sucursal de la empresa elegida.
                         </div>

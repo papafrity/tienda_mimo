@@ -1784,7 +1784,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchResults.innerHTML = '';
 
             if (query.length < 2) {
-                searchResults.innerHTML = '<div class="search-no-results">Escribe al menos 2 caracteres...</div>';
+                searchResults.innerHTML = '<div class="search-no-results">Escribíe al menos 2 caracteres...</div>';
                 return;
             }
 
@@ -2979,7 +2979,7 @@ document.head.appendChild(st);
         
         if (isTyping) {
             msgDiv.id = 'chatbotTypingIndicator';
-            msgDiv.textContent = 'Escribiendo...';
+            msgDiv.textContent = 'Escribíiendo...';
         } else {
             // Formateo básico de markdown (negritas y listas)
             let formatted = text
@@ -3007,7 +3007,7 @@ document.head.appendChild(st);
         }
 
         const categories = [...new Set(prods.map(p => p.category).filter(Boolean))];
-        const productList = prods.slice(0, 40).map(p => {
+        const productList = prods.slice(0, 150).map(p => {
             const price = p.offerPrice && p.offerPrice !== p.price ? p.offerPrice : p.price;
             return `- ${p.name} (Categoría: ${p.category || 'General'}, Precio: $${Number(price).toLocaleString('es-AR')}${p.badge ? ', Destacado: ' + p.badge : ''})`;
         }).join('\n');
