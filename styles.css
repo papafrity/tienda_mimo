@@ -513,7 +513,7 @@ body{padding-bottom:70px}
     top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0, 0, 0, 0.7);
     backdrop-filter: blur(5px);
-    z-index: 1000;
+    z-index: 99990;
     opacity: 0;
     pointer-events: none;
     transition: opacity 0.4s ease;
@@ -530,7 +530,7 @@ body{padding-bottom:70px}
     -webkit-backdrop-filter: blur(40px);
     border: 1px solid rgba(255,255,255,0.08);
     border-radius: 24px;
-    z-index: 1001;
+    z-index: 99999;
     display: flex;
     flex-direction: column;
     transform: translateX(120%);
@@ -686,7 +686,7 @@ body{padding-bottom:70px}
 }
 
 /* ─── SEARCH BAR ─────────────────────────────────────────── */
-.search-container{position:relative;z-index:1001;display:flex;align-items:center}
+.search-container{position:relative;z-index: 99999;display:flex;align-items:center}
 .search-toggle{background:none;border:none;color:#fff;cursor:pointer;padding:8px;display:flex;align-items:center;transition:color .3s}
 .search-toggle:hover{color:var(--primary)}
 .search-toggle svg{stroke:currentColor}
@@ -912,7 +912,7 @@ body{padding-bottom:70px}
 .product-card .review-count{font-size:.75rem;color:var(--text-secondary);margin-left:.3rem}
 
 /* ─── MOBILE BOTTOM NAVBAR ─────────────────────────────────── */
-.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:1000;background:rgba(5,5,5,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,.06);padding:.5rem 0 max(.5rem,env(safe-area-inset-bottom));align-items:center;justify-content:space-around}
+.mobile-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index: 99990;background:rgba(5,5,5,.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border-top:1px solid rgba(255,255,255,.06);padding:.5rem 0 max(.5rem,env(safe-area-inset-bottom));align-items:center;justify-content:space-around}
 .mobile-nav-item{display:flex;flex-direction:column;align-items:center;gap:2px;background:none;border:none;color:var(--text-secondary);font-size:.65rem;font-weight:500;letter-spacing:.03em;text-decoration:none;cursor:pointer;padding:.4rem .8rem;border-radius:12px;transition:color .3s var(--ease-out-expo);position:relative;-webkit-tap-highlight-color:transparent}
 .mobile-nav-item svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;transition:stroke .3s}
 .mobile-nav-item.active{color:var(--accent-color)}
@@ -1079,4 +1079,53 @@ body{padding-bottom:70px}
         border-radius: 0;
         border: none;
     }
+}
+
+/* =========================================================
+   MERCADO LIBRE COMPACT GRID & GLOBAL TWEAKS
+   ========================================================= */
+/* Hide Category Badges on all cards */
+.product-card .badge, .carousel-card-info .badge { display: none !important; }
+
+/* Hide Add to Cart button on grid and carousel, only show in modal */
+.product-card .add-to-cart, .carousel-card-info .add-to-cart { display: none !important; }
+
+/* Improve Stars visual */
+.stars { color: #ffb800 !important; font-size: 0.95rem; }
+.product-card .stars, .carousel-card-info .stars { font-size: 0.8rem !important; letter-spacing: -1px; margin-bottom: 0.1rem; }
+
+@media(max-width: 480px) {
+    /* Ultra-compact mobile cards */
+    .product-grid { gap: 0.8rem !important; padding: 0 0.8rem !important; }
+    .product-card { 
+        padding: 0 !important; 
+        background: transparent !important; 
+        border: none !important; 
+        box-shadow: none !important;
+    }
+    .product-image { 
+        height: 160px !important; 
+        margin-bottom: 0.5rem !important; 
+        border-radius: 8px !important; 
+        background: rgba(255,255,255,0.03) !important; 
+        padding: 0.5rem !important;
+    }
+    .product-info { padding: 0 !important; }
+    
+    .product-card h3 { 
+        font-size: 0.85rem !important; 
+        color: #e0e0e0 !important;
+        white-space: normal !important; 
+        display: -webkit-box !important; 
+        -webkit-line-clamp: 2 !important; 
+        -webkit-box-orient: vertical !important; 
+        margin-bottom: 0.3rem !important;
+        line-height: 1.2 !important;
+        font-weight: 500 !important;
+    }
+    
+    .product-card .offer-price { font-size: 1.25rem !important; font-weight: 700 !important; color: #fff !important; background: none !important; -webkit-text-fill-color: initial !important; }
+    .product-card .old-price { font-size: 0.75rem !important; color: #888 !important; }
+    
+    .product-card .card-glow, .product-card .card-spotlight { display: none !important; }
 }

@@ -1909,7 +1909,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const offset = isMobile ? 80 : 70;
             const top = target.getBoundingClientRect().top + window.scrollY - offset;
             if (smoother && !isMobile) {
-                smoother.scrollTo(top, !isInstant);
+                if(isInstant) { smoother.scroll(top); } else { smoother.scrollTo(top, true); }
             } else if (isInstant) {
                 document.documentElement.style.scrollBehavior = 'auto';
                 window.scrollTo(0, top);
@@ -2091,7 +2091,7 @@ document.head.appendChild(st);
         });
         backToTop.addEventListener('click', () => {
             if (smoother) {
-                smoother.scrollTo(0, false);
+                smoother.scroll(0);
             } else {
                 document.documentElement.style.scrollBehavior = 'auto';
                 window.scrollTo(0, 0);

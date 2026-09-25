@@ -1120,7 +1120,7 @@ if (toggleCalcBtn && calculatorBody) {
     });
 
     // Event listeners for recalculation
-    [calcCost, calcUsdRate, calcShipping, calcProfit].forEach(input => {
+    [calcCost, calcUsdRate, calcProfit].forEach(input => {
         input.addEventListener('input', calculateCosts);
     });
 
@@ -1158,7 +1158,7 @@ if (toggleCalcBtn && calculatorBody) {
     function calculateCosts() {
         const cost = parseFloat(calcCost.value) || 0;
         const rate = parseFloat(calcUsdRate.value) || 1;
-        const shipping = parseFloat(calcShipping.value) || 0;
+        const shipping = 0;
         const margin = parseFloat(calcProfit.value) || 0;
 
         // Convert cost to ARS if USD is selected
@@ -2259,3 +2259,66 @@ document.getElementById('generateSitemapBtn')?.addEventListener('click', () => {
     URL.revokeObjectURL(url);
     alert('Sitemap.xml generado con todos los productos. Reemplaza el archivo sitemap.xml en tu carpeta local y pushea a GitHub.');
 });
+document.querySelectorAll('.stat-filter').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.stat-filter').forEach(b => {
+            b.classList.remove('active');
+            b.style.background = 'transparent';
+            b.style.color = '#fff';
+        });
+        const target = e.currentTarget;
+        target.classList.add('active');
+        target.style.background = 'rgba(0,240,255,0.1)';
+        target.style.color = 'var(--accent-color)';
+        
+        loadStats(target.dataset.filter);
+    });
+});
+
+const addReviewModal = document.getElementById('addReviewModal');
+const adminAddReviewBtn = document.getElementById('adminAddReviewBtn');
+if(adminAddReviewBtn) {
+    adminAddReviewBtn.addEventListener('click', () => {
+        const prodId = document.getElementById('adminReviewsProductSelect').value;
+        if(!prodId) return alert('Por favor selecciona un producto primero de la lista desplegable.');
+        addReviewModal.classList.remove('hidden');
+    });
+}
+const closeAddReviewBtn = document.getElementById('closeAddReviewBtn');
+if(closeAddReviewBtn) {
+    closeAddReviewBtn.addEventListener('click', () => addReviewModal.classList.add('hidden'));
+}
+const saveManRevBtn = document.getElementById('saveManRevBtn');
+if(saveManRevBtn) {
+    saveManRevBtn.addEventListener('click', async () => {
+        const prodId = document.getElementById('adminReviewsProductSelect').value;
+        const name = document.getElementById('manRevName').value.trim() || 'An�nimo';
+        const score = parseInt(document.getElementById('manRevScore').value) || 5;
+        const comment = document.getElementById('manRevComment').value.trim();
+        const dateStr = document.getElementById('manRevDate').value;
+        
+        if(!prodId) return alert('Selecciona un producto');
+        if(!comment) return alert('Debes escribir un comentario');
+        
+        saveManRevBtn.disabled = true;
+        saveManRevBtn.textContent = 'Guardando...';
+        try {
+            const date = dateStr ? new Date(dateStr + 'T12:00:00') : new Date();
+            await db.collection('products').doc(prodId).collection('reviews').add({
+                userName: name,
+                score: score,
+                comment: comment,
+                date: firebase.firestore.Timestamp.fromDate(date)
+            });
+            alert('Rese�a a�adida correctamente.');
+            addReviewModal.classList.add('hidden');
+            document.getElementById('manRevComment').value = '';
+            loadAdminReviews(prodId);
+        } catch(err) {
+            console.error('Error guardando rese�a:', err);
+            alert('Error guardando rese�a');
+        }
+        saveManRevBtn.disabled = false;
+        saveManRevBtn.textContent = 'Guardar Rese�a';
+    });
+}
