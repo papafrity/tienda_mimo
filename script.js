@@ -1255,6 +1255,71 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // ─── FILTER TABS & MODALS (Dynamic Initialization) ────────
     function initProductFiltersAndModals() {
+
+    const subCategoriesMap = {
+        tecnologia: [
+            { id: 'celulares', label: 'Celulares', icon: '📱' },
+            { id: 'televisores', label: 'TVs', icon: '📺' },
+            { id: 'tvbox', label: 'TV Box', icon: '📦' },
+            { id: 'parlantes', label: 'Parlantes', icon: '🔊' },
+            { id: 'auriculares', label: 'Auriculares', icon: '🎧' },
+            { id: 'gaming', label: 'Gaming', icon: '🎮' },
+            { id: 'pc', label: 'PC', icon: '💻' },
+            { id: 'relojes-fundas', label: 'Smartwatches', icon: '⌚' },
+            { id: 'cargadores-accesorios', label: 'Cargadores', icon: '🔋' },
+            { id: 'gadgets', label: 'Gadgets', icon: '🔌' }
+        ],
+        hogar: [
+            { id: 'hogar-muebles', label: 'Living / Comedor', icon: '🛋️' },
+            { id: 'bano', label: 'Baño', icon: '🚿' },
+            { id: 'decoracion', label: 'Decoración', icon: '🖼️' },
+            { id: 'iluminacion-gadgets', label: 'Iluminación', icon: '💡' },
+            { id: 'limpieza', label: 'Limpieza', icon: '🧹' },
+            { id: 'exteriores', label: 'Exteriores', icon: '🏡' }
+        ],
+        electro: [
+            { id: 'cocinas', label: 'Cocinas', icon: '🍳' },
+            { id: 'calefaccion', label: 'Calefacción', icon: '🔥' },
+            { id: 'climatizacion', label: 'Aires', icon: '❄️' },
+            { id: 'ventilacion', label: 'Ventilación', icon: '💨' },
+            { id: 'belleza', label: 'Belleza', icon: '💇‍♀️' }
+        ],
+        varios: [
+            { id: 'herramientas', label: 'Herramientas', icon: '🛠️' },
+            { id: 'bicicletas', label: 'Bicicletas', icon: '🚲' },
+            { id: 'movilidad', label: 'Movilidad', icon: '🛴' },
+            { id: 'deportes', label: 'Deportes', icon: '⚽' }
+        ]
+    };
+
+    function renderSubcategories(group) {
+        const container = document.getElementById('subcategoriesContainer');
+        if (!container) return;
+        
+        if (group === 'all' || !subCategoriesMap[group]) {
+            container.style.display = 'none';
+            return;
+        }
+        
+        container.style.display = 'flex';
+        container.innerHTML = subCategoriesMap[group].map(sub => `
+            <div class="sub-cat-item" data-filter="${sub.id}">
+                <div class="sub-cat-circle">${sub.icon}</div>
+                <span class="sub-cat-label">${sub.label}</span>
+            </div>
+        `).join('');
+
+        // Attach events to new sub-category items
+        container.querySelectorAll('.sub-cat-item').forEach(item => {
+            item.addEventListener('click', () => {
+                container.querySelectorAll('.sub-cat-item').forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+                window.currentFilter = item.dataset.filter;
+                renderProducts();
+            });
+        });
+    }
+
         try {
         const tabs = document.querySelectorAll('.filter-tab');
         
@@ -2082,13 +2147,11 @@ document.head.appendChild(st);
             onLeaveBack: () => backToTop.classList.remove('visible')
         });
         backToTop.addEventListener('click', () => {
-            if (smoother) {
-                smoother.scroll(0);
-            } else {
-                document.documentElement.style.scrollBehavior = 'auto';
-                window.scrollTo(0, 0);
-                requestAnimationFrame(() => document.documentElement.style.scrollBehavior = '');
+            if (typeof smoother !== "undefined" && smoother) {
+                gsap.to(smoother, { scrollTop: 0, duration: 1, ease: "power2.inOut" });
+                try { smoother.scrollTo(0, true); } catch(e){}
             }
+            window.scrollTo({top: 0, behavior: "smooth"});
         });    }
 })();
 

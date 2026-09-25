@@ -268,34 +268,15 @@
         <h2 class="section-title reveal-text" data-role="title">Todos los Productos</h2>
 
         <div class="product-toolbar">
-            <div class="filter-tabs" id="filterTabs">
-                <button class="filter-tab active magnetic-btn" data-filter="all">Todos</button>
-                <button class="filter-tab magnetic-btn" data-filter="televisores">Televisores</button>
-                <button class="filter-tab magnetic-btn" data-filter="celulares">Celulares</button>
-                <button class="filter-tab magnetic-btn" data-filter="tvbox">TV Box</button>
-                <button class="filter-tab magnetic-btn" data-filter="proyectores">Proyectores</button>
-                <button class="filter-tab magnetic-btn" data-filter="parlantes">Parlantes</button>
-                <button class="filter-tab magnetic-btn" data-filter="auriculares">Auriculares</button>
-                <button class="filter-tab magnetic-btn" data-filter="gaming">Gaming</button>
-                <button class="filter-tab magnetic-btn" data-filter="pc">PC</button>
-                <button class="filter-tab magnetic-btn" data-filter="cocinas">Cocinas</button>
-                <button class="filter-tab magnetic-btn" data-filter="calefaccion">Calefacción</button>
-                <button class="filter-tab magnetic-btn" data-filter="climatizacion">Climatización</button>
-                <button class="filter-tab magnetic-btn" data-filter="ventilacion">Ventilación</button>
-                <button class="filter-tab magnetic-btn" data-filter="herramientas">Herramientas</button>
-                <button class="filter-tab magnetic-btn" data-filter="belleza">Belleza</button>
-                <button class="filter-tab magnetic-btn" data-filter="bicicletas">Bicicletas</button>
-                <button class="filter-tab magnetic-btn" data-filter="movilidad">Movilidad</button>
-                <button class="filter-tab magnetic-btn" data-filter="hogar-muebles">Hogar</button>
-                <button class="filter-tab magnetic-btn" data-filter="bano">Baño</button>
-                <button class="filter-tab magnetic-btn" data-filter="decoracion">Decoración</button>
-                <button class="filter-tab magnetic-btn" data-filter="iluminacion-gadgets">Iluminación</button>
-                <button class="filter-tab magnetic-btn" data-filter="exteriores">Exteriores</button>
-                <button class="filter-tab magnetic-btn" data-filter="limpieza">Limpieza</button>
-                <button class="filter-tab magnetic-btn" data-filter="gadgets">Gadgets</button>
-                <button class="filter-tab magnetic-btn" data-filter="cargadores-accesorios">Cargadores</button>
-                <button class="filter-tab magnetic-btn" data-filter="relojes-fundas">Relojes</button>
+                        <div class="filter-tabs" id="filterTabs">
+                <button class="filter-tab active magnetic-btn" data-group="all">Todos</button>
+                <button class="filter-tab magnetic-btn" data-group="tecnologia">Tecnología</button>
+                <button class="filter-tab magnetic-btn" data-group="hogar">Hogar</button>
+                <button class="filter-tab magnetic-btn" data-group="electro">Electro</button>
+                <button class="filter-tab magnetic-btn" data-group="varios">Varios</button>
             </div>
+            <!-- Subcategories row -->
+            <div class="subcategories-container" id="subcategoriesContainer"></div>
             <div class="filter-extra">
                 <div class="price-range">
                     <input type="number" class="price-input" id="priceMin" placeholder="Min $" step="0.01" min="0">
