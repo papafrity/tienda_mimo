@@ -134,17 +134,45 @@ document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.tilt-card').forEach(card => {
         const glow = card.querySelector('.card-glow');
         card.addEventListener('mousemove', e => {
-            const r = card.getBoundingClientRect();
-            const x = e.clientX - r.left;
-            const y = e.clientY - r.top;
-            if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
-            // Subtle 3D tilt
-            const cx2 = r.width / 2, cy2 = r.height / 2;
-            const rotX = ((y - cy2) / cy2) * -4;
-            const rotY = ((x - cx2) / cx2) * 4;
-            card.style.transform = `perspective(800px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-5px)`;
-        });
-        card.addEventListener('mouseleave', () => { card.style.transform = ''; });
+                const r = card.getBoundingClientRect();
+                const x = e.clientX - r.left;
+                const y = e.clientY - r.top;
+                const cx = r.width / 2;
+                const cy = r.height / 2;
+                if (glow) { glow.style.left = x + 'px'; glow.style.top = y + 'px'; }
+                if (spotlight) { spotlight.style.setProperty('--spot-x', x + 'px'); spotlight.style.setProperty('--spot-y', y + 'px'); }
+
+                const rotX = ((y - cy) / cy) * -8;
+                const rotY = ((x - cx) / cx) * 8;
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(card, {
+                        rotateX: rotX,
+                        rotateY: rotY,
+                        y: -6,
+                        duration: 0.25,
+                        ease: 'power1.out',
+                        transformPerspective: 1000,
+                        force3D: true,
+                        overwrite: 'auto'
+                    });
+                } else {
+                    card.style.transform = `perspective(1000px) rotateX(${rotX}deg) rotateY(${rotY}deg) translateY(-6px)`;
+                }
+            });
+            card.addEventListener('mouseleave', () => {
+                if (typeof gsap !== 'undefined') {
+                    gsap.to(card, {
+                        rotateX: 0,
+                        rotateY: 0,
+                        y: 0,
+                        duration: 0.45,
+                        ease: 'power2.out',
+                        overwrite: 'auto'
+                    });
+                } else {
+                    card.style.transform = '';
+                }
+            });
     });
 
     // ─── HAMBURGER MENU ─────────────────────────────────────
@@ -222,42 +250,55 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchUsdRate() { try { const controller = new AbortController(); const id = setTimeout(() => controller.abort(), 3500); const resp = await fetch('https://dolarapi.com/v1/dolares/blue', { signal: controller.signal }); clearTimeout(id); const data = await resp.json(); if (data && data.venta) usdRateARS = data.venta; } catch(e) { console.warn('API timeout'); } }
 
-    function renderStarsHtml(rating) { const r = Math.round(rating || 5); let html = ""; for (let i = 1; i <= 5; i++) { if (r >= i) html += "<span class=\"star\">&#9733;</span>"; else html += "<span class=\"star empty\">&#9734;</span>"; } return html; }
+        function renderStarsHtml(rating) {
+        const hasRating = rating && typeof rating === 'number' && rating > 0;
+        const r = hasRating ? Math.round(rating) : 0;
+        let html = "<div style='display:flex;gap:2px;'>";
+        for (let i = 1; i <= 5; i++) {
+            if (r >= i) {
+                html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="#ffd700" stroke="#ffd700" stroke-width="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+            } else {
+                html += '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#666" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>';
+            }
+        }
+        html += "</div>";
+        return html;
+    }
 
     // ─── SUBCATEGORÍAS CON IMÁGENES REFERENCIALES (ESTILO MERCADO LIBRE FUTURISTA) ───
     const subCategoriesMap = {
         tecnologia: [
-            { id: 'celulares', label: 'Celulares', img: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=160&h=160&fit=crop&q=80' },
-            { id: 'auriculares', label: 'Auriculares', img: 'https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=160&h=160&fit=crop&q=80' },
-            { id: 'relojes-fundas', label: 'Smartwatches', img: 'https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=160&h=160&fit=crop&q=80' },
-            { id: 'televisores', label: 'Smart TVs', img: 'https://images.unsplash.com/photo-1593359677879-a4bb92f829d1?w=160&h=160&fit=crop&q=80' },
-            { id: 'parlantes', label: 'Parlantes', img: 'https://images.unsplash.com/photo-1608043152269-423dbba4e7e1?w=160&h=160&fit=crop&q=80' },
-            { id: 'gaming', label: 'Gaming', img: 'https://images.unsplash.com/photo-1600080972464-8e5f35f63d08?w=160&h=160&fit=crop&q=80' },
-            { id: 'pc', label: 'Notebooks', img: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=160&h=160&fit=crop&q=80' },
-            { id: 'tvbox', label: 'TV Box / Sticks', img: 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=160&h=160&fit=crop&q=80' },
-            { id: 'cargadores-accesorios', label: 'Cargadores', img: 'https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=160&h=160&fit=crop&q=80' },
-            { id: 'gadgets', label: 'Gadgets', img: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=160&h=160&fit=crop&q=80' }
+            { id: 'celulares', label: 'Celulares', img: 'img/subcats/celulares.jpg' },
+            { id: 'auriculares', label: 'Auriculares', img: 'img/subcats/auriculares.jpg' },
+            { id: 'relojes-fundas', label: 'Smartwatches', img: 'img/subcats/relojes-fundas.jpg' },
+            { id: 'televisores', label: 'Smart TVs', img: 'img/subcats/televisores.jpg' },
+            { id: 'parlantes', label: 'Parlantes', img: 'img/subcats/parlantes.jpg' },
+            { id: 'gaming', label: 'Gaming', img: 'img/subcats/gaming.jpg' },
+            { id: 'pc', label: 'Notebooks', img: 'img/subcats/pc.jpg' },
+            { id: 'tvbox', label: 'TV Box / Sticks', img: 'img/subcats/tvbox.jpg' },
+            { id: 'cargadores-accesorios', label: 'Cargadores', img: 'img/subcats/cargadores-accesorios.jpg' },
+            { id: 'gadgets', label: 'Gadgets', img: 'img/subcats/gadgets.jpg' }
         ],
         hogar: [
-            { id: 'hogar-muebles', label: 'Living y Comedor', img: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?w=160&h=160&fit=crop&q=80' },
-            { id: 'cocinas', label: 'Cocina y Bazar', img: 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=160&h=160&fit=crop&q=80' },
-            { id: 'bano', label: 'Baño', img: 'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?w=160&h=160&fit=crop&q=80' },
-            { id: 'decoracion', label: 'Decoración', img: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?w=160&h=160&fit=crop&q=80' },
-            { id: 'iluminacion-gadgets', label: 'Iluminación', img: 'https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=160&h=160&fit=crop&q=80' },
-            { id: 'limpieza', label: 'Limpieza', img: 'https://images.unsplash.com/photo-1558317374-067fb5f30001?w=160&h=160&fit=crop&q=80' },
-            { id: 'exteriores', label: 'Jardín y Exterior', img: 'https://images.unsplash.com/photo-1507089947368-19c1da9775ae?w=160&h=160&fit=crop&q=80' }
+            { id: 'hogar-muebles', label: 'Living y Comedor', img: 'img/subcats/hogar-muebles.jpg' },
+            { id: 'cocinas', label: 'Cocina y Bazar', img: 'img/subcats/cocinas.jpg' },
+            { id: 'bano', label: 'Baño', img: 'img/subcats/bano.jpg' },
+            { id: 'decoracion', label: 'Decoración', img: 'img/subcats/decoracion.jpg' },
+            { id: 'iluminacion-gadgets', label: 'Iluminación', img: 'img/subcats/iluminacion-gadgets.jpg' },
+            { id: 'limpieza', label: 'Limpieza', img: 'img/subcats/limpieza.jpg' },
+            { id: 'exteriores', label: 'Jardín y Exterior', img: 'img/subcats/exteriores.jpg' }
         ],
         electro: [
-            { id: 'climatizacion', label: 'Aires y Clima', img: 'https://images.unsplash.com/photo-1621905251189-08b45d6a269e?w=160&h=160&fit=crop&q=80' },
-            { id: 'calefaccion', label: 'Calefacción', img: 'https://images.unsplash.com/photo-1545259741-2ea3ebf61fa3?w=160&h=160&fit=crop&q=80' },
-            { id: 'ventilacion', label: 'Ventilación', img: 'https://images.unsplash.com/photo-1585771724684-38269d6639fd?w=160&h=160&fit=crop&q=80' },
-            { id: 'belleza', label: 'Belleza y Cuidado', img: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?w=160&h=160&fit=crop&q=80' }
+            { id: 'climatizacion', label: 'Aires y Clima', img: 'img/subcats/climatizacion.jpg' },
+            { id: 'calefaccion', label: 'Calefacción', img: 'img/subcats/calefaccion.jpg' },
+            { id: 'ventilacion', label: 'Ventilación', img: 'img/subcats/ventilacion.jpg' },
+            { id: 'belleza', label: 'Belleza y Cuidado', img: 'img/subcats/belleza.jpg' }
         ],
         varios: [
-            { id: 'herramientas', label: 'Herramientas', img: 'https://images.unsplash.com/photo-1581147036324-c17ac41dfa6c?w=160&h=160&fit=crop&q=80' },
-            { id: 'bicicletas', label: 'Bicicletas', img: 'https://images.unsplash.com/photo-1485965120184-e220f721d03e?w=160&h=160&fit=crop&q=80' },
-            { id: 'movilidad', label: 'Monopatines', img: 'https://images.unsplash.com/photo-1597762299714-49f2b8478d8a?w=160&h=160&fit=crop&q=80' },
-            { id: 'deportes', label: 'Fitness y Deportes', img: 'https://images.unsplash.com/photo-1584735935682-2f2b69dff9d2?w=160&h=160&fit=crop&q=80' }
+            { id: 'herramientas', label: 'Herramientas', img: 'img/subcats/herramientas.jpg' },
+            { id: 'bicicletas', label: 'Bicicletas', img: 'img/subcats/bicicletas.jpg' },
+            { id: 'movilidad', label: 'Monopatines', img: 'img/subcats/movilidad.jpg' },
+            { id: 'deportes', label: 'Fitness y Deportes', img: 'img/subcats/deportes.jpg' }
         ]
     };
 
@@ -975,19 +1016,13 @@ document.addEventListener('DOMContentLoaded', () => {
         // ── Mouse parallax on card images — silky follow ──
         function bindCardParallax(card) {
             card.addEventListener('mousemove', e => {
-                const img = card.querySelector('img');
-                if (!img) return;
                 const r = card.getBoundingClientRect();
                 const px = (e.clientX - r.left) / r.width - 0.5;
                 const py = (e.clientY - r.top) / r.height - 0.5;
-                gsap.to(img, { x: px * 12, y: py * 8, duration: 0.6, ease: 'power2.out' });
-                // Subtle card tilt following mouse
-                gsap.to(card, { rotateY: px * 6, rotateX: py * -4, duration: 0.6, ease: 'power2.out', transformPerspective: 1000, force3D: true });
+                gsap.to(card, { rotateY: px * 7, rotateX: py * -5, duration: 0.3, ease: 'power1.out', transformPerspective: 1000, force3D: true, overwrite: 'auto' });
             });
             card.addEventListener('mouseleave', () => {
-                const img = card.querySelector('img');
-                if (img) gsap.to(img, { x: 0, y: 0, duration: 0.8, ease: 'expo.out' });
-                gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.8, ease: 'expo.out' });
+                gsap.to(card, { rotateY: 0, rotateX: 0, duration: 0.5, ease: 'power2.out', overwrite: 'auto' });
             });
         }
 
@@ -2001,24 +2036,45 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── SMOOTH SCROLL OFFSET (navbar fixed) ─────────────────
     document.querySelectorAll('a[href^="#"]').forEach(anchor => {
         anchor.addEventListener('click', function(e) {
-            const target = document.querySelector(this.getAttribute('href'));
+            const href = this.getAttribute('href');
+            if (href === '#' || !href) return;
+            const target = document.querySelector(href);
             if (!target) return;
             e.preventDefault();
-            const isInstant = this.hasAttribute('data-instant');
+
+            // Parpadeo instantáneo
+            if (typeof gsap !== 'undefined') {
+                gsap.killTweensOf(window);
+                if (typeof smoother !== 'undefined' && smoother) gsap.killTweensOf(smoother);
+            }
+            
+            const html = document.documentElement;
+            const body = document.body;
+            html.style.setProperty('scroll-behavior', 'auto', 'important');
+            body.style.setProperty('scroll-behavior', 'auto', 'important');
+
             const isMobile = window.innerWidth < 768;
             const offset = isMobile ? 80 : 70;
-            const top = target.getBoundingClientRect().top + window.scrollY - offset;
-            if (smoother && !isMobile) {
-                if(isInstant) { smoother.scroll(top); } else { smoother.scrollTo(top, true); }
-            } else if (isInstant) {
-                document.documentElement.style.scrollBehavior = 'auto';
-                window.scrollTo(0, top);
-                requestAnimationFrame(() => document.documentElement.style.scrollBehavior = '');
-            } else {
-                document.documentElement.style.scrollBehavior = 'smooth';
-                window.scrollTo(0, top);
-                setTimeout(() => document.documentElement.style.scrollBehavior = '', 900);
+            
+            const currentScroll = (typeof smoother !== 'undefined' && smoother) 
+                ? smoother.scrollTop() 
+                : (window.pageYOffset || html.scrollTop);
+            const targetScroll = Math.max(0, currentScroll + target.getBoundingClientRect().top - offset);
+
+            if (typeof smoother !== 'undefined' && smoother) {
+                try {
+                    smoother.scrollTo(targetScroll, false);
+                    smoother.scrollTop(targetScroll);
+                } catch(err) {}
             }
+            window.scrollTo(0, targetScroll);
+            html.scrollTop = targetScroll;
+            body.scrollTop = targetScroll;
+
+            setTimeout(() => {
+                html.style.removeProperty('scroll-behavior');
+                body.style.removeProperty('scroll-behavior');
+            }, 60);
         });
     });
 

@@ -20,7 +20,7 @@
     --font-mono: 'IBM Plex Mono', monospace;
 }
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Outfit',sans-serif}
-html{scroll-behavior:smooth}
+html{scroll-behavior:auto !important}
 :focus-visible{outline:2px solid var(--accent-color);outline-offset:3px;border-radius:4px}
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
@@ -114,9 +114,9 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 
 /* Image Parallax in Cards */
 .product-image img{width:100%;height:100%;object-fit:contain;transition:transform .6s var(--ease-out-expo);will-change:transform}
-.product-card:hover .product-image img{transform:translate(var(--img-x,0px),var(--img-y,0px))}
+/* img stationary */
 .product-info{transition:transform .5s var(--ease-out-expo)}
-.product-card:hover .product-info{transform:translate(calc(var(--info-x,0px) * -1),calc(var(--info-y,0px) * -1))}
+/* info stationary */
 
 /* Stagger variants */
 .reveal-text[data-role="title"]{transition-delay:0s}
@@ -229,15 +229,16 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .stat-plus{font-size:1.8rem;font-weight:700;color:var(--accent-color)}
 .stat-card p{color:var(--text-secondary);font-size:.85rem;margin-top:.3rem;letter-spacing:1.5px;text-transform:uppercase}
 .stat-sep{color:rgba(255,255,255,.08);font-size:2rem;font-weight:100;user-select:none}
-.carousel-wrapper{position:relative;overflow:hidden;padding:5rem 60px 3rem;max-width:1200px;margin:0 auto;perspective:1400px;min-height:500px;display:flex;align-items:center;justify-content:center;-webkit-mask-image:linear-gradient(to right, transparent, black 15%, black 85%, transparent);mask-image:linear-gradient(to right, transparent, black 15%, black 85%, transparent)}
-.carousel-3d{position:relative;width:300px;height:450px;transform-style:preserve-3d}
-.carousel-card{position:absolute;width:100%;height:100%;top:0;left:0;background:rgba(10,12,18,0.95);border:1px solid rgba(0,240,255,0.08);border-radius:var(--card-radius);overflow:hidden;backface-visibility:hidden;opacity:0;pointer-events:none;transition:none;cursor:pointer;will-change:transform,opacity,filter;transform-style:preserve-3d}
-.carousel-card.active{opacity:1;pointer-events:auto;border:1.5px solid rgba(0,240,255,.35);box-shadow:0 0 40px rgba(0,240,255,.1),0 0 80px rgba(0,240,255,.04);transition:box-shadow .4s var(--ease-out-expo)}
-.carousel-card img{width:100%;height:auto;max-height:220px;object-fit:contain;background:#0a0a12;will-change:transform}
-.carousel-card-info{padding:1.2rem;position:relative;z-index:5;will-change:transform,opacity}
-.carousel-card-info .add-to-cart{cursor:pointer !important;pointer-events:auto !important;position:relative;z-index:10}
-.carousel-card-info .badge{display:inline-block;padding:.3rem .8rem;font-size:.8rem;font-weight:600;background:var(--gradient-glow);color:#000;border-radius:20px;margin-bottom:.6rem}
-.carousel-card-info h3{font-size:1.15rem;font-weight:600;margin-bottom:.4rem}
+.carousel-wrapper{position:relative;overflow:hidden;padding:3rem 60px 2rem;max-width:1200px;margin:0 auto;perspective:1400px;min-height:420px;display:flex;align-items:center;justify-content:center;-webkit-mask-image:linear-gradient(to right, transparent, black 15%, black 85%, transparent);mask-image:linear-gradient(to right, transparent, black 15%, black 85%, transparent)}
+.carousel-3d{position:relative;width:280px;height:350px;transform-style:preserve-3d}
+.carousel-card{position:absolute;width:100%;height:100%;top:0;left:0;background:radial-gradient(circle at 0% 0%, rgba(20,25,40,0.95), rgba(6,8,12,0.98));border:1px solid rgba(255,255,255,0.08);border-radius:var(--card-radius);overflow:hidden;backface-visibility:hidden;opacity:0;pointer-events:none;transition:none;cursor:pointer;will-change:transform,opacity,filter;transform-style:preserve-3d;box-shadow:inset 0 1px 0 rgba(255,255,255,0.1), 0 10px 30px rgba(0,0,0,0.6)}
+.carousel-card::before{content:"";position:absolute;top:0;left:0;right:0;height:100%;background:linear-gradient(180deg,rgba(0,240,255,0.05) 0%,transparent 40%);pointer-events:none;z-index:1}
+.carousel-card.active{opacity:1;pointer-events:auto;border:1px solid rgba(0,240,255,0.4);box-shadow:0 0 25px rgba(0,240,255,0.15),0 15px 40px rgba(0,0,0,0.6),inset 0 0 20px rgba(0,240,255,0.05);transition:box-shadow .4s var(--ease-out-expo)}
+.carousel-card img{width:100%;height:auto;max-height:160px;object-fit:contain;background:radial-gradient(circle,#0e121e 0%,#06080d 100%);will-change:transform;position:relative;z-index:2;padding:1rem}
+.carousel-card-info{padding:0.9rem 1rem;position:relative;z-index:5;will-change:transform,opacity;background:linear-gradient(0deg, rgba(6,8,12,1) 30%, rgba(6,8,12,0) 100%);margin-top:-10px}
+.carousel-card-info .add-to-cart{cursor:pointer !important;pointer-events:auto !important;position:relative;z-index:10;border-radius:30px;font-weight:700}
+.carousel-card-info .badge{display:inline-block;padding:.35rem .85rem;font-size:.75rem;font-weight:800;background:linear-gradient(135deg,#00f0ff,#a855f7);color:#000;border-radius:20px;margin-bottom:.8rem;letter-spacing:.5px;box-shadow:0 4px 10px rgba(0,240,255,0.3)}
+.carousel-card-info h3{font-size:1.15rem;font-weight:700;margin-bottom:.4rem;color:#fff}
 .old-price{font-size:.9rem;color:var(--text-secondary);text-decoration:line-through}
 .offer-price{font-size:1.4rem;font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .carousel-btn{position:absolute;z-index:10;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;border:1px solid var(--surface-border);background:rgba(5,5,5,.8);color:var(--text-primary);font-size:1.4rem;cursor:pointer;transition:all var(--transition-base);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center}
@@ -436,16 +437,16 @@ body{cursor:auto}
 .orb2{top:auto;bottom:-140px;right:22%;width:300px;height:300px;opacity:.7}
 .modal-body{grid-template-columns:1fr}
 .product-grid{grid-template-columns:1fr;max-width:100%;padding:0 1rem;gap:1.5rem}
-.carousel-3d{width:260px;height:380px}
-  .carousel-wrapper{padding:4rem 40px 2.5rem;min-height:400px}
+.carousel-3d{width:240px;height:330px}
+  .carousel-wrapper{padding:4rem 40px 2.5rem;min-height:360px}
   .carousel-card-info h3{font-size:1rem;margin-bottom:.3rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .offer-price{font-size:1.2rem}
   .carousel-card img{height:auto;max-height:180px}
   .carousel-btn.prev{left:1%}.carousel-btn.next{right:1%}
   /* Carrusel nativo mobile: scroll fluido tipo app */
-  .carousel-3d{width:auto;min-width:0;height:auto;min-height:380px;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;gap:1.2rem;padding:1rem 38vw;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+  .carousel-3d{width:auto;min-width:0;height:auto;min-height:330px;overflow-x:auto;overflow-y:hidden;display:flex;align-items:center;gap:1.2rem;padding:1rem 38vw;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none}
   .carousel-3d::-webkit-scrollbar{display:none}
-  .carousel-3d .carousel-card{position:relative;flex:0 0 260px;width:260px;height:380px;opacity:1 !important;pointer-events:auto !important;transform:none !important;filter:none !important;scroll-snap-align:center;animation:none}
+  .carousel-3d .carousel-card{position:relative;flex:0 0 260px;width:240px;height:330px;opacity:1 !important;pointer-events:auto !important;transform:none !important;filter:none !important;scroll-snap-align:center;animation:none}
   .carousel-3d .carousel-card.active{animation:none}
 #enviosMarquee{font-size:.75rem;letter-spacing:2px}
 .filter-tabs{gap:.5rem}
@@ -471,8 +472,8 @@ body{padding-bottom:70px}
 .product-image{height:140px}
 .product-info{padding:0.5rem}
 .add-to-cart{padding:.8rem;font-size:.9rem;border:2px solid rgba(255,255,255,0.3);background:rgba(255,255,255,0.05)}
- .carousel-3d{width:240px;height:430px}
- .carousel-wrapper{padding:4rem 20px 2.5rem;min-height:450px}
+ .carousel-3d{width:230px;height:330px}
+ .carousel-wrapper{padding:4rem 20px 2.5rem;min-height:350px}
 }
 
 /* ─── CART SIDEBAR ────────────────────────────────────────── */
