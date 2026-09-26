@@ -261,10 +261,10 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── SUBCATEGORÍAS CON IMÁGENES REFERENCIALES (ESTILO MERCADO LIBRE FUTURISTA) ───
     const subCategoriesMap = {
         tecnologia: [
-            { id: 'celulares', label: 'Celulares', img: 'img/subcats/celulares.jpg' },
+            { id: 'celulares', label: 'Celulares', img: 'img/subcats/1790441068394.jpg' },
             { id: 'auriculares', label: 'Auriculares', img: 'img/subcats/1790365169365.jpg' },
-            { id: 'relojes-fundas', label: 'Smartwatches', img: 'img/subcats/relojes-fundas.jpg' },
-            { id: 'televisores', label: 'Smart TVs', img: 'img/subcats/televisores.jpg' },
+            { id: 'relojes-fundas', label: 'Smartwatches', img: 'img/subcats/1790441077547.jpg' },
+            { id: 'televisores', label: 'Smart TVs', img: 'img/subcats/1790441082430.jpg' },
             { id: 'parlantes', label: 'Parlantes', img: 'img/subcats/1790365183333.jpg' },
             { id: 'gaming', label: 'Gaming', img: 'img/subcats/1790365187178.jpg' },
             { id: 'pc', label: 'Notebooks', img: 'img/subcats/1790365190741.jpg' },
@@ -279,11 +279,11 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'decoracion', label: 'Decoración', img: 'img/subcats/1790366427771.jpg' },
             { id: 'iluminacion-gadgets', label: 'Iluminación', img: 'img/subcats/1790366962089.jpg' },
             { id: 'limpieza', label: 'Limpieza', img: 'img/subcats/1790367238211.jpg' },
-            { id: 'exteriores', label: 'Jardín y Exterior', img: 'img/subcats/exteriores.jpg' }
+            { id: 'exteriores', label: 'Jardín y Exterior', img: 'img/subcats/1790367536982.jpg' }
         ],
         electro: [
             { id: 'climatizacion', label: 'Aires y Clima', img: 'img/subcats/1790375730285.jpg' },
-            { id: 'calefaccion', label: 'Calefacción', img: 'img/subcats/calefaccion.jpg' },
+            { id: 'calefaccion', label: 'Calefacción', img: 'img/subcats/1790441467459.jpg' },
             { id: 'ventilacion', label: 'Ventilación', img: 'img/subcats/1790376565731.jpg' },
             { id: 'belleza', label: 'Belleza y Cuidado', img: 'img/subcats/1790376751069.jpg' }
         ],
@@ -314,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = `
             <div class="sub-cat-item ${currentSubCategory === 'all' ? 'active' : ''}" data-filter="all">
                 <div class="sub-cat-circle sub-cat-all-circle">
-                    <span class="sub-cat-all-icon">⚡</span>
+                    <img src="img/subcats/1790441829833.jpg" alt="Ver Todo" loading="lazy" decoding="async">
                 </div>
                 <span class="sub-cat-label">Ver Todo</span>
             </div>
