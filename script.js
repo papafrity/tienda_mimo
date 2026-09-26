@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const subCategoriesMap = {
         tecnologia: [
             { id: 'celulares', label: 'Celulares', img: 'img/subcats/celulares.jpg' },
-            { id: 'auriculares', label: 'Auriculares', img: 'img/subcats/auriculares.jpg' },
+            { id: 'auriculares', label: 'Auriculares', img: 'img/subcats/1790365169365.jpg' },
             { id: 'relojes-fundas', label: 'Smartwatches', img: 'img/subcats/relojes-fundas.jpg' },
             { id: 'televisores', label: 'Smart TVs', img: 'img/subcats/televisores.jpg' },
             { id: 'parlantes', label: 'Parlantes', img: 'img/subcats/parlantes.jpg' },
@@ -322,13 +322,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         html += items.map(sub => {
             const catalogProd = (products || []).find(p => p.category === sub.id && p.image && p.isActive !== false);
-            const imgSrc = (catalogProd && catalogProd.image) ? catalogProd.image : sub.img;
+            const isCustomCover = sub.img && (sub.img.includes('1790') || sub.isCustom);
+            const fallbackSrc = (catalogProd && catalogProd.image) ? catalogProd.image : '';
+            const imgSrc = isCustomCover ? sub.img : (fallbackSrc || sub.img);
             const isActive = currentSubCategory === sub.id ? 'active' : '';
 
             return `
                 <div class="sub-cat-item ${isActive}" data-filter="${sub.id}">
                     <div class="sub-cat-circle">
-                        <img src="${imgSrc}" alt="${sub.label}" loading="lazy" decoding="async" onerror="this.src='${sub.img}'">
+                        <img src="${imgSrc}" alt="${sub.label}" loading="lazy" decoding="async" onerror="if('${fallbackSrc}' && this.src !== '${fallbackSrc}') this.src='${fallbackSrc}';">
                     </div>
                     <span class="sub-cat-label">${sub.label}</span>
                 </div>
@@ -943,9 +945,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Auto-play + pausa al tocar
-            window._carouselInterval = setInterval(() => nextBtn.click(), 5000);
+            window._carouselInterval = setInterval(() => nextBtn.click(), 8000);
             track.addEventListener('touchstart', () => clearInterval(window._carouselInterval), { passive: true });
-            track.addEventListener('touchend', () => { if (!window._carouselInterval) window._carouselInterval = setInterval(() => nextBtn.click(), 5000); }, { passive: true });
+            track.addEventListener('touchend', () => { if (!window._carouselInterval) window._carouselInterval = setInterval(() => nextBtn.click(), 8000); }, { passive: true });
 
             onScroll();
             return;
@@ -1190,18 +1192,26 @@ document.addEventListener('DOMContentLoaded', () => {
         startGlow(cards[0]);
         cards.forEach(c => bindCardParallax(c));
 
-        // ── Auto-play ──
-        let ap = setInterval(next, 5000);
+        // ── Auto-play más lento y con pausa en hover ──
+        if (window._carouselInterval) clearInterval(window._carouselInterval);
+        window._carouselInterval = setInterval(next, 8000);
         wrapper.addEventListener('mouseenter', () => clearInterval(window._carouselInterval));
-        wrapper.addEventListener('mouseleave', () => { ap = setInterval(next, 5000); });
+        wrapper.addEventListener('mouseleave', () => {
+            clearInterval(window._carouselInterval);
+            window._carouselInterval = setInterval(next, 8000);
+        });
 
         // ── Touch swipe ──
         let tsx = 0;
-        wrapper.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; clearInterval(window._carouselInterval); }, { passive: true });
+        wrapper.addEventListener('touchstart', e => {
+            tsx = e.changedTouches[0].screenX;
+            clearInterval(window._carouselInterval);
+        }, { passive: true });
         wrapper.addEventListener('touchend', e => {
             const dx = e.changedTouches[0].screenX - tsx;
             if (Math.abs(dx) > 50) { dx > 0 ? prev() : next(); }
-            wrapper.addEventListener('mouseleave', () => { ap = setInterval(next, 5000); }, { once: true });
+            clearInterval(window._carouselInterval);
+            window._carouselInterval = setInterval(next, 8000);
         }, { passive: true });
     }
 
