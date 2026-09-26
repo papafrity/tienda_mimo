@@ -1054,8 +1054,8 @@ document.addEventListener('DOMContentLoaded', () => {
             ci = index;
 
             // Kill previous animations
-            if (floatingTl) floatingTl.kill();
-            if (glowTl) glowTl.kill();
+            if (typeof floatingTl !== 'undefined' && floatingTl) floatingTl.kill();
+            if (typeof glowTl !== 'undefined' && glowTl) glowTl.kill();
 
             // Remove active class from old card
             cards[prevCi].classList.remove('active');

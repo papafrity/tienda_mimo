@@ -2211,7 +2211,7 @@ document.querySelector('.tab-btn[data-tab="tab-reviews"]')?.addEventListener('cl
     renderReviewsTab(document.getElementById('adminReviewsProductSelect')?.value || 'all');
 });
 
-document.getElementById('adminRecalcAllBtn')document.getElementById('adminRecalcAllBtn')?.addEventListener('click', async () => {
+document.getElementById('adminRecalcAllBtn')?.addEventListener('click', async () => {
     if (!confirm('¿Recalcular el rating de TODOS los productos según sus reseñas actuales?')) return;
     const btn = document.getElementById('adminRecalcAllBtn');
     btn.textContent = '⏳ Recalculando...';
