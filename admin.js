@@ -215,14 +215,18 @@ function renderAdminProducts() {
     const prevCat = adminCategoryFilter.value;
     const cats = [...new Set(adminProducts.map(p => p.category).filter(Boolean))].sort();
     adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    adminCategoryFilter.value = prevCat;
+    if (adminCategoryFilter.querySelector(`option[value="${prevCat}"]`)) {
+        adminCategoryFilter.value = prevCat;
+    } else {
+        adminCategoryFilter.value = 'all';
+    }
 
     // Apply filters
     const searchTerm = (adminSearchInput.value || '').toLowerCase().trim();
     const catFilter = adminCategoryFilter.value;
     const statusFilter = adminStatusFilter.value;
     const filtered = adminProducts.filter(p => {
-        const matchSearch = !searchTerm || p.name.toLowerCase().includes(searchTerm);
+        const matchSearch = !searchTerm || (p.name && p.name.toLowerCase().includes(searchTerm));
         const matchCat = catFilter === 'all' || p.category === catFilter;
         const matchStatus = statusFilter === 'all' || (statusFilter === 'active' ? p.isActive !== false : p.isActive === false);
         return matchSearch && matchCat && matchStatus;
