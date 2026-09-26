@@ -265,33 +265,33 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'auriculares', label: 'Auriculares', img: 'img/subcats/1790365169365.jpg' },
             { id: 'relojes-fundas', label: 'Smartwatches', img: 'img/subcats/relojes-fundas.jpg' },
             { id: 'televisores', label: 'Smart TVs', img: 'img/subcats/televisores.jpg' },
-            { id: 'parlantes', label: 'Parlantes', img: 'img/subcats/parlantes.jpg' },
-            { id: 'gaming', label: 'Gaming', img: 'img/subcats/gaming.jpg' },
-            { id: 'pc', label: 'Notebooks', img: 'img/subcats/pc.jpg' },
-            { id: 'tvbox', label: 'TV Box / Sticks', img: 'img/subcats/tvbox.jpg' },
-            { id: 'cargadores-accesorios', label: 'Cargadores', img: 'img/subcats/cargadores-accesorios.jpg' },
-            { id: 'gadgets', label: 'Gadgets', img: 'img/subcats/gadgets.jpg' }
+            { id: 'parlantes', label: 'Parlantes', img: 'img/subcats/1790365183333.jpg' },
+            { id: 'gaming', label: 'Gaming', img: 'img/subcats/1790365187178.jpg' },
+            { id: 'pc', label: 'Notebooks', img: 'img/subcats/1790365190741.jpg' },
+            { id: 'tvbox', label: 'TV Box / Sticks', img: 'img/subcats/1790365195074.jpg' },
+            { id: 'cargadores-accesorios', label: 'Cargadores', img: 'img/subcats/1790365202104.jpg' },
+            { id: 'gadgets', label: 'Gadgets', img: 'img/subcats/1790365285386.jpg' }
         ],
         hogar: [
-            { id: 'hogar-muebles', label: 'Living y Comedor', img: 'img/subcats/hogar-muebles.jpg' },
-            { id: 'cocinas', label: 'Cocina y Bazar', img: 'img/subcats/cocinas.jpg' },
-            { id: 'bano', label: 'Baño', img: 'img/subcats/bano.jpg' },
-            { id: 'decoracion', label: 'Decoración', img: 'img/subcats/decoracion.jpg' },
-            { id: 'iluminacion-gadgets', label: 'Iluminación', img: 'img/subcats/iluminacion-gadgets.jpg' },
-            { id: 'limpieza', label: 'Limpieza', img: 'img/subcats/limpieza.jpg' },
+            { id: 'hogar-muebles', label: 'Living y Comedor', img: 'img/subcats/1790365426288.jpg' },
+            { id: 'cocinas', label: 'Cocina y Bazar', img: 'img/subcats/1790365538254.jpg' },
+            { id: 'bano', label: 'Baño', img: 'img/subcats/1790365855682.jpg' },
+            { id: 'decoracion', label: 'Decoración', img: 'img/subcats/1790366427771.jpg' },
+            { id: 'iluminacion-gadgets', label: 'Iluminación', img: 'img/subcats/1790366962089.jpg' },
+            { id: 'limpieza', label: 'Limpieza', img: 'img/subcats/1790367238211.jpg' },
             { id: 'exteriores', label: 'Jardín y Exterior', img: 'img/subcats/exteriores.jpg' }
         ],
         electro: [
-            { id: 'climatizacion', label: 'Aires y Clima', img: 'img/subcats/climatizacion.jpg' },
+            { id: 'climatizacion', label: 'Aires y Clima', img: 'img/subcats/1790375730285.jpg' },
             { id: 'calefaccion', label: 'Calefacción', img: 'img/subcats/calefaccion.jpg' },
-            { id: 'ventilacion', label: 'Ventilación', img: 'img/subcats/ventilacion.jpg' },
-            { id: 'belleza', label: 'Belleza y Cuidado', img: 'img/subcats/belleza.jpg' }
+            { id: 'ventilacion', label: 'Ventilación', img: 'img/subcats/1790376565731.jpg' },
+            { id: 'belleza', label: 'Belleza y Cuidado', img: 'img/subcats/1790376751069.jpg' }
         ],
         varios: [
-            { id: 'herramientas', label: 'Herramientas', img: 'img/subcats/herramientas.jpg' },
-            { id: 'bicicletas', label: 'Bicicletas', img: 'img/subcats/bicicletas.jpg' },
-            { id: 'movilidad', label: 'Monopatines', img: 'img/subcats/movilidad.jpg' },
-            { id: 'deportes', label: 'Fitness y Deportes', img: 'img/subcats/deportes.jpg' }
+            { id: 'herramientas', label: 'Herramientas', img: 'img/subcats/1790374642412.jpg' },
+            { id: 'bicicletas', label: 'Bicicletas', img: 'img/subcats/1790376954013.jpg' },
+            { id: 'movilidad', label: 'Monopatines', img: 'img/subcats/1790377061826.jpg' },
+            { id: 'deportes', label: 'Fitness y Deportes', img: 'img/subcats/1790377222331.jpg' }
         ]
     };
 
