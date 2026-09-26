@@ -47,7 +47,10 @@
     <!-- Dashboard -->
     <div id="dashboard" class="dashboard hidden">
         <header class="admin-header">
-            <h2>Panel de Control</h2>
+            <div style="display:flex; align-items:center;">
+                <button id="toggleMenuBtn" style="background:transparent; border:none; color:#fff; font-size:1.5rem; cursor:pointer; margin-right:1rem;" title="Ocultar/Mostrar Menú">☰</button>
+                <h2 style="margin:0;">Panel de Control</h2>
+            </div>
             <div class="header-actions">
                 <button id="generateSitemapBtn" class="magnetic-btn outline" style="margin-right:0.5rem; background:rgba(0,240,255,0.1); border-color:rgba(0,240,255,0.3); color:#fff">Sitemap SEO</button>
                 <button id="migrateBtn" class="magnetic-btn outline" style="display: none;">Cargar Catálogo Inicial</button>

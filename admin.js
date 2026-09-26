@@ -1406,7 +1406,6 @@ async function viewOrder(id) {
                 <div><strong>CP:</strong> ${o.customer?.zip || '—'}</div>
                 <div><strong>Fecha:</strong> ${date}</div>
                 <div><strong>Estado:</strong> ${statusLabels[o.status] || o.status}</div>
-                ${o.shippingCost ? `<div><strong>Envío:</strong> $${fmt(o.shippingCost)}</div>` : ''}
                 ${o.paymentId ? `<div><strong>MP ID:</strong> ${o.paymentId}</div>` : ''}
             </div>
             <table class="admin-table" style="font-size:.85rem">
@@ -1499,7 +1498,7 @@ async function callGemini(promptText) {
     const key = getGeminiKey();
     if (!key) throw { code: 'NO_KEY', label: 'Gemini', message: 'No hay key de Gemini configurada (botón 🔑).' };
 
-    const modelsToTry = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+    const modelsToTry = ['gemini-3.1-pro', 'gemini-1.5-pro', 'gemini-1.5-pro-latest', 'gemini-pro', 'gemini-1.5-flash'];
     let lastErr = null;
 
     for (const model of modelsToTry) {
@@ -1880,7 +1879,7 @@ if (aiConfigBtn && aiConfigModal) {
                 try {
                     let testOk = false;
                     let lastErrMsg = '';
-                    const models = ['gemini-3.6-flash', 'gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-flash-latest'];
+                    const models = ['gemini-3.1-pro', 'gemini-1.5-pro', 'gemini-1.5-pro-latest', 'gemini-pro', 'gemini-1.5-flash'];
                     for (const m of models) {
                         const testResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${geminiKey}`, {
                             method: 'POST',
@@ -2468,3 +2467,12 @@ document.getElementById('saveSettingsBtn')?.addEventListener('click', async () =
 });
 
 document.querySelector('.tab-btn[data-tab="tab-settings"]')?.addEventListener('click', loadSettings);
+
+
+// Toggle Left Menu
+const toggleMenuBtn = document.getElementById("toggleMenuBtn");
+if (toggleMenuBtn) {
+    toggleMenuBtn.addEventListener("click", () => {
+        document.getElementById("dashboard").classList.toggle("menu-collapsed");
+    });
+}

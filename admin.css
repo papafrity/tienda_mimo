@@ -806,6 +806,17 @@ select option { background: #fff; color: #000; }
     background: #06080d !important;
 }
 
+.dashboard.menu-collapsed {
+    grid-template-columns: 1fr !important;
+    grid-template-areas: 
+        "header"
+        "content" !important;
+}
+
+.dashboard.menu-collapsed .admin-tabs {
+    display: none !important;
+}
+
 .admin-header {
     grid-area: header !important;
     margin-bottom: 0 !important;
