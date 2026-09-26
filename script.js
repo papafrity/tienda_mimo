@@ -405,7 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 : `<p class="price"><span class="price-offer">$${fmt(offerVal(p))}</span></p>`;
                 
             grid.innerHTML += `
-            <div class="product-card tilt-card reveal-up" data-category="${p.category}" data-id="${p.id}" style="transition-delay:${Math.min(idx * .04, .3)}s">
+            <div class="product-card tilt-card" data-category="${p.category}" data-id="${p.id}" style="transition-delay:${Math.min(idx * .04, .3)}s">
                 <div class="card-glow"></div>
                 <div class="card-spotlight"></div>
                 <div class="product-image"><img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async"></div>
@@ -434,6 +434,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!carousel) return;
         carousel.innerHTML = '';
         const featured = products.filter(p => p.isFeatured && p.isActive !== false);
+        if (featured.length === 0) { const allActive = products.filter(p => p.isActive !== false); featured.push(...allActive.slice(0, 8)); }
         featured.forEach(p => {
             const hasDiscount = p.oldPrice && p.offerPrice && p.oldPrice !== p.offerPrice;
             let priceHtml = hasDiscount 
@@ -460,7 +461,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.stopPropagation();
                 e.preventDefault();
                 window.addToCart(p.id, btn);
-            });
+                setTimeout(initCarouselLogic, 50);
+    });
             
             carousel.appendChild(card);
         });
@@ -858,9 +860,18 @@ document.addEventListener('DOMContentLoaded', () => {
         const track = document.getElementById('carousel3d');
         const wrapper = track.parentElement;
         const cards = [...track.querySelectorAll('.carousel-card')];
-        const prevBtn = document.getElementById('prevBtn');
-        const nextBtn = document.getElementById('nextBtn');
+        
+        // Clean up previous event listeners by cloning the buttons
+        let prevBtn = document.getElementById('prevBtn');
+        let nextBtn = document.getElementById('nextBtn');
+        if (prevBtn) { const clone = prevBtn.cloneNode(true); prevBtn.parentNode.replaceChild(clone, prevBtn); prevBtn = clone; }
+        if (nextBtn) { const clone = nextBtn.cloneNode(true); nextBtn.parentNode.replaceChild(clone, nextBtn); nextBtn = clone; }
+        
+        // Clean up old GSAP and intervals
+        if (window._carouselInterval) clearInterval(window._carouselInterval);
+        
         const dotsC = document.getElementById('carouselDots');
+
         if (cards.length === 0) return;
 
         const realCount = cards.length;
@@ -869,7 +880,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // ── MODO MOBILE: scroll nativo fluido tipo app ──
         if (isMobile()) {
             // Quitar el posicionamiento absoluto/3D que deja el CSS desktop
-            cards.forEach(c => c.style.cssText = 'position:relative;flex:0 0 260px;width:260px;height:440px;opacity:1;pointer-events:auto;transform:none;filter:none');
+            cards.forEach(c => c.style.cssText = 'position:relative;flex:0 0 260px;width:260px;height:auto;min-height:330px;padding-bottom:1.5rem;opacity:1;pointer-events:auto;transform:none;filter:none');
 
             // Dots
             dotsC.innerHTML = '';
@@ -917,9 +928,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             // Auto-play + pausa al tocar
-            let ap = setInterval(() => nextBtn.click(), 5000);
-            track.addEventListener('touchstart', () => clearInterval(ap), { passive: true });
-            track.addEventListener('touchend', () => { if (!ap) ap = setInterval(() => nextBtn.click(), 5000); }, { passive: true });
+            window._carouselInterval = setInterval(() => nextBtn.click(), 5000);
+            track.addEventListener('touchstart', () => clearInterval(window._carouselInterval), { passive: true });
+            track.addEventListener('touchend', () => { if (!window._carouselInterval) window._carouselInterval = setInterval(() => nextBtn.click(), 5000); }, { passive: true });
 
             onScroll();
             return;
@@ -1163,12 +1174,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // ── Auto-play ──
         let ap = setInterval(next, 5000);
-        wrapper.addEventListener('mouseenter', () => clearInterval(ap));
+        wrapper.addEventListener('mouseenter', () => clearInterval(window._carouselInterval));
         wrapper.addEventListener('mouseleave', () => { ap = setInterval(next, 5000); });
 
         // ── Touch swipe ──
         let tsx = 0;
-        wrapper.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; clearInterval(ap); }, { passive: true });
+        wrapper.addEventListener('touchstart', e => { tsx = e.changedTouches[0].screenX; clearInterval(window._carouselInterval); }, { passive: true });
         wrapper.addEventListener('touchend', e => {
             const dx = e.changedTouches[0].screenX - tsx;
             if (Math.abs(dx) > 50) { dx > 0 ? prev() : next(); }
