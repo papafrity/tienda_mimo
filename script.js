@@ -932,65 +932,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const realCount = cards.length;
         const isMobile = () => innerWidth < 768;
 
-        // ── MODO MOBILE: scroll nativo fluido tipo app ──
-        if (isMobile()) {
-            // Quitar el posicionamiento absoluto/3D que deja el CSS desktop
-            cards.forEach(c => c.style.cssText = 'position:relative;flex:0 0 260px;width:260px;height:auto;min-height:330px;padding-bottom:1.5rem;opacity:1;pointer-events:auto;transform:none;filter:none');
-
-            // Dots
-            dotsC.innerHTML = '';
-            for (let i = 0; i < realCount; i++) {
-                const d = document.createElement('div');
-                d.classList.add('carousel-dot');
-                if (i === 0) d.classList.add('active');
-                d.addEventListener('click', () => scrollToCard(i));
-                dotsC.appendChild(d);
-            }
-
-            let activeIdx = 0;
-            function scrollToCard(i) {
-                const card = cards[i];
-                if (!card) return;
-                track.scrollTo({ left: card.offsetLeft - (track.clientWidth - card.offsetWidth) / 2, behavior: 'smooth' });
-            }
-
-            function updateDots() {
-                dotsC.querySelectorAll('.carousel-dot').forEach((d, i) => d.classList.toggle('active', i === activeIdx));
-            }
-
-            function onScroll() {
-                const center = track.scrollLeft + track.clientWidth / 2;
-                let best = 0, bestDist = Infinity;
-                cards.forEach((c, i) => {
-                    const cCenter = c.offsetLeft + c.offsetWidth / 2;
-                    const dist = Math.abs(cCenter - center);
-                    if (dist < bestDist) { bestDist = dist; best = i; }
-                });
-                if (best !== activeIdx) { activeIdx = best; updateDots(); }
-            }
-
-            track.addEventListener('scroll', () => requestAnimationFrame(onScroll), { passive: true });
-
-            nextBtn.addEventListener('click', () => scrollToCard(Math.min(activeIdx + 1, realCount - 1)));
-            prevBtn.addEventListener('click', () => scrollToCard(Math.max(activeIdx - 1, 0)));
-
-            cards.forEach(card => {
-                card.addEventListener('click', (e) => {
-                    if (e.target.closest('.add-to-cart')) return;
-                    const btn = card.querySelector('.add-to-cart');
-                    if (btn) window.openProductModal(btn.dataset.productId);
-                });
-            });
-
-            // Auto-play + pausa al tocar
-            window._carouselInterval = setInterval(() => nextBtn.click(), 8000);
-            track.addEventListener('touchstart', () => clearInterval(window._carouselInterval), { passive: true });
-            track.addEventListener('touchend', () => { if (!window._carouselInterval) window._carouselInterval = setInterval(() => nextBtn.click(), 8000); }, { passive: true });
-
-            onScroll();
-            return;
-        }
-
         const X_STEP = isMobile() ? 260 : 320;
         let ci = 0;
         let animating = false;
