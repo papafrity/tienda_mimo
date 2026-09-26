@@ -993,6 +993,9 @@ document.addEventListener('DOMContentLoaded', () => {
         function startFloating(card) {
             // Disabled to ensure 100% instant mouse tracking
         }
+        function startGlow(card) {
+            // No-op — visual glow is handled via CSS :hover
+        }
 
         // ── Mouse parallax on card images — silky follow ──
         function bindCardParallax(card) {
