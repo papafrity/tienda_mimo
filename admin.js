@@ -23,6 +23,19 @@ function showLogin() {
 }
 
 // Escuchar cambios en el estado de autenticación
+
+// Resolver posibles redirecciones de Firebase Auth en celulares
+auth.getRedirectResult().then(result => {
+    if (result.user) {
+        console.log("Redirect resuelto exitosamente:", result.user);
+    }
+}).catch(error => {
+    console.error("Error en redirect:", error);
+    if (document.getElementById("loginError")) {
+        document.getElementById("loginError").textContent = "Error de conexión: " + error.message;
+    }
+});
+
 auth.onAuthStateChanged((user) => {
     if (user) {
         // Si no hay admin UID guardado, este es el primer login. Guardar el UID.
@@ -57,7 +70,16 @@ loginBtn.addEventListener('click', async () => {
         <svg width="20" height="20" viewBox="0 0 48 48" style="animation: spin 1s linear infinite;"><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
         Conectando...`;
     try {
-        await auth.signInWithRedirect(googleProvider);
+        try {
+            await auth.signInWithPopup(googleProvider);
+        } catch (popupErr) {
+            if (popupErr.code === "auth/popup-blocked" || popupErr.code === "auth/popup-closed-by-user") {
+                console.warn("Popup bloqueado o cerrado. Intentando redirect...", popupErr);
+                await auth.signInWithRedirect(googleProvider);
+            } else {
+                throw popupErr;
+            }
+        }
     } catch (error) {
         console.error('Error de login:', error);
         if (error.code === 'auth/popup-closed-by-user') {

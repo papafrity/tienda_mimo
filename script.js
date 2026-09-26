@@ -1,3 +1,15 @@
+
+// ─── DEFENSIVE STUBS PARA CDNs (EVITA CRASHES EN CELULARES) ───
+if (typeof gsap === "undefined") {
+    console.warn("GSAP no cargó. Usando stubs para evitar crasheos.");
+    window.gsap = {
+        to: () => {}, from: () => {}, fromTo: () => {}, set: () => {},
+        registerPlugin: () => {}, killTweensOf: () => {}, quickTo: () => () => {},
+        utils: { toArray: () => [], interpolate: (a) => a },
+        timeline: () => ({ to: function(){return this;}, from: function(){return this;}, fromTo: function(){return this;} })
+    };
+}
+
 // ─── TOAST NOTIFICATION SYSTEM ──────────────────────────────
 function showToast(message, type = 'info', duration = 3500) {
     const container = document.getElementById('toastContainer');
@@ -24,13 +36,21 @@ window.showToast = showToast;
 let smoother = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // START FETCHING CORE DATA IMMEDIATELY
+    // We execute this in a setTimeout so it runs asynchronously and avoids blocking UI setup.
+    // If any UI animation crashes (like GSAP missing on mobile), this will still run and load the products.
+    setTimeout(() => {
+        try {
+            if (typeof fetchProducts === 'function') fetchProducts();
+        } catch(e) { console.error('fetchProducts start error:', e); }
+    }, 0);
     // ─── PRELOADER ──────────────────────────────────────────
     const preloader = document.getElementById('preloader');
     const navbar = document.getElementById('navbar');
     setTimeout(() => {
         if (preloader) preloader.classList.add('done');
         setTimeout(() => { if (navbar) navbar.classList.add('--active'); }, 110);
-    }, 2000);
+    }, 50);
 
     // ─── CUSTOM CURSOR ──────────────────────────────────────
     const dot = document.getElementById('cursorDot');
@@ -38,7 +58,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ring) ring.style.display = 'none';
 
     if (dot) {
-        gsap.set(dot, { xPercent: -50, yPercent: -50 });
+        if (typeof gsap !== 'undefined') {
+            gsap.set(dot, { xPercent: -50, yPercent: -50 });
+        }
 
         let targetEl = null;
 
@@ -524,18 +546,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    window.retryFetchProducts = () => {
+        const grid = document.getElementById('productGrid');
+        if (grid) grid.innerHTML = '';
+        if (typeof showSkeletons === 'function') showSkeletons();
+        fetchProducts();
+    };
+
     function showProductsError(msg) {
         const grid = document.getElementById('productGrid');
         if (!grid) return;
+        
+        const safeMsg = (msg || '').toString().toLowerCase();
+        const isOffline = safeMsg.includes('offline') || safeMsg.includes('failed to fetch') || safeMsg.includes('timeout') || safeMsg.includes('network');
+        const displayMsg = isOffline 
+            ? "Parece que tu conexión a internet es lenta o se cortó." 
+            : (safeMsg.includes('permission') ? 'Verificá las reglas de Firestore (allow read)' : msg);
+
         grid.innerHTML = `
             <div style="grid-column:1/-1;text-align:center;padding:4rem 2rem;color:var(--text-secondary)">
-                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin:0 auto 1rem;opacity:.5">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1" style="margin:0 auto 1.5rem;opacity:.5">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
                 </svg>
-                <h3 style="margin:0 0 .5rem;color:var(--text-primary)">No se pudieron cargar los productos</h3>
-                <p style="margin:0;font-size:.9rem">${msg.includes('permission') || msg.includes('Permission') ? 'Verificá las reglas de Firestore (allow read)' : msg}</p>
+                <h3 style="margin:0 0 .5rem;color:var(--text-primary)">Error de conexión</h3>
+                <p style="margin:0 0 1.8rem;font-size:.9rem">${displayMsg}</p>
+                <button onclick="window.retryFetchProducts()" class="magnetic-btn" style="padding:0.8rem 2.5rem;border-radius:50px;background:var(--gradient-glow);color:#fff;border:none;font-weight:bold;cursor:pointer;font-size:1rem;font-family:'Outfit',sans-serif;box-shadow: 0 4px 20px rgba(0, 240, 255, 0.2);">
+                    Reintentar Carga
+                </button>
             </div>`;
     }
 
@@ -570,7 +609,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     showSkeletons();
 
-    fetchProducts();
     function initDynamicEvents() {
         document.querySelectorAll('.tilt-card').forEach(card => {
             const glow = card.querySelector('.card-glow');
