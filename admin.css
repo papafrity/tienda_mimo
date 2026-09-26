@@ -622,7 +622,7 @@ select option { background: #fff; color: #000; }
         font-size: 0.9rem !important;
     }
 
-    /* ── Product table → Card layout ── */
+    /* ── Product table → Vertical Card layout ── */
     .table-container {
         border: none !important;
         background: transparent !important;
@@ -642,109 +642,111 @@ select option { background: #fff; color: #000; }
         gap: 0.8rem !important;
         width: 100% !important;
     }
+    
+    /* Each product row becomes a vertical card */
     .admin-table tr {
-        display: flex !important;
-        flex-wrap: wrap !important;
-        align-items: center !important;
+        display: grid !important;
+        grid-template-columns: 24px 56px 1fr !important;
+        grid-template-rows: auto auto auto auto !important;
+        gap: 0.2rem 0.6rem !important;
         background: rgba(15, 17, 28, 0.95) !important;
         border: 1px solid var(--surface-border) !important;
         border-radius: 14px !important;
         padding: 0.8rem !important;
-        gap: 0.3rem !important;
         position: relative !important;
+        align-items: center !important;
     }
     .admin-table td {
         display: block !important;
         padding: 0 !important;
         border: none !important;
         text-align: left !important;
+        min-width: 0 !important;
     }
 
-    /* Checkbox */
+    /* Row 1: Checkbox | Image | Name */
     .admin-table td:first-child {
-        flex: 0 0 24px !important;
-        order: 0 !important;
+        grid-column: 1 !important;
+        grid-row: 1 / 3 !important;
+        align-self: start !important;
+        padding-top: 4px !important;
     }
-
-    /* Product Image */
     .admin-table td:nth-child(2) {
-        flex: 0 0 auto !important;
-        order: 1 !important;
+        grid-column: 2 !important;
+        grid-row: 1 / 3 !important;
+        align-self: start !important;
     }
     .admin-table td:nth-child(2) img {
-        width: 56px !important;
-        height: 56px !important;
+        width: 52px !important;
+        height: 52px !important;
         border-radius: 10px !important;
     }
-
-    /* Product Name */
+    /* Name */
     .admin-table td:nth-child(3) {
-        flex: 1 1 0 !important;
-        order: 2 !important;
-        font-size: 0.9rem !important;
-        font-weight: 600 !important;
+        grid-column: 3 !important;
+        grid-row: 1 !important;
+        font-size: 0.95rem !important;
+        font-weight: 700 !important;
         color: #fff !important;
-        min-width: 0 !important;
         overflow: hidden !important;
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
     }
 
-    /* Category */
+    /* Row 2: Category under name */
     .admin-table td:nth-child(4) {
-        order: 3 !important;
-        flex: 0 0 auto !important;
-        font-size: 0.7rem !important;
+        grid-column: 3 !important;
+        grid-row: 2 !important;
+        font-size: 0.72rem !important;
         color: var(--accent-color) !important;
         font-weight: 600 !important;
         text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
     }
-    .admin-table td:nth-child(4)::before { content: "Precio: " !important; font-size: 0.65rem !important; color: var(--text-secondary) !important; font-weight: 400 !important; }
+    .admin-table td:nth-child(4)::before { content: none !important; }
 
-    /* Price info row */
+    /* Row 3: Price / Offer / Stock / Weight → all inline */
     .admin-table td:nth-child(5),
     .admin-table td:nth-child(6),
     .admin-table td:nth-child(7),
     .admin-table td:nth-child(8) {
-        flex: 0 0 auto !important;
-        order: 4 !important;
-        font-size: 0.75rem !important;
+        grid-column: 1 / -1 !important;
+        grid-row: auto !important;
+        font-size: 0.8rem !important;
     }
 
-    /* Cell inputs in inline editing */
+    /* Cell inputs (inline editing) */
     .cell-input {
-        width: 65px !important;
-        padding: 0.25rem 0.35rem !important;
-        font-size: 0.78rem !important;
+        width: 70px !important;
+        padding: 0.3rem 0.4rem !important;
+        font-size: 0.8rem !important;
     }
     .cell-cur-switch {
-        font-size: 0.65rem !important;
-        padding: 0.2rem 0.4rem !important;
+        font-size: 0.68rem !important;
+        padding: 0.2rem 0.45rem !important;
     }
 
-    /* Status badge */
+    /* Status badge row */
     .admin-table td:nth-child(9) {
-        order: 5 !important;
-        flex: 0 0 auto !important;
+        grid-column: 1 / -1 !important;
     }
 
-    /* Actions row - full width at bottom */
+    /* Actions: full-width row at bottom */
     .admin-table td:last-child {
-        flex: 1 1 100% !important;
-        order: 10 !important;
+        grid-column: 1 / -1 !important;
         display: flex !important;
         gap: 0.5rem !important;
         border-top: 1px solid rgba(255,255,255,0.06) !important;
         padding-top: 0.6rem !important;
-        margin-top: 0.3rem !important;
+        margin-top: 0.2rem !important;
     }
     .admin-table td:last-child button {
         display: flex !important;
         align-items: center !important;
         justify-content: center !important;
         gap: 0.3rem !important;
-        padding: 0.45rem 0.8rem !important;
-        font-size: 0.78rem !important;
+        padding: 0.5rem 0.8rem !important;
+        font-size: 0.8rem !important;
         border-radius: 8px !important;
         flex: 1 !important;
     }
