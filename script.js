@@ -468,9 +468,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    async function fetchProducts() {
+    async function fetchProducts(retries = 3) {
         try {
-            await fetchUsdRate();
+            // Ensure Firebase is loaded
+            if (typeof db === 'undefined' || !db) {
+                if (retries > 0) {
+                    console.warn('Firebase not ready, retrying in 500ms...');
+                    setTimeout(() => fetchProducts(retries - 1), 500);
+                    return;
+                }
+                showProductsError('Firebase no se pudo cargar. Recargá la página.');
+                return;
+            }
+            // Fetch USD rate in parallel (don't block product loading)
+            fetchUsdRate().then(() => {
+                if (applyDynamicPrices()) { renderProducts(); renderCarousel(); }
+            }).catch(() => {});
             const querySnapshot = await db.collection("products").get();
             products = [];
             querySnapshot.forEach((doc) => {
@@ -858,7 +871,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function initCarouselLogic() {
         const track = document.getElementById('carousel3d');
+        if (!track) return;
         const wrapper = track.parentElement;
+        if (!wrapper) return;
         const cards = [...track.querySelectorAll('.carousel-card')];
         
         // Clean up previous event listeners by cloning the buttons
