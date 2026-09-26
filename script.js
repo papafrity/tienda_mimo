@@ -1,4 +1,26 @@
 
+
+// ─── LOW-END DEVICE DETECTION ───
+window.isLowEndDevice = () => {
+    try {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return true;
+        if (navigator.deviceMemory && navigator.deviceMemory <= 3) return true;
+        if (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4) return true;
+        const ua = navigator.userAgent;
+        const androidMatch = ua.match(/Android\s([0-9\.]+)/);
+        if (androidMatch && parseFloat(androidMatch[1]) <= 8) return true;
+        return false;
+    } catch(e) {
+        return false;
+    }
+};
+
+if (window.isLowEndDevice()) {
+    document.documentElement.classList.add("low-end-mode");
+    console.warn("Modo Bajo Rendimiento Activado: Animaciones pesadas y 3D deshabilitados.");
+}
+
+
 // ─── DEFENSIVE STUBS PARA CDNs (EVITA CRASHES EN CELULARES) ───
 if (typeof gsap === "undefined") {
     console.warn("GSAP no cargó. Usando stubs para evitar crasheos.");
@@ -57,7 +79,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const ring = document.getElementById('cursorRing');
     if (ring) ring.style.display = 'none';
 
-    if (dot) {
+    if (dot && !window.isLowEndDevice()) {
         if (typeof gsap !== 'undefined') {
             gsap.set(dot, { xPercent: -50, yPercent: -50 });
         }
@@ -1059,18 +1081,20 @@ document.addEventListener('DOMContentLoaded', () => {
                 const dir = diff > 0 ? 1 : -1;
 
                 let targetX, targetScale, targetRotateY, targetRotateX, targetBlur, targetOpacity, targetZ;
+                
+                const m = window.isLowEndDevice();
 
                 if (abs === 0) {
                     targetX = 0; targetScale = 1; targetRotateY = 0; targetRotateX = 0; targetBlur = 'blur(0px)';
                     targetOpacity = 1; targetZ = 10;
                 } else if (abs === 1) {
-                    targetX = dir * X_STEP; targetScale = 0.82; targetRotateY = dir * -22; targetRotateX = 0; targetBlur = 'blur(1.5px)';
-                    targetOpacity = 0.5; targetZ = 5;
+                    targetX = dir * X_STEP; targetScale = m ? 0.9 : 0.82; targetRotateY = m ? 0 : dir * -22; targetRotateX = 0; targetBlur = m ? 'blur(0px)' : 'blur(1.5px)';
+                    targetOpacity = m ? 0.6 : 0.5; targetZ = 5;
                 } else if (abs === 2) {
-                    targetX = dir * X_STEP * 1.9; targetScale = 0.62; targetRotateY = dir * -38; targetRotateX = 0; targetBlur = 'blur(3.5px)';
-                    targetOpacity = 0.2; targetZ = 2;
+                    targetX = dir * X_STEP * 1.9; targetScale = m ? 0.8 : 0.62; targetRotateY = m ? 0 : dir * -38; targetRotateX = 0; targetBlur = m ? 'blur(0px)' : 'blur(3.5px)';
+                    targetOpacity = m ? 0 : 0.2; targetZ = 2;
                 } else {
-                    targetX = dir * X_STEP * 2.6; targetScale = 0.45; targetRotateY = 0; targetRotateX = 0; targetBlur = 'blur(5px)';
+                    targetX = dir * X_STEP * 2.6; targetScale = m ? 0.8 : 0.45; targetRotateY = 0; targetRotateX = 0; targetBlur = m ? 'blur(0px)' : 'blur(5px)';
                     targetOpacity = 0; targetZ = 0;
                 }
 
@@ -1154,11 +1178,12 @@ document.addEventListener('DOMContentLoaded', () => {
             else if (diff < -realCount / 2) diff += realCount;
             const abs = Math.abs(diff);
             const dir = diff > 0 ? 1 : -1;
+            const m = window.isLowEndDevice();
             gsap.set(card, {
                 x: abs === 0 ? 0 : dir * X_STEP * (abs === 1 ? 1 : abs === 2 ? 1.9 : 2.6),
-                scale: abs === 0 ? 1 : abs === 1 ? 0.82 : abs === 2 ? 0.62 : 0.45,
-                rotateY: abs === 0 ? 0 : dir * (abs === 1 ? -22 : -38),
-                opacity: abs === 0 ? 1 : abs === 1 ? 0.5 : abs === 2 ? 0.2 : 0,
+                scale: abs === 0 ? 1 : abs === 1 ? (m ? 0.9 : 0.82) : abs === 2 ? (m ? 0.8 : 0.62) : (m ? 0.8 : 0.45),
+                rotateY: m ? 0 : (abs === 0 ? 0 : dir * (abs === 1 ? -22 : -38)),
+                opacity: abs === 0 ? 1 : abs === 1 ? (m ? 0.6 : 0.5) : abs === 2 ? (m ? 0 : 0.2) : 0,
                 zIndex: abs === 0 ? 10 : abs === 1 ? 5 : abs === 2 ? 2 : 0,
                 force3D: true,
                 transformPerspective: 1000
@@ -2137,7 +2162,7 @@ document.head.appendChild(st);
 (function () {
     if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
     gsap.registerPlugin(ScrollTrigger);
-    if (typeof ScrollSmoother !== 'undefined') {
+    if (typeof ScrollSmoother !== 'undefined' && !window.isLowEndDevice()) {
         gsap.registerPlugin(ScrollSmoother);
         const isMobile = () => window.innerWidth < 768;
         smoother = ScrollSmoother.create({
@@ -2279,7 +2304,7 @@ document.head.appendChild(st);
 // ─── INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
 (function () {
     const canvas = document.getElementById('bgCanvas');
-    if (!canvas || typeof THREE === 'undefined') return;
+    if (!canvas || typeof THREE === 'undefined' || window.isLowEndDevice()) return;
     const isMobile = () => innerWidth < 768;
 
     let w = innerWidth, h = innerHeight;
@@ -2439,7 +2464,7 @@ document.head.appendChild(st);
 (function () {
     const canvas = document.getElementById('showcaseCanvas');
     const section = document.getElementById('showcase3d');
-    if (!canvas || !section || typeof THREE === 'undefined') return;
+    if (!canvas || !section || typeof THREE === 'undefined' || window.isLowEndDevice()) return;
 
     const isMobile = () => innerWidth < 768;
     let w = innerWidth, h = innerHeight;

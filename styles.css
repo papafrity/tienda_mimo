@@ -1579,3 +1579,13 @@ body{padding-bottom:70px}
 .mobile-nav-item.active .mobile-cart-icon-img {
     filter: drop-shadow(0 0 6px var(--accent-color));
 }
+
+/* ── LOW END MODE FALLBACKS ── */
+body.low-end-mode {
+    background: linear-gradient(135deg, #050507, #0a0e1a) !important;
+}
+body.low-end-mode #bgCanvas, 
+body.low-end-mode #showcaseCanvas, 
+body.low-end-mode .hero-visual {
+    display: none !important;
+}
