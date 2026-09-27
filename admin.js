@@ -208,26 +208,34 @@ const tbody = document.getElementById('adminProductList');
 const adminSearchInput = document.getElementById('adminSearchInput');
 const adminCategoryFilter = document.getElementById('adminCategoryFilter');
 const adminStatusFilter = document.getElementById('adminStatusFilter');
+let unsubscribeProducts = null;
 
 async function loadProducts() {
-    tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
-    try {
-        // Intenta obtener siempre desde el servidor primero para evitar cachés vacíos erróneos
-        const querySnapshot = await db.collection("products").get({ source: 'server' }).catch(() => db.collection("products").get());
-        
-        adminProducts = [];
-        querySnapshot.forEach((doc) => {
-            adminProducts.push({ id: doc.id, ...doc.data() });
-        });
-        renderAdminProducts();
-    } catch(e) {
-        tbody.innerHTML = `<tr>
-            <td colspan="9" style="text-align:center; padding: 2rem; color: #ff4757;">
-                Error de conexión: ${e.message}<br>
-                <button onclick="loadProducts()" class="magnetic-btn" style="margin-top:1rem;padding:.5rem 1rem">Intentar nuevamente</button>
-            </td>
-        </tr>`;
-    }
+    return new Promise((resolve) => {
+        if (!unsubscribeProducts) {
+            tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
+            unsubscribeProducts = db.collection("products").onSnapshot((querySnapshot) => {
+                adminProducts = [];
+                querySnapshot.forEach((doc) => {
+                    adminProducts.push({ id: doc.id, ...doc.data() });
+                });
+                renderAdminProducts();
+                resolve();
+            }, (error) => {
+                tbody.innerHTML = `<tr>
+                    <td colspan="9" style="text-align:center; padding: 2rem; color: #ff4757;">
+                        Error de conexión: ${error.message}<br>
+                        <button onclick="window.location.reload()" class="magnetic-btn" style="margin-top:1rem;padding:.5rem 1rem">Recargar página</button>
+                    </td>
+                </tr>`;
+                resolve(); // Resolve to not hang awaiters
+            });
+        } else {
+            // Ya estamos escuchando cambios, forzamos un re-render por si acaso
+            renderAdminProducts();
+            resolve();
+        }
+    });
 }
 
 function renderAdminProducts() {
@@ -250,7 +258,7 @@ function renderAdminProducts() {
     const cats = [...new Set(adminProducts.map(p => p.category).filter(Boolean))].sort();
     
     function escapeHtml(unsafe) {
-        return (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+        return (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/\n/g, " ");
     }
 
     adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
