@@ -212,26 +212,38 @@ const adminStatusFilter = document.getElementById('adminStatusFilter');
 async function loadProducts() {
     tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">Cargando productos...</td></tr>';
     try {
-        const querySnapshot = await db.collection("products").get();
+        // Intenta obtener siempre desde el servidor primero para evitar cachés vacíos erróneos
+        const querySnapshot = await db.collection("products").get({ source: 'server' }).catch(() => db.collection("products").get());
+        
         adminProducts = [];
         querySnapshot.forEach((doc) => {
             adminProducts.push({ id: doc.id, ...doc.data() });
         });
         renderAdminProducts();
     } catch(e) {
-        tbody.innerHTML = `<tr><td colspan="9" style="text-align:center; padding: 2rem; color: #ff4757;">Error conectando a Firebase: ${e.message}</td></tr>`;
+        tbody.innerHTML = `<tr>
+            <td colspan="9" style="text-align:center; padding: 2rem; color: #ff4757;">
+                Error de conexión: ${e.message}<br>
+                <button onclick="loadProducts()" class="magnetic-btn" style="margin-top:1rem;padding:.5rem 1rem">Intentar nuevamente</button>
+            </td>
+        </tr>`;
     }
 }
 
 function renderAdminProducts() {
     tbody.innerHTML = '';
     const migrateBtn = document.getElementById('migrateBtn');
+    if (migrateBtn) migrateBtn.style.display = 'none'; // Ocultamos permanentemente este botón para no asustar al usuario
+
     if (adminProducts.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; padding: 2rem;">No hay productos. Usa "Cargar Catálogo Inicial" para iniciar.</td></tr>';
-        if (migrateBtn) migrateBtn.style.display = '';
+        tbody.innerHTML = `<tr>
+            <td colspan="9" style="text-align:center; padding: 3rem;">
+                No se encontraron productos en la base de datos.<br><br>
+                <span style="color:var(--text-secondary);font-size:0.9rem;">Si crees que esto es un error de conexión (el internet está lento), toca "Recargar" arriba.</span>
+            </td>
+        </tr>`;
         return;
     }
-    if (migrateBtn) migrateBtn.style.display = 'none';
 
     // Populate category filter
     const prevCat = adminCategoryFilter.value;
@@ -539,7 +551,17 @@ const modal = document.getElementById('adminModal');
 const form = document.getElementById('productForm');
 
 document.getElementById('addProductBtn').addEventListener('click', () => openModal());
-document.getElementById('reloadBtn').addEventListener('click', loadProducts);
+document.getElementById('reloadBtn').addEventListener('click', async (e) => {
+    const btn = e.target;
+    const originalText = btn.innerHTML;
+    btn.innerHTML = '⏳ Cargando...';
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    await loadProducts();
+    btn.innerHTML = originalText;
+    btn.disabled = false;
+    btn.style.opacity = '1';
+});
 document.getElementById('cancelBtn').addEventListener('click', () => {
     seqQueue = []; seqIdx = -1;
     updateSeqUI();
