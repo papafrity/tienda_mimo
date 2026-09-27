@@ -245,11 +245,18 @@ function renderAdminProducts() {
         return;
     }
 
-    // Populate category filter
+    // Populate category filter safely
     const prevCat = adminCategoryFilter.value;
     const cats = [...new Set(adminProducts.map(p => p.category).filter(Boolean))].sort();
-    adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
-    if (adminCategoryFilter.querySelector(`option[value="${prevCat}"]`)) {
+    
+    function escapeHtml(unsafe) {
+        return (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    
+    const optionsArray = Array.from(adminCategoryFilter.options);
+    if (optionsArray.some(opt => opt.value === prevCat)) {
         adminCategoryFilter.value = prevCat;
     } else {
         adminCategoryFilter.value = 'all';
@@ -283,9 +290,9 @@ function renderAdminProducts() {
         const costCur = (pend && pend.currency) || p.costCurrency || 'ARS';
         tr.innerHTML = `
             <td><input type="checkbox" class="row-select" data-id="${p.id}" ${selectedIds.has(p.id) ? 'checked' : ''} title="Seleccionar"></td>
-            <td><img src="${displayImg}" alt="img"></td>
-            <td><strong>${p.name}</strong></td>
-            <td style="text-transform: capitalize;">${p.category}</td>
+            <td><img src="${escapeHtml(displayImg)}" alt="img"></td>
+            <td><strong>${escapeHtml(p.name)}</strong></td>
+            <td style="text-transform: capitalize;">${escapeHtml(p.category)}</td>
             <td><div class="cell-wrap"><button type="button" class="cell-cur-switch" data-id="${p.id}" data-cur="${costCur}" title="Cambiar moneda (ARS ↔ USD)">${costCur === 'USD' ? 'US$' : 'ARS'}</button><input class="cell-input cost-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${costVal}" placeholder="—"></div></td>
             <td><div class="cell-wrap"><span class="cell-cur">$</span><input class="cell-input price-input" data-id="${p.id}" type="number" min="0" step="0.01" value="${priceVal}"></div></td>
             <td>${p.offerPrice ? '$' + fmt(p.offerPrice) : '-'}</td>
