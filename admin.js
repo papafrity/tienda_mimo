@@ -2548,3 +2548,30 @@ if (toggleMenuBtn) {
         document.getElementById("dashboard").classList.toggle("menu-collapsed");
     });
 }
+
+
+document.getElementById('recalcArsBtn')?.addEventListener('click', async () => {
+    if (!confirm('¿Querés recalcular todos los productos en Pesos (ARS) con la nueva fórmula de Mercado Pago? Esto ajustará los precios finales según los márgenes que pusiste.')) return;
+    
+    let ok = 0;
+    const btn = document.getElementById('recalcArsBtn');
+    btn.disabled = true;
+    btn.textContent = 'Calculando...';
+    
+    for (const p of adminProducts) {
+        if (p.costCurrency !== 'USD' && p.cost > 0) {
+            const price = calcPriceFromCostInline(p.cost, p.margin || 0);
+            if (price !== p.price) {
+                try {
+                    await db.collection('products').doc(p.id).update({ price: price });
+                    p.price = price;
+                    ok++;
+                } catch(e) { console.error(e); }
+            }
+        }
+    }
+    renderAdminProducts();
+    alert(`Se actualizaron ${ok} productos en Pesos con la nueva fórmula.`);
+    btn.textContent = '🔄 Forzar Cálculo ARS';
+    btn.disabled = false;
+});

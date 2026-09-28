@@ -259,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ─── PRECIOS DINÁMICOS CON DÓLAR ─────────────────
     // Los productos con costCurrency = 'USD' recalculan su precio en ARS
     // automáticamente con el dólar blue del momento (misma fórmula del admin).
-    const MP_FEE = 0.0649;
+    const MP_REAL_FEE = 0.0781; // 6.45% + IVA
     let usdRateARS = null;
 
     function roundPrice(v) { return v < 100 ? v : Math.ceil(v / 100) * 100; }
@@ -268,7 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const costARS = costUSD * (usdRateARS || 0);
         if (!costARS) return null;
         const basePrice = costARS * (1 + (margin / 100));
-        return roundPrice(basePrice * (1 + MP_FEE));
+        return roundPrice(basePrice / (1 - MP_REAL_FEE));
     }
 
     function applyDynamicPrices() {
