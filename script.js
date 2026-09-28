@@ -397,6 +397,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    
+window.getInstallmentsHtml = function(price) {
+    if (typeof window.STORE_CONFIG === "undefined" || !window.STORE_CONFIG.installmentCount || window.STORE_CONFIG.installmentCount <= 0) return "";
+    const cuotas = window.STORE_CONFIG.installmentCount;
+    const coef = window.STORE_CONFIG.installmentMultiplier || 1.0;
+    const cuotaPrice = (price * coef) / cuotas;
+    return `<div class="installment-info" style="font-size: 0.85rem; color: var(--accent-color); font-weight: 600; margin-top: 2px; margin-bottom: 5px;">💳 ${cuotas} cuotas fijas de $${fmt(cuotaPrice)}</div>`;
+};
+
     function renderProducts() {
         try {
         const grid = document.getElementById('productGrid');
@@ -449,6 +458,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let priceHtml = hasDiscount
                 ? `<p class="price"><span class="price-old">$${fmt(p.price)}</span><span class="price-offer">$${fmt(p.offerPrice)}</span></p>`
                 : `<p class="price"><span class="price-offer">$${fmt(offerVal(p))}</span></p>`;
+              let basePriceForInstallments = hasDiscount ? p.offerPrice : offerVal(p);
+              priceHtml += window.getInstallmentsHtml(basePriceForInstallments);
                 
             grid.innerHTML += `
             <div class="product-card tilt-card" data-category="${p.category}" data-id="${p.id}" style="transition-delay:${Math.min(idx * .04, .3)}s">
@@ -486,6 +497,8 @@ document.addEventListener('DOMContentLoaded', () => {
             let priceHtml = hasDiscount 
                 ? `<p class="old-price">$${fmt(p.oldPrice)}</p><p class="offer-price">$${fmt(p.offerPrice)}</p>` 
                 : `<p class="offer-price">$${fmt(offerVal(p))}</p>`;
+              let basePriceForInstallments = hasDiscount ? p.offerPrice : offerVal(p);
+              priceHtml += window.getInstallmentsHtml(basePriceForInstallments);
                 
             const card = document.createElement('div');
             card.className = 'carousel-card product-card';
@@ -526,6 +539,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 showProductsError('Firebase no se pudo cargar. Recargá la página.');
                 return;
             }
+            // Fetch Store Config
+            window.STORE_CONFIG = { installmentCount: 0, installmentMultiplier: 1.0 };
+            db.collection("config").doc("store").get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    window.STORE_CONFIG.installmentCount = data.installmentCount || 0;
+                    window.STORE_CONFIG.installmentMultiplier = data.installmentMultiplier || 1.0;
+                    renderProducts(); renderCarousel();
+                }
+            }).catch(e => console.error("Error loading store config:", e));
+
             // Fetch USD rate in parallel (don't block product loading)
             fetchUsdRate().then(() => {
                 if (applyDynamicPrices()) { renderProducts(); renderCarousel(); }
@@ -1488,6 +1512,8 @@ document.addEventListener('DOMContentLoaded', () => {
             mPr.innerHTML = hasDiscount
                 ? `<span style="text-decoration: line-through; font-size: 0.85em; color: var(--text-secondary); margin-right: 8px;">$${fmt(p.price)}</span><span class="accent">$${fmt(p.offerPrice)}</span>`
                 : `$${fmt(offerVal(p))}`;
+            let basePriceForInstallments = hasDiscount ? p.offerPrice : offerVal(p);
+            mPr.innerHTML += window.getInstallmentsHtml(basePriceForInstallments);
             const tiersToggle = document.getElementById('modalTiersToggle');
             const tiersList = document.getElementById('modalTiersList');
             if (tiersToggle && tiersList) {

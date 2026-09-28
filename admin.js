@@ -2493,6 +2493,12 @@ if (saveSettingsBtn) {
 // ─── ADMIN SETTINGS TAB ───────────────────────────────────
 async function loadSettings() {
     try {
+        const docStore = await db.collection('config').doc('store').get();
+        if (docStore.exists) {
+            const data = docStore.data();
+            if (document.getElementById('adminInstallmentCount')) document.getElementById('adminInstallmentCount').value = data.installmentCount || 0;
+            if (document.getElementById('adminInstallmentMultiplier')) document.getElementById('adminInstallmentMultiplier').value = data.installmentMultiplier || 1.0;
+        }
         const doc = await db.collection('settings').doc('transfer').get();
         if (doc.exists) {
             const data = doc.data();
@@ -2519,6 +2525,9 @@ document.getElementById('saveSettingsBtn')?.addEventListener('click', async () =
         await db.collection('settings').doc('transfer').set({
             discount, cbu, alias, name, updatedAt: firebase.firestore.FieldValue.serverTimestamp()
         }, { merge: true });
+        const instCount = parseInt(document.getElementById('adminInstallmentCount').value) || 0;
+        const instMult = parseFloat(document.getElementById('adminInstallmentMultiplier').value) || 1.0;
+        await db.collection('config').doc('store').set({ installmentCount: instCount, installmentMultiplier: instMult }, { merge: true });
         
         showToast('Configuración guardada exitosamente', 'success');
     } catch (e) {
