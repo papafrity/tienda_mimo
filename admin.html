@@ -255,11 +255,10 @@
             <div class="admin-main" style="margin-top:0;padding-top:0;padding-left:0;padding-right:0;">
                 <!-- Cost Calculator Section -->
             <div class="calculator-card">
-                <div class="calculator-header" id="toggleCalcBtn" class="calculator-header active">
+                <div class="calculator-header">
                     <h3>🧮 Calculadora de Costos e Importación (Dropshipping)</h3>
-                    <span class="calc-arrow" id="calcArrow">▼</span>
                 </div>
-                <div class="calculator-body hidden" id="calculatorBody">
+                <div class="calculator-body" id="calculatorBody" style="display:block;">
                     <div class="calc-grid">
                         <div class="calc-input-section">
                             <div class="calc-form-group">
@@ -324,6 +323,10 @@
                         <select id="adminReviewsProductSelect" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;min-width:250px">
                             <option value="">Seleccioná un producto...</option>
                         </select>
+                        <select id="adminReviewsSortSelect" style="padding:.5rem 1rem;background:var(--surface-color);border:1px solid var(--surface-border);border-radius:8px;color:#fff;font-family:'Outfit',sans-serif;font-size:.85rem;">
+                            <option value="desc">Más nuevas a más viejas</option>
+                            <option value="asc">Más viejas a más nuevas</option>
+                        </select>
                         <button id="adminReviewsRefreshBtn" class="magnetic-btn" style="background:transparent;border:1px solid var(--surface-border);color:var(--text-secondary);padding:.5rem 1rem;font-size:.85rem">🔄 Recargar</button>
                         <button id="adminRecalcAllBtn" class="magnetic-btn" style="background:transparent;border:1px solid #ffd700;color:#ffd700;padding:.5rem 1rem;font-size:.85rem">♻️ Recalcular todos</button>
                     </div>
@@ -333,20 +336,7 @@
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Removed Google API Settings Modal -->
-
-    <!-- Order Detail Modal -->
-    <div class="modal-overlay" id="orderModal">
-        <div class="admin-modal-content">
-            <h3 style="margin-bottom:1rem">📋 Detalle del Pedido</h3>
-            <div id="orderDetailContent"></div>
-            <div class="form-actions" style="margin-top:1.5rem">
-                <button type="button" id="closeOrderModalBtn" class="magnetic-btn outline">Cerrar</button>
-            </div>
-        </div>
-    </div>
 
     
         <!-- TAB CONTENT: SETTINGS -->
@@ -394,7 +384,21 @@
                 <button id="saveSettingsBtn" class="magnetic-btn" style="background: var(--gradient-glow); color: #000; border: none; padding: 1rem; width: 100%; border-radius: 10px; font-weight: bold; cursor: pointer;">Guardar Configuración</button>
             </div>
         </div>
-<!-- Product Modal -->
+
+    </div>
+
+    <!-- Removed Google API Settings Modal -->
+
+    <!-- Order Detail Modal -->
+    <div class="modal-overlay" id="orderModal">
+        <div class="admin-modal-content">
+            <h3 style="margin-bottom:1rem">📋 Detalle del Pedido</h3>
+            <div id="orderDetailContent"></div>
+            <div class="form-actions" style="margin-top:1.5rem">
+                <button type="button" id="closeOrderModalBtn" class="magnetic-btn outline">Cerrar</button>
+            </div>
+        </div>
+    </div><!-- Product Modal -->
     <div class="modal-overlay" id="adminModal">
         <div class="admin-modal-content">
             <h3 id="modalTitle">Agregar Producto</h3>

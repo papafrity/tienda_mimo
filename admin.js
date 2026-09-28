@@ -453,6 +453,7 @@ document.getElementById('skipBtn').addEventListener('click', () => {
         selectedIds.clear();
         updateSeqUI();
         modal.classList.remove('active');
+        document.body.style.overflow = '';
         loadProducts();
         alert('Secuencia terminada.');
     }
@@ -582,6 +583,7 @@ document.getElementById('cancelBtn').addEventListener('click', () => {
     seqQueue = []; seqIdx = -1;
     updateSeqUI();
     modal.classList.remove('active');
+        document.body.style.overflow = '';
 });
 
 // Botones rápidos de margen: solo rellenan el formulario del producto en edición
@@ -666,6 +668,8 @@ function openModal(id = null) {
         }
     }
     modal.classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.body.style.overflow = 'hidden';
     updateSeqUI();
     // Disparar evento para que aparezca la cruz de borrar imagen
     document.getElementById('prodImg').dispatchEvent(new Event('input'));
@@ -739,10 +743,12 @@ form.addEventListener('submit', async (e) => {
                 selectedIds.clear();
                 updateSeqUI();
                 modal.classList.remove('active');
+        document.body.style.overflow = '';
                 alert('✅ Secuencia completa.');
             }
         } else {
             modal.classList.remove('active');
+        document.body.style.overflow = '';
             await loadProducts();
         }
     } catch (error) {
@@ -814,7 +820,7 @@ function updateCalculatedPrice() {
     const finalPrice = rawFinal < 100 ? rawFinal : Math.ceil(rawFinal / 100) * 100;
     document.getElementById('prodPrice').value = finalPrice;
     
-    const profit = finalPrice - costARS;
+    const profit = finalPrice * (1 - MP_REAL_FEE) - costARS;
     const display = document.getElementById('prodProfitDisplay');
     const currency = getCostCurrency();
     const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
@@ -907,7 +913,7 @@ document.getElementById('prodCurrency').addEventListener('click', () => {
 document.getElementById('prodPrice').addEventListener('input', () => {
     const costARS = getCostInARS();
     const finalPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
-    const profit = finalPrice - costARS;
+    const profit = finalPrice * (1 - MP_REAL_FEE) - costARS;
     const display = document.getElementById('prodProfitDisplay');
     const currency = getCostCurrency();
     const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
@@ -2172,10 +2178,11 @@ async function renderReviewsTab(prodId = 'all') {
             });
         }
         
+        const sortOrder = document.getElementById("adminReviewsSortSelect") ? document.getElementById("adminReviewsSortSelect").value : "desc";
         allReviews.sort((a, b) => {
             const tA = a.date?.toDate ? a.date.toDate().getTime() : 0;
             const tB = b.date?.toDate ? b.date.toDate().getTime() : 0;
-            return tB - tA; // Newest first
+            return sortOrder === "desc" ? tB - tA : tA - tB;
         });
 
         container.innerHTML = '';
@@ -2261,7 +2268,11 @@ document.getElementById('adminReviewsProductSelect')?.addEventListener('change',
     renderReviewsTab(this.value || 'all');
 });
 
-document.getElementById('adminReviewsRefreshBtn')?.addEventListener('click', () => {
+document.getElementById('adminReviewsSortSelect')?.addEventListener('change', () => {
+        const prodId = document.getElementById('adminReviewsProductSelect').value || 'all';
+        renderReviewsTab(prodId);
+    });
+    document.getElementById('adminReviewsRefreshBtn')?.addEventListener('click', () => {
     const select = document.getElementById('adminReviewsProductSelect');
     const prodId = select?.value || 'all';
     loadReviewsProductSelect();
