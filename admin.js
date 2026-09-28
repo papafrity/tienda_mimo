@@ -461,10 +461,11 @@ document.getElementById('skipBtn').addEventListener('click', () => {
 // ─── EDICIÓN INLINE DE COSTO/PRECIO EN LA LISTA ─────────
 // Los cambios quedan "pendientes" (punto ámbar) hasta pulsar Guardar cambios.
 const pendingEdits = {};
-const MP_FEE_INLINE = 0.0649;
+const MP_REAL_FEE = 0.0781; // 6.45% + IVA
 
 function calcPriceFromCostInline(costARS, margin) {
-    const v = costARS * (1 + (margin / 100)) * (1 + MP_FEE_INLINE);
+    const base = costARS * (1 + (margin / 100));
+    const v = base / (1 - MP_REAL_FEE);
     return v < 100 ? Math.round(v * 100) / 100 : Math.ceil(v / 100) * 100;
 }
 
@@ -805,12 +806,11 @@ function updateCostARSDisplay() {
 }
 
 // Auto-calculate price
-const MP_FEE = 0.0649; // 6.49% Mercado Pago comisión inmediata
 function updateCalculatedPrice() {
     const costARS = getCostInARS();
     const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
     const basePrice = costARS * (1 + (margin / 100));
-    const rawFinal = basePrice * (1 + MP_FEE);
+    const rawFinal = basePrice / (1 - MP_REAL_FEE);
     const finalPrice = rawFinal < 100 ? rawFinal : Math.ceil(rawFinal / 100) * 100;
     document.getElementById('prodPrice').value = finalPrice;
     
@@ -827,7 +827,7 @@ function updateCalculatedPrice() {
 // Tramo 1 = costo/precio base. Tramos 2-4: misma fórmula (margen + MP + redondeo).
 function calcFinalPrice(costARS, margin) {
     const basePrice = costARS * (1 + (margin / 100));
-    const rawFinal = basePrice * (1 + MP_FEE);
+    const rawFinal = basePrice / (1 - MP_REAL_FEE);
     return rawFinal < 100 ? Math.round(rawFinal * 100) / 100 : Math.ceil(rawFinal / 100) * 100;
 }
 
