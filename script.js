@@ -2348,7 +2348,7 @@ document.head.appendChild(st);
     }
 })();
 
-// ─── INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
+// ─── // INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
 (function () {
     const canvas = document.getElementById('bgCanvas');
     if (!canvas || typeof THREE === 'undefined' || window.isLowEndDevice()) return;
@@ -2592,7 +2592,7 @@ document.head.appendChild(st);
     }
 })();
 
-INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
+// INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
 (function () {
     const canvas = document.getElementById('bgCanvas');
     if (!canvas || typeof THREE === 'undefined' || window.isLowEndDevice()) return;
