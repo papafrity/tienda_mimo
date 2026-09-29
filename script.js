@@ -2507,6 +2507,250 @@ document.head.appendChild(st);
     animate();
 })();
 
+// ─── SHOWCASE IMAGE SEQUENCE (APPLE STYLE) ──────────────────────────────────
+(function () {
+    const canvas = document.getElementById('showcaseCanvas');
+    const section = document.getElementById('showcase3d');
+    if (!canvas || !section || window.isLowEndDevice()) return;
+
+    const context = canvas.getContext('2d');
+    const frameCount = 60;
+    const images = [];
+    const airpods = { frame: 0 };
+    
+    // Preload all 60 frames
+    for (let i = 0; i < frameCount; i++) {
+        const img = new Image();
+        img.src = `assets/sequence/frame_${String(i).padStart(3, '0')}.jpg`;
+        images.push(img);
+    }
+    
+    function render() {
+        if (!images[airpods.frame]) return;
+        const img = images[airpods.frame];
+        if (!img.complete) return;
+        
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        
+        const hRatio = canvas.width / img.width;
+        const vRatio = canvas.height / img.height;
+        const ratio = Math.max(hRatio, vRatio);
+        const centerShift_x = (canvas.width - img.width * ratio) / 2;
+        const centerShift_y = (canvas.height - img.height * ratio) / 2;
+        
+        context.clearRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(img, 0, 0, img.width, img.height,
+            centerShift_x, centerShift_y, img.width * ratio, img.height * ratio);
+    }
+
+    images[0].onload = render;
+    window.addEventListener('resize', render);
+
+    // GSAP ScrollTrigger Integration
+    if (typeof gsap !== 'undefined' && typeof ScrollTrigger !== 'undefined') {
+        gsap.to(airpods, {
+            frame: frameCount - 1,
+            snap: "frame",
+            ease: "none",
+            scrollTrigger: {
+                trigger: section,
+                start: 'top top',
+                end: 'bottom bottom',
+                scrub: 0.5,
+                pin: window.innerWidth >= 768 ? '#showcasePin' : false,
+                pinSpacing: window.innerWidth >= 768,
+                onUpdate: render
+            }
+        });
+        
+        const texts = document.querySelectorAll('.showcase-label');
+        if (texts.length > 0) {
+            ScrollTrigger.create({
+                trigger: section,
+                start: 'top top',
+                end: 'bottom bottom',
+                scrub: true,
+                onUpdate: (self) => {
+                    const p = self.progress;
+                    texts.forEach((txt, idx) => {
+                        const startP = idx * 0.33;
+                        const endP = startP + 0.33;
+                        if (p >= startP - 0.1 && p <= endP + 0.1) {
+                            let localP = (p - startP) / 0.33;
+                            if (localP < 0) localP = 0; if (localP > 1) localP = 1;
+                            const opacity = Math.sin(localP * Math.PI);
+                            txt.style.opacity = opacity;
+                            txt.style.transform = `translateY(${(1 - opacity) * 20}px)`;
+                        } else {
+                            txt.style.opacity = 0;
+                        }
+                    });
+                }
+            });
+        }
+    }
+})();
+
+INTERACTIVE BACKGROUND (THREE.JS 3D) ─────────────────
+(function () {
+    const canvas = document.getElementById('bgCanvas');
+    if (!canvas || typeof THREE === 'undefined' || window.isLowEndDevice()) return;
+    const isMobile = () => innerWidth < 768;
+
+    let w = innerWidth, h = innerHeight;
+    let mx = 0, my = 0;
+
+    const scene = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(60, w / h, 0.1, 1000);
+    camera.position.z = 50;
+
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: false });
+    renderer.setSize(w, h);
+    renderer.setPixelRatio(Math.min(devicePixelRatio, isMobile() ? 1 : 2));
+    renderer.setClearColor(0x000000, 0);
+
+    addEventListener('resize', () => {
+        w = innerWidth; h = innerHeight;
+        camera.aspect = w / h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(w, h);
+    });
+
+    document.addEventListener('mousemove', e => {
+        mx = (e.clientX / w - 0.5) * 2;
+        my = (e.clientY / h - 0.5) * 2;
+    });
+
+    // ── Particle system ──
+    const count = isMobile() ? 50 : 120;
+    const positions = new Float32Array(count * 3);
+    const colors = new Float32Array(count * 3);
+    const sizes = new Float32Array(count);
+    const speeds = [];
+
+    const palette = [
+        [0, 0.94, 1],      // cyan
+        [0.54, 0.17, 0.89], // purple
+        [1, 1, 1],           // white
+        [0, 0.94, 1],       // cyan
+        [1, 1, 1],           // white
+    ];
+
+    for (let i = 0; i < count; i++) {
+        const i3 = i * 3;
+        positions[i3] = (Math.random() - 0.5) * 100;
+        positions[i3 + 1] = (Math.random() - 0.5) * 100;
+        positions[i3 + 2] = (Math.random() - 0.5) * 60;
+        const c = palette[Math.floor(Math.random() * palette.length)];
+        colors[i3] = c[0];
+        colors[i3 + 1] = c[1];
+        colors[i3 + 2] = c[2];
+        sizes[i] = 0.5 + Math.random() * 2.5;
+        speeds.push({
+            vx: (Math.random() - 0.5) * 0.02,
+            vy: (Math.random() - 0.5) * 0.015,
+            vz: (Math.random() - 0.5) * 0.01,
+            phase: Math.random() * Math.PI * 2,
+            twinkle: 0.003 + Math.random() * 0.01
+        });
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    geometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+    geometry.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+
+    const vertexShader = `
+        attribute float size;
+        varying vec3 vColor;
+        void main() {
+            vColor = color;
+            vec4 mvPos = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = size * (55.0 / -mvPos.z);
+            gl_Position = projectionMatrix * mvPos;
+        }
+    `;
+    const fragmentShader = `
+        varying vec3 vColor;
+        void main() {
+            float d = length(gl_PointCoord - 0.5);
+            if (d > 0.5) discard;
+            float alpha = 1.0 - smoothstep(0.0, 0.5, d);
+            gl_FragColor = vec4(vColor, alpha * 0.7);
+        }
+    `;
+
+    const material = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        vertexColors: true,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending
+    });
+
+    const points = new THREE.Points(geometry, material);
+    scene.add(points);
+
+    // ── Nebula blobs (desktop only) ──
+    const nebulae = [];
+    if (!isMobile()) {
+        for (let i = 0; i < 3; i++) {
+            const geo = new THREE.SphereGeometry(8 + Math.random() * 12, 16, 16);
+            const col = i % 2 === 0 ? 0x00f0ff : 0x8a2be2;
+            const mat = new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.015 });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.position.set((Math.random() - 0.5) * 60, (Math.random() - 0.5) * 40, -20 - Math.random() * 20);
+            scene.add(mesh);
+            nebulae.push({ mesh, vx: (Math.random() - 0.5) * 0.01, vy: (Math.random() - 0.5) * 0.008 });
+        }
+    }
+
+    let time = 0;
+    function animate() {
+        requestAnimationFrame(animate);
+        time++;
+
+        // Camera follows mouse smoothly
+        camera.position.x += (mx * 4 - camera.position.x) * 0.03;
+        camera.position.y += (-my * 3 - camera.position.y) * 0.03;
+        camera.lookAt(0, 0, 0);
+
+        // Animate particles
+        const pos = geometry.attributes.position.array;
+        for (let i = 0; i < count; i++) {
+            const i3 = i * 3;
+            const s = speeds[i];
+            pos[i3] += s.vx;
+            pos[i3 + 1] += s.vy;
+            pos[i3 + 2] += s.vz;
+            if (pos[i3] < -55) pos[i3] = 55;
+            if (pos[i3] > 55) pos[i3] = -55;
+            if (pos[i3 + 1] < -55) pos[i3 + 1] = 55;
+            if (pos[i3 + 1] > 55) pos[i3 + 1] = -55;
+            if (pos[i3 + 2] < -35) pos[i3 + 2] = 35;
+            if (pos[i3 + 2] > 35) pos[i3 + 2] = -35;
+        }
+        geometry.attributes.position.needsUpdate = true;
+
+        // Animate nebulae
+        for (const n of nebulae) {
+            n.mesh.position.x += n.vx;
+            n.mesh.position.y += n.vy;
+            if (n.mesh.position.x < -40) n.mesh.position.x = 40;
+            if (n.mesh.position.x > 40) n.mesh.position.x = -40;
+        }
+
+        // Subtle rotation
+        points.rotation.y = time * 0.0003;
+        points.rotation.x = Math.sin(time * 0.001) * 0.05;
+
+        renderer.render(scene, camera);
+    }
+    animate();
+})();
+
 // ─── SHOWCASE 3D ────────────────────────────────────────
 (function () {
     const canvas = document.getElementById('showcaseCanvas');
