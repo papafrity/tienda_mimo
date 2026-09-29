@@ -527,16 +527,15 @@ window.getInstallmentsHtml = function(price) {
         });
     }
 
-    async function fetchProducts(retries = 3) {
+    async function fetchProducts(retries = 30) {
         try {
-            // Ensure Firebase is loaded
+            // Ensure Firebase is loaded (wait up to 30 seconds for slow internet)
             if (typeof db === 'undefined' || !db) {
                 if (retries > 0) {
-                    console.warn('Firebase not ready, retrying in 500ms...');
-                    setTimeout(() => fetchProducts(retries - 1), 500);
+                    setTimeout(() => fetchProducts(retries - 1), 1000);
                     return;
                 }
-                showProductsError('Firebase no se pudo cargar. Recargá la página.');
+                showProductsError('Conexión muy lenta. Revisa tu internet y recargá la página.');
                 return;
             }
             // Fetch Store Config

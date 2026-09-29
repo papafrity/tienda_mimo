@@ -11,6 +11,21 @@ const firebaseConfig = {
 const app = firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 
+// Activar caché local (Offline Persistence) para que cargue ultra rápido sin esperar a internet
+try {
+  db.enablePersistence({ synchronizeTabs: true })
+    .catch(function(err) {
+      if (err.code == 'failed-precondition') {
+          console.warn("Múltiples pestañas, persistencia en una sola.");
+      } else if (err.code == 'unimplemented') {
+          console.warn("Navegador sin soporte para persistencia local.");
+      }
+    });
+} catch (e) {
+  console.warn("Error inicializando persistencia", e);
+}
+
+
 // Evitar errores al inicializar Analytics en protocolo local file:// o bloqueadores de cookies
 let analytics;
 try {
