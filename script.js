@@ -507,7 +507,7 @@ window.getInstallmentsHtml = function(price) {
               priceHtml += window.getInstallmentsHtml(basePriceForInstallments);
                 
             const card = document.createElement('div');
-            card.className = 'carousel-card product-card';
+            card.className = 'carousel-card';
             card.dataset.productId = p.id;
             card.innerHTML = `
                 <div class="card-glow"></div>
@@ -2287,20 +2287,7 @@ document.head.appendChild(st);
 
     // Product cards stagger reveal with GSAP ScrollTrigger
     /* product-card ScrollTrigger.batch removed to ensure cards are always visible */
-
-    // Stats section stagger
-    ScrollTrigger.batch('.stat-card', {
-        onEnter: (elements) => {
-            gsap.fromTo(elements,
-                { opacity: 0, y: 40 },
-                { opacity: 1, y: 0, duration: 0.7, stagger: 0.15, ease: 'power3.out' }
-            );
-        },
-        start: 'top 85%',
-        once: true
-    });
-
-    // ─── BACK TO TOP BUTTON (TELEPORT INSTANTÁNEO) ───────────
+// ─── BACK TO TOP BUTTON (TELEPORT INSTANTÁNEO) ───────────
     const backToTop = document.getElementById('backToTop');
     if (backToTop) {
         ScrollTrigger.create({

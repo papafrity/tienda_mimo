@@ -1769,7 +1769,7 @@ body.low-end-mode .hero-visual {
     padding: 6px !important;
 }
 
-.product-card:hover {
+#productGrid .product-card:hover {
     transform: translateY(-4px) scale(1.02) !important;
     border-color: rgba(255, 255, 255, 0.15) !important;
     box-shadow: 0 8px 16px rgba(0,0,0,0.2), 0 24px 48px rgba(0, 0, 0, 0.3) !important;
@@ -2282,4 +2282,61 @@ html, body {
         width: 42px !important;
         height: 42px !important;
     }
+}
+
+/* ─── CLEAN CAROUSEL 3D RULES (NO SIDE-CARD FLICKER) ─── */
+.carousel-card {
+    position: absolute;
+    width: 280px;
+    height: 380px;
+    top: 0;
+    left: 0;
+    border-radius: 20px;
+    background: #0A0C10;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    padding: 1.2rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    user-select: none;
+    transition: none !important; /* All 3D movement is managed strictly by GSAP */
+}
+
+/* Side cards have zero hover jitter/flicker */
+.carousel-card:not(.active) {
+    pointer-events: auto !important;
+}
+.carousel-card:not(.active):hover {
+    /* No transforms or scale - stays solidly in its 3D orbital slot */
+    border-color: rgba(255, 255, 255, 0.15) !important;
+}
+
+/* Center active card glow */
+.carousel-card.active {
+    border-color: rgba(0, 240, 255, 0.5) !important;
+    box-shadow: 0 0 35px rgba(0, 240, 255, 0.25), 0 20px 50px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Image inside carousel */
+.carousel-card .product-image {
+    width: 100%;
+    height: 180px;
+    border-radius: 14px;
+    background: #111;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    margin-bottom: 0.8rem;
+}
+.carousel-card .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.4s ease;
+}
+.carousel-card.active:hover .product-image img {
+    transform: scale(1.05);
 }
