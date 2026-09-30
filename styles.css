@@ -1108,7 +1108,7 @@ body{padding-bottom:70px}
 @media(max-width: 480px) {
     /* Ultra-compact mobile cards */
     .product-grid { gap: 0.8rem !important; padding: 0 0.8rem !important; }
-    .product-card { 
+    .product-card {\n    will-change: transform, box-shadow;\n    backface-visibility: hidden;\n    transform: translateZ(0); 
         padding: 0.5rem !important;
         background: rgba(255,255,255,0.03) !important;
         border: 1px solid rgba(255,255,255,0.06) !important;
@@ -1326,7 +1326,7 @@ body{padding-bottom:70px}
         gap: 12px !important;
         padding: 0 1rem !important;
     }
-    .product-card {
+    .product-card {\n    will-change: transform, box-shadow;\n    backface-visibility: hidden;\n    transform: translateZ(0);
         border-radius: 0 !important;
         border: none !important;
         padding: 0.5rem !important;
@@ -1747,7 +1747,7 @@ body.low-end-mode .hero-visual {
 }
 
 /* ─── PREMIUM UI REFINEMENTS (IMPECCABLE / EMIL KOWALSKI) ─── */
-.product-card {
+.product-card {\n    will-change: transform, box-shadow;\n    backface-visibility: hidden;\n    transform: translateZ(0);
     border-radius: 20px !important;
     background: #0A0C10 !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -1768,7 +1768,7 @@ body.low-end-mode .hero-visual {
     transition: transform 0.4s ease !important;
 }
 
-.product-card:hover .product-image img {
+.product-card:hover .product-image img {\n    will-change: transform;\n    backface-visibility: hidden;\n    transform: translateZ(0);
     transform: scale(1.05);
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2);
 }
