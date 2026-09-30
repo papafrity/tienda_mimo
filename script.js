@@ -3234,7 +3234,7 @@ Instrucciones:
     let height = canvas.height = window.innerHeight;
     
     const particles = [];
-    const particleCount = window.innerWidth < 768 ? 40 : 100;
+    const particleCount = window.innerWidth < 768 ? 40 : 150;
     const colors = ["#00f0ff", "#8a2be2", "#ffffff"];
     
     for (let i = 0; i < particleCount; i++) {

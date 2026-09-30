@@ -1337,7 +1337,7 @@ body{padding-bottom:70px}
     .product-image {
         margin: 0 !important;
         border-radius: 0 !important;
-        height: 140px !important;
+        /* removed height */
         background: rgba(255,255,255,0.03) !important; border-radius: 8px !important;
     }
     .product-info {
@@ -1901,3 +1901,29 @@ body {
     stroke: #00f0ff !important;
 }
 \n.products-section, .carousel-section { scroll-margin-top: 120px; }
+/* ─── CAROUSEL HOVER FIX ─── */
+.carousel-card {
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.carousel-card:not(.active) {
+    pointer-events: none !important; /* Only active card can be hovered/clicked in the 3D space */
+}
+.carousel-3d .carousel-card:not(.active) {
+    pointer-events: none !important;
+}
+@media(max-width: 768px) {
+    .carousel-3d .carousel-card:not(.active) {
+        pointer-events: auto !important; /* Allow swipe/click on mobile */
+    }
+}
+
+/* ─── DISABLE HOVER JUMP ON CAROUSEL CARDS ─── */
+.carousel-card:hover {
+    transform: none !important;
+}
+.carousel-card.active:hover {
+    transform: none !important; /* GSAP handles the scale! */
+}
+.carousel-card .product-image img {
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+}
