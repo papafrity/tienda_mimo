@@ -1961,3 +1961,42 @@ body {
 #smooth-wrapper, #smooth-content {
     padding-bottom: 0 !important;
 }
+
+/* ─── FIX MODAL CENTERING ─── */
+.modal-overlay {
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1rem !important;
+}
+.modal-overlay #productModal,
+#productModal.modal-overlay {
+    align-items: center !important;
+}
+#productModal .modal-content {
+    margin: auto !important;
+    transform: scale(0.9) translateY(0) !important;
+}
+#productModal.active .modal-content {
+    transform: scale(1) translateY(0) !important;
+}
+.modal-body {
+    align-items: start !important;
+}
+.modal-details {
+    justify-content: flex-start !important;
+    padding-top: 0.5rem;
+}
+
+/* ─── NEON CART BUTTON BORDER ─── */
+.cart-btn {
+    border-radius: 12px !important;
+    padding: 4px !important;
+    border: 1.5px solid rgba(0, 240, 255, 0.5) !important;
+    box-shadow: 0 0 12px rgba(0, 240, 255, 0.25), inset 0 0 8px rgba(0, 240, 255, 0.05) !important;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.cart-btn:hover {
+    border-color: rgba(0, 240, 255, 0.9) !important;
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.5), 0 0 40px rgba(0, 240, 255, 0.15), inset 0 0 12px rgba(0, 240, 255, 0.08) !important;
+    transform: scale(1.05) !important;
+}
