@@ -3254,7 +3254,13 @@ Instrucciones:
         height = canvas.height = window.innerHeight;
     });
     
+    
+    let animationId;
     function render() {
+        if (document.hidden) {
+            animationId = requestAnimationFrame(render);
+            return;
+        }
         ctx.clearRect(0, 0, width, height);
         particles.forEach(p => {
             p.x += p.vx;
@@ -3272,7 +3278,16 @@ Instrucciones:
             ctx.globalAlpha = p.alpha;
             ctx.fill();
         });
-        requestAnimationFrame(render);
+        animationId = requestAnimationFrame(render);
     }
     render();
+    
+    // Pause completely if tab is hidden to save battery
+    document.addEventListener("visibilitychange", () => {
+        if (!document.hidden) {
+            cancelAnimationFrame(animationId);
+            render();
+        }
+    });
+
 })();
