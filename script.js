@@ -527,7 +527,15 @@ window.getInstallmentsHtml = function(price) {
                 e.preventDefault();
                 window.addToCart(p.id, btn);
                 setTimeout(initCarouselLogic, 50);
-    });
+            });
+
+            // Tap card on mobile to open product detail modal
+            card.addEventListener('click', function(e) {
+                if (e.target.closest('.add-to-cart')) return;
+                if (window.innerWidth <= 768) {
+                    window.openProductModal(p.id);
+                }
+            });
             
             carousel.appendChild(card);
         });
