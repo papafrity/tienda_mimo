@@ -533,7 +533,9 @@ body{padding-bottom:70px}
     height: 100vh;
     width: 100%;
     max-width: 420px;
-    background: rgba(10, 12, 16, 0.7) !important;\n    backdrop-filter: blur(24px);\n    -webkit-backdrop-filter: blur(24px);
+    background: rgba(10, 12, 16, 0.7) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
     border-left: 1px solid rgba(255, 255, 255, 0.1);
     border-right: none;
     border-top: none;
@@ -663,7 +665,9 @@ body{padding-bottom:70px}
 .cart-footer {
     padding: 1.8rem 2rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(10, 12, 16, 0.7) !important;\n    backdrop-filter: blur(24px);\n    -webkit-backdrop-filter: blur(24px);
+    background: rgba(10, 12, 16, 0.7) !important;
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
 }
 
 .cart-total {
@@ -1108,7 +1112,10 @@ body{padding-bottom:70px}
 @media(max-width: 480px) {
     /* Ultra-compact mobile cards */
     .product-grid { gap: 0.8rem !important; padding: 0 0.8rem !important; }
-    .product-card {\n    will-change: transform, box-shadow;\n    backface-visibility: hidden;\n    transform: translateZ(0); 
+    .product-card {
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    transform: translateZ(0); 
         padding: 0.5rem !important;
         background: rgba(255,255,255,0.03) !important;
         border: 1px solid rgba(255,255,255,0.06) !important;
@@ -1326,7 +1333,10 @@ body{padding-bottom:70px}
         gap: 12px !important;
         padding: 0 1rem !important;
     }
-    .product-card {\n    will-change: transform, box-shadow;\n    backface-visibility: hidden;\n    transform: translateZ(0);
+    .product-card {
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    transform: translateZ(0);
         border-radius: 0 !important;
         border: none !important;
         padding: 0.5rem !important;
@@ -1747,7 +1757,10 @@ body.low-end-mode .hero-visual {
 }
 
 /* ─── PREMIUM UI REFINEMENTS (IMPECCABLE / EMIL KOWALSKI) ─── */
-.product-card {\n    will-change: transform, box-shadow;\n    backface-visibility: hidden;\n    transform: translateZ(0);
+.product-card {
+    will-change: transform, box-shadow;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     border-radius: 20px !important;
     background: #0A0C10 !important;
     border: 1px solid rgba(255, 255, 255, 0.05) !important;
@@ -1768,7 +1781,10 @@ body.low-end-mode .hero-visual {
     transition: transform 0.4s ease !important;
 }
 
-.product-card:hover .product-image img {\n    will-change: transform;\n    backface-visibility: hidden;\n    transform: translateZ(0);
+.product-card:hover .product-image img {
+    will-change: transform;
+    backface-visibility: hidden;
+    transform: translateZ(0);
     transform: scale(1.05);
     transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.2);
 }
@@ -1788,13 +1804,10 @@ body.low-end-mode .hero-visual {
 
 /* ─── PREMIUM UI REFINEMENTS (TASTE / EMIL KOWALSKI) ─── */
 /* 1. Page Transitions */
-@keyframes smoothFadeIn {
-    from { opacity: 0; transform: translateY(10px); }
+@keyframes smoothFadeIn { from { opacity: 0; } to { opacity: 1; } }
     to { opacity: 1; transform: translateY(0); }
 }
-body {
-    animation: smoothFadeIn 0.8s cubic-bezier(0.175, 0.885, 0.32, 1) forwards;
-}
+body { animation: smoothFadeIn 0.35s ease-out; transform: none !important; }
 
 /* 2. Modals Spring Animation */
 /* modal animation handled by .modal-overlay.active .modal-content */
@@ -1892,7 +1905,8 @@ body {
 .hero-search:focus-within svg {
     stroke: #00f0ff !important;
 }
-\n.products-section, .carousel-section { scroll-margin-top: 120px; }
+
+.products-section, .carousel-section { scroll-margin-top: 120px; }
 /* ─── CAROUSEL HOVER FIX ─── */
 .carousel-card {
     transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
@@ -1999,4 +2013,273 @@ body {
     border-color: rgba(0, 240, 255, 0.9) !important;
     box-shadow: 0 0 20px rgba(0, 240, 255, 0.5), 0 0 40px rgba(0, 240, 255, 0.15), inset 0 0 12px rgba(0, 240, 255, 0.08) !important;
     transform: scale(1.05) !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   MASTER FIXES: MODAL, CAROUSEL, BENTO MOBILE, FLOATING & CARDS
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ── 1. BODY & WRAPPER INTEGRITY (Fixes fixed positioning) ── */
+html, body {
+    transform: none !important;
+    perspective: none !important;
+}
+#smooth-wrapper {
+    overflow: visible !important;
+}
+
+/* ── 2. PRODUCT CARDS (Never invisible, 2-line title limit) ── */
+.product-card {
+    opacity: 1 !important;
+    visibility: visible !important;
+    display: flex !important;
+    flex-direction: column !important;
+    cursor: pointer !important;
+}
+.product-card h3, .product-info h3 {
+    font-size: 0.95rem !important;
+    line-height: 1.35 !important;
+    color: #fff !important;
+    font-weight: 600 !important;
+    display: -webkit-box !important;
+    -webkit-line-clamp: 2 !important;
+    -webkit-box-orient: vertical !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: normal !important;
+    min-height: 2.6em !important;
+    max-height: 2.8em !important;
+    height: auto !important;
+    margin: 0.35rem 0 !important;
+}
+.product-info {
+    display: flex !important;
+    flex-direction: column !important;
+    flex: 1 !important;
+    padding: 0.8rem !important;
+}
+
+/* ── 3. PRODUCT MODAL CENTERING (Viewport fixed, centered) ── */
+#productModal.modal-overlay,
+.modal-overlay {
+    position: fixed !important;
+    inset: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    background: rgba(4, 6, 12, 0.88) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    z-index: 999999 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 1.5rem !important;
+    box-sizing: border-box !important;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+#productModal.modal-overlay.active,
+.modal-overlay.active {
+    opacity: 1 !important;
+    pointer-events: all !important;
+}
+#productModal .modal-content,
+.modal-overlay .modal-content {
+    background: linear-gradient(135deg, rgba(16, 20, 32, 0.98) 0%, rgba(8, 10, 18, 0.99) 100%) !important;
+    border: 1px solid rgba(0, 240, 255, 0.25) !important;
+    border-radius: 24px !important;
+    width: min(880px, 94vw) !important;
+    max-height: 88vh !important;
+    overflow-y: auto !important;
+    margin: auto !important;
+    position: relative !important;
+    box-shadow: 0 0 50px rgba(0, 240, 255, 0.12), 0 25px 60px rgba(0, 0, 0, 0.85) !important;
+    transform: scale(1) translateY(0) !important;
+}
+.modal-body {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2rem !important;
+    padding: 2rem !important;
+    align-items: start !important;
+}
+.modal-details {
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: flex-start !important;
+    text-align: left !important;
+    gap: 0.8rem !important;
+}
+.modal-details h2 {
+    font-size: 1.8rem !important;
+    line-height: 1.25 !important;
+    color: #fff !important;
+    font-weight: 700 !important;
+}
+
+@media (max-width: 768px) {
+    #productModal.modal-overlay {
+        padding: 0.75rem !important;
+    }
+    #productModal .modal-content {
+        width: 96vw !important;
+        max-height: 92vh !important;
+        border-radius: 20px !important;
+    }
+    .modal-body {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 1.2rem !important;
+        padding: 1.2rem !important;
+    }
+    .modal-main-image {
+        max-height: 240px !important;
+        aspect-ratio: auto !important;
+        height: 220px !important;
+    }
+    .modal-details h2 {
+        font-size: 1.35rem !important;
+    }
+    .modal-nav {
+        display: none !important; /* Hide left/right arrows on mobile to keep view clean */
+    }
+}
+
+/* ── 4. BENTO BOX ADAPTATION FOR MOBILE & PC ── */
+.bento-card {
+    position: relative;
+    border-radius: 24px !important;
+    overflow: hidden !important;
+    background: #080A10 !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4) !important;
+    min-height: 260px;
+}
+.bento-card::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(6, 8, 14, 0.95) 0%, rgba(6, 8, 14, 0.5) 50%, rgba(6, 8, 14, 0.15) 100%);
+    z-index: 1;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+.bento-bg {
+    position: absolute;
+    inset: 0 !important;
+    border-radius: 24px;
+    background-size: cover !important;
+    background-position: center !important;
+    opacity: 0.65 !important;
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1), opacity 0.4s ease !important;
+    z-index: 0;
+}
+.bento-card:hover .bento-bg {
+    opacity: 0.85 !important;
+    transform: scale(1.04);
+}
+.bento-content {
+    position: relative;
+    z-index: 2;
+    padding: 2rem;
+}
+.bento-content h3 {
+    font-size: 1.6rem !important;
+    font-weight: 700 !important;
+    color: #fff !important;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+}
+.bento-content p {
+    color: rgba(255, 255, 255, 0.8) !important;
+    font-size: 1rem !important;
+    text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8);
+}
+
+@media (max-width: 768px) {
+    .bento-section {
+        padding: 4rem 1rem !important;
+    }
+    .bento-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    .bento-card {
+        min-height: 220px !important;
+    }
+    .bento-card.large {
+        grid-row: span 1 !important;
+        min-height: 260px !important;
+    }
+    .bento-card.wide {
+        grid-column: span 1 !important;
+        min-height: 220px !important;
+    }
+    .bento-bg {
+        opacity: 0.75 !important;
+    }
+    .bento-content {
+        padding: 1.5rem !important;
+    }
+    .bento-content h3 {
+        font-size: 1.35rem !important;
+    }
+}
+
+/* ── 5. NEON CART BUTTON BORDER ── */
+.cart-btn {
+    border-radius: 14px !important;
+    padding: 5px !important;
+    border: 2px solid rgba(0, 240, 255, 0.6) !important;
+    box-shadow: 0 0 15px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.15) !important;
+    background: rgba(10, 14, 26, 0.6) !important;
+    backdrop-filter: blur(12px) !important;
+    transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease !important;
+}
+.cart-btn:hover {
+    border-color: #00f0ff !important;
+    box-shadow: 0 0 25px rgba(0, 240, 255, 0.7), 0 0 50px rgba(0, 240, 255, 0.3), inset 0 0 14px rgba(0, 240, 255, 0.25) !important;
+    transform: scale(1.08) !important;
+}
+
+/* ── 6. FLOATING BUTTONS (WhatsApp, Chatbot, BackToTop) ── */
+.whatsapp-float {
+    position: fixed !important;
+    bottom: 2rem !important;
+    left: 2rem !important;
+    z-index: 99999 !important;
+}
+.chatbot-wrapper {
+    position: fixed !important;
+    bottom: 2rem !important;
+    right: 2rem !important;
+    z-index: 99999 !important;
+}
+.back-to-top {
+    position: fixed !important;
+    bottom: 6.5rem !important;
+    right: 2.2rem !important;
+    z-index: 99998 !important;
+}
+@media (max-width: 768px) {
+    .whatsapp-float {
+        bottom: 5.5rem !important;
+        left: 1rem !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+    .chatbot-wrapper {
+        bottom: 5.5rem !important;
+        right: 1rem !important;
+    }
+    .chatbot-bubble {
+        width: 48px !important;
+        height: 48px !important;
+    }
+    .back-to-top {
+        bottom: 9.5rem !important;
+        right: 1.2rem !important;
+        width: 42px !important;
+        height: 42px !important;
+    }
 }

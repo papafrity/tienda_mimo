@@ -436,6 +436,12 @@ window.getInstallmentsHtml = function(price) {
         filteredProducts = filtered;
         productPage = 1;
         renderPage();
+        document.querySelectorAll('#productGrid .product-card').forEach(c => {
+            c.style.opacity = '1';
+            c.style.visibility = 'visible';
+        });
+        if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+
         } catch(e) { console.error('Error en renderProducts:', e); }
     }
 
@@ -1934,6 +1940,12 @@ window.getInstallmentsHtml = function(price) {
     document.getElementById('loadMoreBtn')?.addEventListener('click', () => {
         productPage++;
         renderPage();
+        document.querySelectorAll('#productGrid .product-card').forEach(c => {
+            c.style.opacity = '1';
+            c.style.visibility = 'visible';
+        });
+        if (typeof ScrollTrigger !== 'undefined') ScrollTrigger.refresh();
+
     });
 
     // Event delegation for product grid (card click and add-to-cart)
@@ -2274,16 +2286,7 @@ document.head.appendChild(st);
     });
 
     // Product cards stagger reveal with GSAP ScrollTrigger
-    ScrollTrigger.batch('.product-card', {
-        onEnter: (elements) => {
-            gsap.fromTo(elements,
-                { opacity: 0, y: 50, scale: 0.95 },
-                { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.08, ease: 'power3.out', overwrite: true }
-            );
-        },
-        start: 'top 90%',
-        once: true
-    });
+    /* product-card ScrollTrigger.batch removed to ensure cards are always visible */
 
     // Stats section stagger
     ScrollTrigger.batch('.stat-card', {
@@ -2930,10 +2933,7 @@ document.head.appendChild(st);
         // 3D entrance animation
         const content = modal.querySelector('.modal-content');
         if (content) {
-            gsap.fromTo(content,
-                { opacity: 0, scale: 0.85, rotateY: -12, transformPerspective: 1200, transformOrigin: 'center center' },
-                { opacity: 1, scale: 1, rotateY: 0, duration: 0.5, ease: 'back.out(1.4)', clearProps: 'transform' }
-            );
+            gsap.fromTo(content, { opacity: 0, scale: 0.94 }, { opacity: 1, scale: 1, duration: 0.35, ease: 'power2.out', clearProps: 'transform' });
         }
 
         // Gallery images stagger
