@@ -3278,3 +3278,40 @@ Instrucciones:
     });
 
 })();
+
+
+// ─── INTERACTIVE FAQ & SETUP FILTER HELPERS ─────────────────
+window.toggleFaq = function(cardId) {
+    const card = document.getElementById(cardId);
+    if (!card) return;
+    const isAlreadyOpen = card.classList.contains('open');
+    // Optional: close other open cards for clean accordion feel
+    document.querySelectorAll('.faq-card.open').forEach(c => {
+        if (c !== card) c.classList.remove('open');
+    });
+    card.classList.toggle('open', !isAlreadyOpen);
+};
+
+window.filterByKeyword = function(keyword) {
+    const target = document.getElementById('products');
+    if (target) {
+        const offset = window.innerWidth < 768 ? 80 : 70;
+        const top = target.getBoundingClientRect().top + window.scrollY - offset;
+        if (typeof smoother !== 'undefined' && smoother) {
+            smoother.scrollTo(top, true);
+        } else {
+            window.scrollTo({ top, behavior: 'smooth' });
+        }
+    }
+    // Filter logic
+    if (keyword === 'gamer' || keyword === 'office') {
+        const tecTab = document.querySelector('.filter-tab[data-group="tecnologia"]');
+        if (tecTab) tecTab.click();
+    } else if (keyword === 'audio') {
+        const heroInput = document.getElementById('heroSearchInput');
+        if (heroInput) {
+            heroInput.value = 'auricular';
+            heroInput.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    }
+};
