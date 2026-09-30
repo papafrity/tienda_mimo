@@ -1838,12 +1838,12 @@ body {
 }
 
 /* 4. Input / Forms Premium Animations */
-input, textarea, select {
+.checkout-form-container input, .checkout-form-container textarea, .checkout-form-container select {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
     background: rgba(255, 255, 255, 0.03) !important;
     border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
-input:focus, textarea:focus, select:focus {
+.checkout-form-container input:focus, .checkout-form-container textarea:focus, .checkout-form-container select:focus {
     background: rgba(255, 255, 255, 0.06) !important;
     border-color: rgba(0, 240, 255, 0.5) !important;
     box-shadow: 0 0 0 4px rgba(0, 240, 255, 0.1) !important;
@@ -1855,3 +1855,49 @@ input:focus, textarea:focus, select:focus {
     background: rgba(10, 12, 16, 0.4) !important;
     backdrop-filter: blur(10px);
 }
+
+/* ─── PREMIUM SEARCH BAR RE-DESIGN ─── */
+.hero-search, .search-dropdown {
+    background: rgba(10, 12, 16, 0.4) !important;
+    backdrop-filter: blur(20px) !important;
+    -webkit-backdrop-filter: blur(20px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    border-radius: 50px !important;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255,255,255,0.02) !important;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.2) !important;
+    padding: 0.8rem 1.5rem !important;
+}
+
+.hero-search:focus-within {
+    background: rgba(15, 18, 25, 0.6) !important;
+    border-color: rgba(0, 240, 255, 0.4) !important;
+    box-shadow: 0 12px 48px rgba(0, 240, 255, 0.15), inset 0 2px 4px rgba(255,255,255,0.05) !important;
+    transform: scale(1.02);
+}
+
+.hero-search-input, .search-input {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-family: 'Space Grotesk', sans-serif !important;
+    font-size: 1.05rem !important;
+    color: #fff !important;
+    width: 100%;
+}
+
+.hero-search-input:focus, .search-input:focus {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.hero-search svg, .search-toggle svg {
+    stroke: rgba(255, 255, 255, 0.7) !important;
+    transition: stroke 0.3s ease !important;
+}
+
+.hero-search:focus-within svg {
+    stroke: #00f0ff !important;
+}
+\n.products-section, .carousel-section { scroll-margin-top: 120px; }
