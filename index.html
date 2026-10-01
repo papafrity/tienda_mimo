@@ -140,7 +140,7 @@
             <div class="hero-tag reveal-text">
                 <span class="tag-line">Tecnología premium, en un solo lugar</span>
             </div>
-            <h1 class="split-title" id="heroTitle">Tu universo tech en un click</h1>
+            <h1 class="split-title" id="heroTitle">Toda la tecnolog�a en un click</h1>
             <p class="reveal-text" data-role="desc">Descubre la selección más exclusiva de gadgets y tecnología premium. Eleva tu experiencia digital con <strong>Mimo!</strong></p>
             <form class="hero-search" id="heroSearch" autocomplete="off">
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
@@ -310,6 +310,57 @@
         </div>
     </section>
 
+    
+
+    <!-- Products Section -->
+    <section id="products" class="products-section">
+        
+        <h2 class="section-title reveal-text" data-role="title">Todos los Productos</h2>
+
+        <div class="product-toolbar">
+                        <div class="filter-tabs" id="filterTabs">
+                <button class="filter-tab active magnetic-btn" data-group="all">Todos</button>
+                <button class="filter-tab magnetic-btn" data-group="tecnologia">Tecnología</button>
+                <button class="filter-tab magnetic-btn" data-group="hogar">Hogar</button>
+                <button class="filter-tab magnetic-btn" data-group="electro">Electro</button>
+                <button class="filter-tab magnetic-btn" data-group="varios">Varios</button>
+            </div>
+            <!-- Subcategories row -->
+            <div class="subcategories-container" id="subcategoriesContainer"></div>
+            <div class="filter-extra">
+                <div class="price-range">
+                    <input type="number" class="price-input" id="priceMin" placeholder="Min $" step="0.01" min="0">
+                    <span class="price-sep">-</span>
+                    <input type="number" class="price-input" id="priceMax" placeholder="Max $" step="0.01" min="0">
+                </div>
+                <select class="sort-select" id="sortSelect">
+                    <option value="default">Por defecto</option>
+                    <option value="price-asc">Menor precio</option>
+                    <option value="price-desc">Mayor precio</option>
+                    <option value="name-asc">A-Z</option>
+                    <option value="name-desc">Z-A</option>
+                    <option value="rating">Mejor calificados</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            <!-- Dynamically rendered via JS -->
+        </div>
+        <div id="loadMoreContainer" style="text-align:center;margin-top:2rem">
+            <button id="loadMoreBtn" class="magnetic-btn" style="padding:.8rem 2.5rem;font-size:.95rem">Cargar más productos</button>
+        </div>
+    </section>
+
+    <!-- Wave Divider -->
+    <div class="wave-divider">
+        <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="wave-path" d="M0,40 C150,80 350,0 600,40 C850,80 1050,0 1200,40 L1200,80 L0,80 Z"></path>
+        </svg>
+    </div>
+
+
+
     <!-- ═══════════════════════════════════════════════════════════
          CENTRO DE AYUDA & BENEFICIOS FAQ (BENTO BOX)
          ═══════════════════════════════════════════════════════════ -->
@@ -439,55 +490,6 @@
             </div>
         </div>
     </section>
-
-    <!-- Products Section -->
-    <section id="products" class="products-section">
-        
-        <h2 class="section-title reveal-text" data-role="title">Todos los Productos</h2>
-
-        <div class="product-toolbar">
-                        <div class="filter-tabs" id="filterTabs">
-                <button class="filter-tab active magnetic-btn" data-group="all">Todos</button>
-                <button class="filter-tab magnetic-btn" data-group="tecnologia">Tecnología</button>
-                <button class="filter-tab magnetic-btn" data-group="hogar">Hogar</button>
-                <button class="filter-tab magnetic-btn" data-group="electro">Electro</button>
-                <button class="filter-tab magnetic-btn" data-group="varios">Varios</button>
-            </div>
-            <!-- Subcategories row -->
-            <div class="subcategories-container" id="subcategoriesContainer"></div>
-            <div class="filter-extra">
-                <div class="price-range">
-                    <input type="number" class="price-input" id="priceMin" placeholder="Min $" step="0.01" min="0">
-                    <span class="price-sep">-</span>
-                    <input type="number" class="price-input" id="priceMax" placeholder="Max $" step="0.01" min="0">
-                </div>
-                <select class="sort-select" id="sortSelect">
-                    <option value="default">Por defecto</option>
-                    <option value="price-asc">Menor precio</option>
-                    <option value="price-desc">Mayor precio</option>
-                    <option value="name-asc">A-Z</option>
-                    <option value="name-desc">Z-A</option>
-                    <option value="rating">Mejor calificados</option>
-                </select>
-            </div>
-        </div>
-
-        <div class="product-grid" id="productGrid">
-            <!-- Dynamically rendered via JS -->
-        </div>
-        <div id="loadMoreContainer" style="text-align:center;margin-top:2rem">
-            <button id="loadMoreBtn" class="magnetic-btn" style="padding:.8rem 2.5rem;font-size:.95rem">Cargar más productos</button>
-        </div>
-    </section>
-
-    <!-- Wave Divider -->
-    <div class="wave-divider">
-        <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path class="wave-path" d="M0,40 C150,80 350,0 600,40 C850,80 1050,0 1200,40 L1200,80 L0,80 Z"></path>
-        </svg>
-    </div>
-
-
 
     <!-- Footer -->
     <footer id="contact">

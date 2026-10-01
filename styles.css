@@ -2968,3 +2968,20 @@ html, body {
 .search-result-item img { width: 100px !important; height: 100px !important; margin: 0 auto; }
 @media(max-width:768px) { .search-results { grid-template-columns: 1fr !important; } .search-result-item { flex-direction: row; text-align: left; } .search-result-item img { width: 64px !important; height: 64px !important; margin: 0; } }
 
+
+.search-dropdown.active { background: rgba(8, 10, 15, 0.98) !important; backdrop-filter: blur(40px) !important; border: 1px solid rgba(255,255,255,0.08) !important; box-shadow: 0 40px 100px rgba(0,0,0,0.8) !important; }
+
+
+/* --- PREMIUM FAQ STYLING RE-DESIGN --- */
+.faq-card { background: linear-gradient(160deg, rgba(18, 22, 34, 0.8) 0%, rgba(10, 12, 18, 0.95) 100%) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; box-shadow: 0 15px 40px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.05) !important; position: relative; overflow: hidden; }
+.faq-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px; background: linear-gradient(90deg, transparent, var(--accent-color), transparent); opacity: 0.2; transition: opacity 0.4s; }
+.faq-card:hover::before { opacity: 0.8; }
+.faq-card:hover { transform: translateY(-3px); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5), 0 0 30px rgba(0, 240, 255, 0.1) !important; border-color: rgba(255, 255, 255, 0.15) !important; }
+.faq-icon-box { background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(168, 85, 247, 0.05)) !important; border: 1px solid rgba(255, 255, 255, 0.1) !important; box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.15), 0 8px 20px rgba(0, 0, 0, 0.3) !important; }
+.faq-icon-box svg { stroke: #00f0ff !important; filter: drop-shadow(0 0 6px rgba(0,240,255,0.6)); }
+.faq-titles h3 { background: linear-gradient(135deg, #fff, #a855f7); -webkit-background-clip: text; color: transparent !important; }
+.faq-summary { font-size: 1.05rem !important; line-height: 1.6 !important; color: rgba(255,255,255,0.85) !important; }
+.faq-toggle-btn { background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.01)) !important; border: 1px solid rgba(255, 255, 255, 0.08) !important; box-shadow: 0 4px 15px rgba(0,0,0,0.2) !important; padding: 14px 20px !important; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.85rem !important; }
+.faq-toggle-btn:hover { background: linear-gradient(90deg, rgba(0, 240, 255, 0.1), rgba(255, 255, 255, 0.02)) !important; border-color: rgba(0, 240, 255, 0.3) !important; box-shadow: 0 8px 20px rgba(0, 240, 255, 0.15) !important; }
+.faq-qa h4 { color: #00f0ff !important; font-size: 1.1rem !important; margin-bottom: 0.4rem !important; }
+
