@@ -2014,8 +2014,8 @@ window.getInstallmentsHtml = function(price) {
             const matches = products
                 .filter(p => p.isActive !== false)
                 .filter(p =>
-                    p.name.toLowerCase().includes(query) ||
-                    p.category.toLowerCase().includes(query) ||
+                    (p.name && p.name.toLowerCase().includes(query)) ||
+                    (p.category && p.category.toLowerCase().includes(query)) ||
                     (p.description && p.description.toLowerCase().includes(query))
                 );
 
@@ -2056,8 +2056,8 @@ window.getInstallmentsHtml = function(price) {
             heroSearchResults.innerHTML = '';
             if (q.length < 2) { heroSearchResults.classList.remove('active'); setMNav(0); return; }
             const matches = products.filter(p =>
-                p.name.toLowerCase().includes(q) ||
-                p.category.toLowerCase().includes(q) ||
+                (p.name && p.name.toLowerCase().includes(q)) ||
+                (p.category && p.category.toLowerCase().includes(q)) ||
                 (p.description && p.description.toLowerCase().includes(q))
             );
             if (matches.length === 0) {
