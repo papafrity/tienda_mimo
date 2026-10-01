@@ -529,12 +529,10 @@ window.getInstallmentsHtml = function(price) {
                 setTimeout(initCarouselLogic, 50);
             });
 
-            // Tap card on mobile to open product detail modal
+            // Tap card to open product detail modal
             card.addEventListener('click', function(e) {
                 if (e.target.closest('.add-to-cart')) return;
-                if (window.innerWidth <= 768) {
-                    window.openProductModal(p.id);
-                }
+                window.openProductModal(p.id);
             });
             
             carousel.appendChild(card);
@@ -3229,7 +3227,7 @@ Instrucciones:
     let height = canvas.height = window.innerHeight;
     
     const particles = [];
-    const particleCount = window.innerWidth < 768 ? 40 : 150;
+    const particleCount = window.innerWidth < 768 ? 40 : 200;
     const colors = ["#00f0ff", "#8a2be2", "#ffffff"];
     
     for (let i = 0; i < particleCount; i++) {

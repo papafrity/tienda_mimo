@@ -1,0 +1,1 @@
+const fs = require('fs'); const html = fs.readFileSync('index.html', 'utf8'); const regex = /<div id=\"smooth-content\">([\s\S]*?)<a href=\"https:\/\/wa\.me/g; const match = regex.exec(html); console.log(match[1].match(/<div/g)?.length - match[1].match(/<\/div>/g)?.length);
