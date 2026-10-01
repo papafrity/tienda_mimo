@@ -86,7 +86,7 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .tag-line{display:inline-block;padding:.5rem 1.2rem;border:1px solid var(--surface-border);border-radius:50px;font-size:.9rem;color:var(--accent-color);letter-spacing:1px;backdrop-filter:blur(8px);background:rgba(0,240,255,0.04)}
 
 /* Split title animation */
-.split-title{font-size:5rem;line-height:1.05;margin-bottom:1.5rem;overflow-wrap:break-word}
+.split-title{font-size:5rem;line-height:1.05;margin-bottom:1.5rem;}
 .split-title .char{display:inline-block;opacity:0;transform:translateY(100%) rotateX(-80deg);animation:charReveal .8s cubic-bezier(.16,1,.3,1) forwards;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 @keyframes charReveal{to{opacity:1;transform:translateY(0) rotateX(0)}}
 
@@ -429,7 +429,7 @@ body{cursor:auto}
 .cursor-dot,.cursor-ring{display:none}
 .hamburger{display:none}
 .nav-links{display:none}
-.split-title{font-size:2.8rem;word-wrap:break-word}
+.split-title{font-size:clamp(1.8rem, 8vw, 2.8rem);}
 .hero{padding:0 6%;flex-direction:column;justify-content:flex-start;align-items:center;padding-top:5.5rem;text-align:center}
 .hero-deco{display:none}
 .hero-content{max-width:100%;align-items:center;display:flex;flex-direction:column;padding-bottom:3rem}
@@ -465,7 +465,7 @@ body{padding-bottom:70px}
 }
 @media(max-width:768px){
 .hero-content{text-align:center}
-.split-title{font-size:2rem;text-align:center;display:block}
+.split-title{font-size:clamp(1.5rem, 7vw, 2.2rem);text-align:center;display:block;word-break:normal !important;overflow-wrap:normal !important;}
 .product-grid{grid-template-columns:repeat(2,1fr);gap:1rem;padding:0 0.5rem}
 .product-card{border-radius:12px;padding:0.8rem}
 .product-card h3{font-size:0.95rem;margin-bottom:0.3rem;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
