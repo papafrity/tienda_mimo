@@ -493,116 +493,64 @@ window.getInstallmentsHtml = function(price) {
     }
 
     function renderCarousel() {
-        const carousel = document.getElementById('carousel3d');
-        if (!carousel) return;
-        carousel.innerHTML = '';
+        const track = document.getElementById('carouselTrack');
+        if (!track) return;
+        track.innerHTML = '';
+        
         const featured = products.filter(p => p.isFeatured && p.isActive !== false);
-        if (featured.length === 0) { const allActive = products.filter(p => p.isActive !== false); featured.push(...allActive.slice(0, 8)); }
+        if (featured.length === 0) {
+            const allActive = products.filter(p => p.isActive !== false);
+            featured.push(...allActive.slice(0, 8));
+        }
+
         featured.forEach(p => {
             const hasDiscount = p.oldPrice && p.offerPrice && p.oldPrice !== p.offerPrice;
             let priceHtml = hasDiscount 
                 ? `<p class="old-price">$${fmt(p.oldPrice)}</p><p class="offer-price">$${fmt(p.offerPrice)}</p>` 
                 : `<p class="offer-price">$${fmt(offerVal(p))}</p>`;
-              let basePriceForInstallments = hasDiscount ? p.offerPrice : offerVal(p);
-              priceHtml += window.getInstallmentsHtml(basePriceForInstallments);
+            
+            let basePriceForInstallments = hasDiscount ? p.offerPrice : offerVal(p);
+            priceHtml += window.getInstallmentsHtml(basePriceForInstallments);
                 
             const card = document.createElement('div');
             card.className = 'carousel-card';
             card.dataset.productId = p.id;
-            card.innerHTML = `
-                <div class="card-glow"></div>
-                <div class="card-spotlight"></div>
-                <div class="product-image"><img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async"></div>
-                <div class="product-info">
-                    <h3>${p.name}</h3>
-                    <div class="stars">${renderStarsHtml(p.rating)}${p.reviewCount ? `<span class="review-count">(${p.reviewCount})</span>` : ''}</div>
-                    ${priceHtml}
-                    ${tiersHintHtml(p)}
-                    <button class="add-to-cart magnetic-btn" data-product-id="${p.id}">Agregar al Carrito</button>
-                </div>`;
             
-            const btn = card.querySelector('.add-to-cart');
+            // Add click listener to the whole card to open modal
+            card.addEventListener('click', () => {
+                if (typeof window.openProductModal === 'function') {
+                    window.openProductModal(p.id);
+                }
+            });
+
+            card.innerHTML = `
+                <div class="product-image">
+                    <img src="${p.image}" alt="${p.name}" loading="lazy" decoding="async">
+                </div>
+                <h3>${p.name}</h3>
+                <div class="stars" style="margin-bottom: 0.5rem;">${renderStarsHtml(p.rating)}${p.reviewCount ? `<span class="review-count">(${p.reviewCount})</span>` : ''}</div>
+                <div class="price-container">
+                    ${priceHtml}
+                </div>
+                <button class="add-to-cart-btn magnetic-btn" data-product-id="${p.id}">Agregar al Carrito</button>
+            `;
+            
+            const btn = card.querySelector('.add-to-cart-btn');
             btn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                e.preventDefault();
-                window.addToCart(p.id, btn);
-                setTimeout(initCarouselLogic, 50);
+                if (typeof window.addToCart === 'function') {
+                    window.addToCart(p.id);
+                }
             });
 
-            // Tap card to open product detail modal
-            card.addEventListener('click', function(e) {
-                if (e.target.closest('.add-to-cart')) return;
-                window.openProductModal(p.id);
-            });
-            
-            carousel.appendChild(card);
+            // Re-bind magnetic effect
+            if (typeof bindMagneticEffect === 'function') bindMagneticEffect(btn);
+
+            track.appendChild(card);
         });
+        
+        initCarouselLogic();
     }
-
-    async function fetchProducts(retries = 30) {
-        try {
-            // Ensure Firebase is loaded (wait up to 30 seconds for slow internet)
-            if (typeof db === 'undefined' || !db) {
-                if (retries > 0) {
-                    setTimeout(() => fetchProducts(retries - 1), 1000);
-                    return;
-                }
-                showProductsError('Conexión muy lenta. Revisa tu internet y recargá la página.');
-                return;
-            }
-            // Fetch Store Config
-            window.STORE_CONFIG = { installmentCount: 0, installmentMultiplier: 1.0 };
-            db.collection("config").doc("store").get().then(doc => {
-                if (doc.exists) {
-                    const data = doc.data();
-                    window.STORE_CONFIG.installmentCount = data.installmentCount || 0;
-                    window.STORE_CONFIG.installmentMultiplier = data.installmentMultiplier || 1.0;
-                    renderProducts(); renderCarousel();
-                }
-            }).catch(e => console.error("Error loading store config:", e));
-
-            // Fetch USD rate in parallel (don't block product loading)
-            fetchUsdRate().then(() => {
-                if (applyDynamicPrices()) { renderProducts(); renderCarousel(); }
-            }).catch(() => {});
-            const querySnapshot = await db.collection("products").get();
-            products = [];
-            querySnapshot.forEach((doc) => {
-                products.push({ id: doc.id, ...doc.data() });
-            });
-            applyDynamicPrices();
-            window.products = products;
-            if (products.length === 0) {
-                showEmptyProductsMessage();
-            } else {
-                renderProducts();
-                renderCarousel();
-            }
-            initDynamicEvents();
-            initCarouselLogic();
-            initProductFiltersAndModals();
-
-            // SEO: check if a product is in URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const pId = urlParams.get("p");
-            if (pId) {
-                setTimeout(() => { if(typeof window.openProductModal === "function") window.openProductModal(pId); }, 300);
-            }
-
-            // Recalcular precios cada 10 min con el dólar del momento
-            setInterval(async () => {
-                await fetchUsdRate();
-                if (applyDynamicPrices()) {
-                    renderProducts();
-                    renderCarousel();
-                }
-            }, 10 * 60 * 1000);
-        } catch(e) {
-            console.error("Error fetching products", e);
-            showProductsError(e.message);
-        }
-    }
-
     window.retryFetchProducts = () => {
         const grid = document.getElementById('productGrid');
         if (grid) grid.innerHTML = '';
@@ -967,16 +915,60 @@ window.getInstallmentsHtml = function(price) {
     renderCart();
 
     function initCarouselLogic() {
-    const track = document.getElementById('carousel3d');
-    if (!track) return;
-    const wrapper = track.parentElement;
-    if (!wrapper) return;
-    const cards = [...track.querySelectorAll('.carousel-card')];
+    const track = document.getElementById('carouselTrack');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
     
-    // Clean up previous event listeners by cloning the buttons
-    let prevBtn = document.getElementById('prevBtn');
-    let nextBtn = document.getElementById('nextBtn');
-    if (prevBtn) { const clone = prevBtn.cloneNode(true); prevBtn.parentNode.replaceChild(clone, prevBtn); prevBtn = clone; }
+    if (!track) return;
+
+    if (prevBtn && nextBtn) {
+        // Remove old listeners by cloning
+        const newPrev = prevBtn.cloneNode(true);
+        const newNext = nextBtn.cloneNode(true);
+        prevBtn.parentNode.replaceChild(newPrev, prevBtn);
+        nextBtn.parentNode.replaceChild(newNext, nextBtn);
+        
+        const scrollAmount = 350; // pixels to scroll per click
+        
+        newPrev.addEventListener('click', () => {
+            track.scrollBy({ left: -scrollAmount, behavior: 'smooth' });
+        });
+        
+        newNext.addEventListener('click', () => {
+            track.scrollBy({ left: scrollAmount, behavior: 'smooth' });
+        });
+    }
+
+    // Optional drag-to-scroll functionality for desktop
+    let isDown = false;
+    let startX;
+    let scrollLeft;
+
+    track.addEventListener('mousedown', (e) => {
+        isDown = true;
+        track.style.cursor = 'grabbing';
+        startX = e.pageX - track.offsetLeft;
+        scrollLeft = track.scrollLeft;
+    });
+    
+    track.addEventListener('mouseleave', () => {
+        isDown = false;
+        track.style.cursor = 'pointer';
+    });
+    
+    track.addEventListener('mouseup', () => {
+        isDown = false;
+        track.style.cursor = 'pointer';
+    });
+    
+    track.addEventListener('mousemove', (e) => {
+        if (!isDown) return;
+        e.preventDefault();
+        const x = e.pageX - track.offsetLeft;
+        const walk = (x - startX) * 2; // scroll-fast
+        track.scrollLeft = scrollLeft - walk;
+    });
+}
     if (nextBtn) { const clone = nextBtn.cloneNode(true); nextBtn.parentNode.replaceChild(clone, nextBtn); nextBtn = clone; }
     
     if (window._carouselInterval) clearInterval(window._carouselInterval);

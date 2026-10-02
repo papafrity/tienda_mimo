@@ -3033,3 +3033,176 @@ html, body {
     }
     #heroTitle .char { display: inline !important; }
 }
+/* --- PREMIUM CAROUSEL (Emil Kowalski / Stripe Style) --- */
+.carousel-section {
+    padding: 6rem 2rem;
+    position: relative;
+    overflow: hidden;
+    background: transparent;
+}
+.carousel-wrapper {
+    position: relative;
+    max-width: 1400px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+}
+.carousel-track {
+    display: flex;
+    gap: 2rem;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+    padding: 2rem; /* Give space for box-shadows */
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none;  /* IE and Edge */
+    width: 100%;
+    /* Subtle fade on edges */
+    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+}
+.carousel-track::-webkit-scrollbar { display: none; }
+
+.carousel-card {
+    flex: 0 0 calc(25% - 1.5rem);
+    min-width: 280px;
+    background: linear-gradient(160deg, rgba(20, 24, 34, 0.9) 0%, rgba(10, 12, 18, 0.95) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 24px;
+    padding: 1.5rem;
+    position: relative;
+    scroll-snap-align: center;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1), box-shadow 0.4s ease, border-color 0.4s ease;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+}
+
+@media (max-width: 1100px) { .carousel-card { flex: 0 0 calc(33.333% - 1.33rem); } }
+@media (max-width: 800px) { .carousel-card { flex: 0 0 calc(50% - 1rem); } }
+@media (max-width: 500px) { 
+    .carousel-track { padding: 1rem 10vw; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; gap: 1rem; }
+    .carousel-card { flex: 0 0 80vw; min-width: unset; scroll-snap-align: center; } 
+}
+
+/* Hover Physics */
+.carousel-card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: rgba(0, 240, 255, 0.3);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0, 240, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+.carousel-card:active {
+    transform: translateY(-2px) scale(0.98);
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Image inside */
+.carousel-card .product-image {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 1.5rem;
+    position: relative;
+    background: rgba(0,0,0,0.2);
+}
+.carousel-card .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
+    padding: 1rem;
+}
+.carousel-card:hover .product-image img {
+    transform: scale(1.1);
+}
+
+/* Typography */
+.carousel-card h3 {
+    font-size: 1.15rem;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Price */
+.carousel-card .price-container {
+    display: flex;
+    align-items: baseline;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+.carousel-card .offer-price {
+    font-size: 1.4rem;
+    color: #00f0ff;
+    font-weight: 800;
+    text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+}
+.carousel-card .old-price {
+    font-size: 0.95rem;
+    color: rgba(255,255,255,0.4);
+    text-decoration: line-through;
+}
+
+/* Add to cart button inside card */
+.carousel-card .add-to-cart-btn {
+    width: 100%;
+    padding: 0.8rem;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.carousel-card .add-to-cart-btn:hover {
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(0, 240, 255, 0.2));
+    border-color: rgba(0, 240, 255, 0.5);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+}
+.carousel-card .add-to-cart-btn:active {
+    transform: scale(0.96);
+}
+
+/* Navigation Buttons */
+.carousel-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: rgba(10, 12, 18, 0.8);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.15);
+    color: #fff;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+}
+.carousel-btn.prev { left: 0px; }
+.carousel-btn.next { right: 0px; }
+.carousel-btn:hover {
+    background: #00f0ff;
+    color: #000;
+    transform: translateY(-50%) scale(1.1);
+    box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4);
+    border-color: transparent;
+}
+.carousel-btn:active { transform: translateY(-50%) scale(0.95); }
+@media(max-width: 768px) { .carousel-btn { display: none; } }
+
+
