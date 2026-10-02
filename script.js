@@ -551,6 +551,71 @@ window.getInstallmentsHtml = function(price) {
         
         initCarouselLogic();
     }
+
+    async function fetchProducts(retries = 30) {
+        try {
+            // Ensure Firebase is loaded (wait up to 30 seconds for slow internet)
+            if (typeof db === 'undefined' || !db) {
+                if (retries > 0) {
+                    setTimeout(() => fetchProducts(retries - 1), 1000);
+                    return;
+                }
+                showProductsError('Conexión muy lenta. Revisa tu internet y recargá la página.');
+                return;
+            }
+            // Fetch Store Config
+            window.STORE_CONFIG = { installmentCount: 0, installmentMultiplier: 1.0 };
+            db.collection("config").doc("store").get().then(doc => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    window.STORE_CONFIG.installmentCount = data.installmentCount || 0;
+                    window.STORE_CONFIG.installmentMultiplier = data.installmentMultiplier || 1.0;
+                    renderProducts(); renderCarousel();
+                }
+            }).catch(e => console.error("Error loading store config:", e));
+
+            // Fetch USD rate in parallel (don't block product loading)
+            fetchUsdRate().then(() => {
+                if (applyDynamicPrices()) { renderProducts(); renderCarousel(); }
+            }).catch(() => {});
+            const querySnapshot = await db.collection("products").get();
+            products = [];
+            querySnapshot.forEach((doc) => {
+                products.push({ id: doc.id, ...doc.data() });
+            });
+            applyDynamicPrices();
+            window.products = products;
+            if (products.length === 0) {
+                showEmptyProductsMessage();
+            } else {
+                renderProducts();
+                renderCarousel();
+            }
+            initDynamicEvents();
+            initCarouselLogic();
+            initProductFiltersAndModals();
+
+            // SEO: check if a product is in URL
+            const urlParams = new URLSearchParams(window.location.search);
+            const pId = urlParams.get("p");
+            if (pId) {
+                setTimeout(() => { if(typeof window.openProductModal === "function") window.openProductModal(pId); }, 300);
+            }
+
+            // Recalcular precios cada 10 min con el dólar del momento
+            setInterval(async () => {
+                await fetchUsdRate();
+                if (applyDynamicPrices()) {
+                    renderProducts();
+                    renderCarousel();
+                }
+            }, 10 * 60 * 1000);
+        } catch(e) {
+            console.error("Error fetching products", e);
+            showProductsError(e.message);
+        }
+    }
+
     window.retryFetchProducts = () => {
         const grid = document.getElementById('productGrid');
         if (grid) grid.innerHTML = '';
