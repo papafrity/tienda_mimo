@@ -2037,31 +2037,38 @@ window.getInstallmentsHtml = function(price) {
             
             const html = document.documentElement;
             const body = document.body;
-            html.style.setProperty('scroll-behavior', 'auto', 'important');
-            body.style.setProperty('scroll-behavior', 'auto', 'important');
-
             const isMobile = window.innerWidth < 768;
             const offset = isMobile ? 80 : 70;
+            const isInstant = this.hasAttribute('data-instant');
             
             const currentScroll = (typeof smoother !== 'undefined' && smoother) 
                 ? smoother.scrollTop() 
                 : (window.pageYOffset || html.scrollTop);
-            const targetScroll = Math.max(0, currentScroll + target.getBoundingClientRect().top - offset);
+            
+            const maxScroll = (typeof smoother !== 'undefined' && smoother && typeof smoother.maxScroll === 'function')
+                ? smoother.maxScroll()
+                : Math.max(0, (document.documentElement.scrollHeight || document.body.scrollHeight) - window.innerHeight);
+
+            let targetScroll = currentScroll + target.getBoundingClientRect().top - offset;
+
+            // Si el objetivo es contacto o el footer, llevar exactamente al fondo de la página sin sobrepasar
+            if (target.id === 'contact' || target.tagName.toLowerCase() === 'footer') {
+                targetScroll = maxScroll;
+            } else {
+                targetScroll = Math.min(Math.max(0, targetScroll), maxScroll);
+            }
 
             if (typeof smoother !== 'undefined' && smoother) {
                 try {
-                    smoother.scrollTo(targetScroll, false);
-                    smoother.scrollTop(targetScroll);
-                } catch(err) {}
+                    smoother.scrollTo(targetScroll, !isInstant);
+                } catch(err) {
+                    window.scrollTo({ top: targetScroll, behavior: isInstant ? 'auto' : 'smooth' });
+                }
+            } else {
+                window.scrollTo({ top: targetScroll, behavior: isInstant ? 'auto' : 'smooth' });
             }
-            window.scrollTo(0, targetScroll);
             html.scrollTop = targetScroll;
             body.scrollTop = targetScroll;
-
-            setTimeout(() => {
-                html.style.removeProperty('scroll-behavior');
-                body.style.removeProperty('scroll-behavior');
-            }, 60);
         });
     });
 

@@ -1709,6 +1709,10 @@ body.low-end-mode .hero-visual {
 }
 
 .btn-magnetic {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
     background: #fff;
     color: #000;
     border: none;
