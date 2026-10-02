@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'herramientas', label: 'Herramientas', img: 'img/subcats/1790374642412.jpg' },
             { id: 'bicicletas', label: 'Bicicletas', img: 'img/subcats/1790376954013.jpg' },
             { id: 'movilidad', label: 'Monopatines', img: 'img/subcats/1790377061826.jpg' },
-            { id: 'deportes', label: 'Fitness y Deportes', img: 'img/subcats/1790377222331.jpg' }
+            { id: 'deportes', label: 'Fitness y Deporte', img: 'img/subcats/1790377222331.jpg' }
         ]
     };
 
@@ -416,10 +416,20 @@ window.getInstallmentsHtml = function(price) {
         let filtered = products.filter(p => p.isActive !== false);
 
         if (currentSubCategory !== 'all') {
-            filtered = filtered.filter(p => p.category === currentSubCategory);
+            filtered = filtered.filter(p => {
+                let cat = p.category;
+                if (cat === 'monopatines') cat = 'movilidad';
+                if (cat === 'fitness' || cat === 'fitness-deportes' || cat === 'fitness-deporte') cat = 'deportes';
+                return cat === currentSubCategory;
+            });
         } else if (currentGroup !== 'all' && subCategoriesMap[currentGroup]) {
             const groupCatIds = subCategoriesMap[currentGroup].map(s => s.id);
-            filtered = filtered.filter(p => groupCatIds.includes(p.category));
+            filtered = filtered.filter(p => {
+                let cat = p.category;
+                if (cat === 'monopatines') cat = 'movilidad';
+                if (cat === 'fitness' || cat === 'fitness-deportes' || cat === 'fitness-deporte') cat = 'deportes';
+                return groupCatIds.includes(cat);
+            });
         }
 
         filtered = filtered.filter(p => {

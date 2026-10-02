@@ -261,7 +261,16 @@ function renderAdminProducts() {
         return (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/\n/g, " ");
     }
 
-    adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join('');
+    const catLabelMap = {
+        'movilidad': 'Monopatines',
+        'monopatines': 'Monopatines',
+        'deportes': 'Fitness y Deporte',
+        'fitness': 'Fitness y Deporte'
+    };
+    adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => {
+        const label = catLabelMap[c] || (c.charAt(0).toUpperCase() + c.slice(1));
+        return `<option value="${escapeHtml(c)}">${escapeHtml(label)}</option>`;
+    }).join('');
     
     const optionsArray = Array.from(adminCategoryFilter.options);
     if (optionsArray.some(opt => opt.value === prevCat)) {
@@ -620,8 +629,10 @@ function openModal(id = null) {
         const p = adminProducts.find(x => x.id === id);
         if (p) {
             document.getElementById('prodId').value = p.id;
-            document.getElementById('prodName').value = p.name;
-            document.getElementById('prodCategory').value = p.category;
+            let cat = p.category || '';
+            if (cat === 'monopatines') cat = 'movilidad';
+            if (cat === 'fitness' || cat === 'fitness-deportes') cat = 'deportes';
+            document.getElementById('prodCategory').value = cat;
             document.getElementById('prodCost').value = p.cost || 0;
             document.getElementById('prodCurrency').dataset.currency = p.costCurrency || 'ARS';
             document.getElementById('prodCurrencyLabel').textContent = p.costCurrency || 'ARS';
