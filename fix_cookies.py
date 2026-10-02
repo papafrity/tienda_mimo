@@ -1,0 +1,3 @@
+﻿with open('script.js', 'a', encoding='utf-8') as f:
+    f.write('''\n// --- COOKIE BANNER ---\ndocument.addEventListener('DOMContentLoaded', () => {\n    const banner = document.getElementById('cookieBanner');\n    const btn = document.getElementById('acceptCookies');\n    if (banner && btn) {\n        if (!localStorage.getItem('cookiesAccepted')) {\n            banner.style.display = 'flex';\n        }\n        btn.addEventListener('click', () => {\n            localStorage.setItem('cookiesAccepted', 'true');\n            banner.style.display = 'none';\n        });\n    }\n});\n''')
+print('Done')

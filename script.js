@@ -3321,3 +3321,18 @@ window.filterByKeyword = function(keyword) {
         }
     }
 };
+
+// --- COOKIE BANNER ---
+document.addEventListener('DOMContentLoaded', () => {
+    const banner = document.getElementById('cookieBanner');
+    const btn = document.getElementById('acceptCookies');
+    if (banner && btn) {
+        if (!localStorage.getItem('cookiesAccepted')) {
+            banner.style.display = 'flex';
+        }
+        btn.addEventListener('click', () => {
+            localStorage.setItem('cookiesAccepted', 'true');
+            banner.style.display = 'none';
+        });
+    }
+});
