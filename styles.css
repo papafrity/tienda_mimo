@@ -229,23 +229,6 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .stat-plus{font-size:1.8rem;font-weight:700;color:var(--accent-color)}
 .stat-card p{color:var(--text-secondary);font-size:.85rem;margin-top:.3rem;letter-spacing:1.5px;text-transform:uppercase}
 .stat-sep{color:rgba(255,255,255,.08);font-size:2rem;font-weight:100;user-select:none}
-.carousel-wrapper{position:relative;overflow:hidden;padding:3rem 60px 2rem;max-width:1200px;margin:0 auto;perspective:1400px;min-height:420px;display:flex;align-items:center;justify-content:center;-webkit-mask-image:linear-gradient(to right, transparent, black 15%, black 85%, transparent);mask-image:linear-gradient(to right, transparent, black 15%, black 85%, transparent)}
-.carousel-3d{position:relative;width:280px;height:350px;transform-style:preserve-3d}
-.carousel-3d .carousel-card{position:absolute;width:100%;height:100%;top:0;left:0;opacity:0;pointer-events:none;cursor:pointer;will-change:transform,opacity,filter;transform-style:preserve-3d;backface-visibility:hidden;transition:none !important}
-.carousel-card.active{opacity:1;pointer-events:auto;border-color:rgba(0,240,255,0.4) !important;box-shadow:0 0 35px rgba(0,240,255,0.18),0 15px 40px rgba(0,0,0,0.5) !important}
-.carousel-card .product-image{height:170px;margin-bottom:0.7rem;overflow:hidden;background:#111;display:flex;align-items:center;justify-content:center;border-radius:14px}
-.carousel-card .product-image img{width:100%;height:100%;object-fit:contain}
-.carousel-card .product-info{padding:0}
-.carousel-card .product-info h3{font-size:0.95rem;margin:0.2rem 0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.carousel-card .price{margin:0.2rem 0 0.4rem}
-.old-price{font-size:.9rem;color:var(--text-secondary);text-decoration:line-through}
-.offer-price{font-size:1.4rem;font-weight:800;background:var(--gradient-glow);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-.carousel-btn{position:absolute;z-index:10;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;border:1px solid var(--surface-border);background:rgba(5,5,5,.8);color:var(--text-primary);font-size:1.4rem;cursor:pointer;transition:all var(--transition-base);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center}
-@media (hover: hover) {
-  .carousel-btn:hover{background:var(--gradient-glow);color:#000;border-color:transparent;transform:translateY(-50%)}
-}
-.carousel-btn.prev{left:2%}.carousel-btn.next{right:2%}
-.carousel-dots{display:flex;justify-content:center;gap:10px;margin-top:2rem}
 .carousel-dot{width:10px;height:10px;border-radius:50%;background:var(--surface-border);cursor:pointer;transition:all var(--transition-base)}
 .carousel-dot.active{background:var(--accent-color);box-shadow:0 0 10px rgba(0,240,255,.5);transform:scale(1.3)}
 
@@ -2978,60 +2961,64 @@ html, body {
 }
 /* --- PREMIUM CAROUSEL (Emil Kowalski / Stripe Style) --- */
 .carousel-section {
-    padding: 6rem 2rem;
+    padding: 6rem 1.5rem;
     position: relative;
     overflow: hidden;
     background: transparent;
 }
 .carousel-wrapper {
     position: relative;
-    max-width: 1400px;
+    max-width: 1440px;
     margin: 0 auto;
     display: flex;
     align-items: center;
+    padding: 0 50px;
+    overflow: visible;
 }
 .carousel-track {
     display: flex;
-    gap: 2rem;
+    gap: 1.8rem;
     overflow-x: auto;
     scroll-snap-type: x mandatory;
     scroll-behavior: smooth;
-    padding: 2rem; /* Give space for box-shadows */
+    padding: 2rem 0.5rem;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none;  /* IE and Edge */
     width: 100%;
-    /* Subtle fade on edges */
-    -webkit-mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
-    mask-image: linear-gradient(to right, transparent, black 5%, black 95%, transparent);
+    cursor: grab;
+    user-select: none;
+    /* Subtle fade strictly on cards entering/leaving track */
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, black 40px, black calc(100% - 40px), transparent 100%);
+    mask-image: linear-gradient(to right, transparent 0%, black 40px, black calc(100% - 40px), transparent 100%);
 }
 .carousel-track::-webkit-scrollbar { display: none; }
 
 .carousel-card {
-    flex: 0 0 calc(25% - 1.5rem);
-    min-width: 280px;
-    background: linear-gradient(160deg, rgba(20, 24, 34, 0.9) 0%, rgba(10, 12, 18, 0.95) 100%);
-    border: 1px solid rgba(255, 255, 255, 0.06);
+    flex: 0 0 calc(25% - 1.4rem);
+    min-width: 270px;
+    background: linear-gradient(160deg, rgba(20, 24, 34, 0.95) 0%, rgba(10, 12, 18, 0.98) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.08);
     border-radius: 24px;
     padding: 1.5rem;
     position: relative;
     scroll-snap-align: center;
     transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.1), box-shadow 0.4s ease, border-color 0.4s ease;
     cursor: pointer;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06);
 }
 
-@media (max-width: 1100px) { .carousel-card { flex: 0 0 calc(33.333% - 1.33rem); } }
-@media (max-width: 800px) { .carousel-card { flex: 0 0 calc(50% - 1rem); } }
-@media (max-width: 500px) { 
-    .carousel-track { padding: 1rem 10vw; scroll-snap-type: x mandatory; -webkit-mask-image: none; mask-image: none; gap: 1rem; }
-    .carousel-card { flex: 0 0 80vw; min-width: unset; scroll-snap-align: center; } 
+@media (max-width: 1200px) { .carousel-card { flex: 0 0 calc(33.333% - 1.2rem); } }
+@media (max-width: 850px) { .carousel-card { flex: 0 0 calc(50% - 1rem); } }
+@media (max-width: 550px) { 
+    .carousel-track { padding: 1rem 0; scroll-snap-type: x mandatory; -webkit-mask-image: none !important; mask-image: none !important; gap: 1rem; }
+    .carousel-card { flex: 0 0 82vw; min-width: unset; scroll-snap-align: center; } 
 }
 
 /* Hover Physics */
 .carousel-card:hover {
     transform: translateY(-8px) scale(1.02);
-    border-color: rgba(0, 240, 255, 0.3);
-    box-shadow: 0 20px 40px rgba(0,0,0,0.6), 0 0 30px rgba(0, 240, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.1);
+    border-color: rgba(0, 240, 255, 0.4);
+    box-shadow: 0 20px 45px rgba(0,0,0,0.7), 0 0 30px rgba(0, 240, 255, 0.15), inset 0 1px 0 rgba(255,255,255,0.15);
 }
 .carousel-card:active {
     transform: translateY(-2px) scale(0.98);
@@ -3044,16 +3031,19 @@ html, body {
     aspect-ratio: 1;
     border-radius: 16px;
     overflow: hidden;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
     position: relative;
-    background: rgba(0,0,0,0.2);
+    background: rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 .carousel-card .product-image img {
     width: 100%;
     height: 100%;
     object-fit: contain;
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.1);
-    padding: 1rem;
+    padding: 0.8rem;
 }
 .carousel-card:hover .product-image img {
     transform: scale(1.1);
@@ -3061,7 +3051,7 @@ html, body {
 
 /* Typography */
 .carousel-card h3 {
-    font-size: 1.15rem;
+    font-size: 1.1rem;
     color: #fff;
     margin-bottom: 0.5rem;
     font-family: 'Space Grotesk', sans-serif;
@@ -3078,10 +3068,10 @@ html, body {
     display: flex;
     align-items: baseline;
     gap: 0.8rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1.2rem;
 }
 .carousel-card .offer-price {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
     color: #00f0ff;
     font-weight: 800;
     text-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
@@ -3097,8 +3087,8 @@ html, body {
     width: 100%;
     padding: 0.8rem;
     border-radius: 12px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
     color: #fff;
     font-family: 'Outfit', sans-serif;
     font-weight: 600;
@@ -3107,45 +3097,66 @@ html, body {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 .carousel-card .add-to-cart-btn:hover {
-    background: linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(0, 240, 255, 0.2));
-    border-color: rgba(0, 240, 255, 0.5);
-    box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+    background: linear-gradient(135deg, rgba(168, 85, 247, 0.25), rgba(0, 240, 255, 0.25));
+    border-color: rgba(0, 240, 255, 0.6);
+    box-shadow: 0 0 20px rgba(0, 240, 255, 0.3);
 }
 .carousel-card .add-to-cart-btn:active {
     transform: scale(0.96);
 }
 
-/* Navigation Buttons */
+/* Navigation Buttons - Totally clear of fade */
 .carousel-btn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
-    width: 50px;
-    height: 50px;
+    width: 52px;
+    height: 52px;
     border-radius: 50%;
-    background: rgba(10, 12, 18, 0.8);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255,255,255,0.15);
-    color: #fff;
-    font-size: 1.2rem;
+    background: rgba(12, 16, 26, 0.95) !important;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1.5px solid rgba(0, 240, 255, 0.45) !important;
+    color: #fff !important;
+    font-size: 1.35rem;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    z-index: 10;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    z-index: 60 !important;
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.8), 0 0 18px rgba(0, 240, 255, 0.3);
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.2);
+    opacity: 1 !important;
 }
-.carousel-btn.prev { left: 0px; }
-.carousel-btn.next { right: 0px; }
+.carousel-btn.prev {
+    left: -2px !important;
+}
+.carousel-btn.next {
+    right: -2px !important;
+}
 .carousel-btn:hover {
-    background: #00f0ff;
-    color: #000;
-    transform: translateY(-50%) scale(1.1);
-    box-shadow: 0 10px 30px rgba(0, 240, 255, 0.4);
-    border-color: transparent;
+    background: #00f0ff !important;
+    color: #06080d !important;
+    transform: translateY(-50%) scale(1.14);
+    box-shadow: 0 0 35px rgba(0, 240, 255, 0.75);
+    border-color: #00f0ff !important;
 }
-.carousel-btn:active { transform: translateY(-50%) scale(0.95); }
-@media(max-width: 768px) { .carousel-btn { display: none; } }
+.carousel-btn:active {
+    transform: translateY(-50%) scale(0.94);
+}
+
+@media (max-width: 768px) {
+    .carousel-wrapper {
+        padding: 0 8px;
+    }
+    .carousel-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.05rem;
+        background: rgba(12, 16, 26, 0.9) !important;
+    }
+    .carousel-btn.prev { left: 4px !important; }
+    .carousel-btn.next { right: 4px !important; }
+}
 
 
