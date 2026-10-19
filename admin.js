@@ -107,7 +107,16 @@ spinStyle.textContent = '@keyframes spin { from { transform: rotate(0deg); } to 
 document.head.appendChild(spinStyle);
 
 // ─── HELPER FUNCTIONS ─────────────────────────────────────
-function fmt(n) { return Number(n).toString().replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
+function fmt(n) {
+    const num = Number(n);
+    if (isNaN(num)) return '0';
+    // Si es entero, solo separador de miles. Si tiene decimales, mantiene hasta 2.
+    const hasDecimals = num % 1 !== 0;
+    return num.toLocaleString('es-AR', {
+        minimumFractionDigits: hasDecimals ? 2 : 0,
+        maximumFractionDigits: 2
+    });
+}
 
 function renderStarsHtml(rating) {
     const r = Math.round((rating || 0) * 2) / 2;
