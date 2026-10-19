@@ -74,6 +74,13 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { if (navbar) navbar.classList.add('--active'); }, 110);
     }, 50);
 
+    // ─── BENTO BACKGROUND VIDEOS AUTOPLAY ───────────────────
+    document.querySelectorAll('.bento-video').forEach(video => {
+        video.muted = true;
+        const p = video.play();
+        if (p !== undefined) p.catch(() => {});
+    });
+
     // ─── CUSTOM CURSOR ──────────────────────────────────────
     const dot = document.getElementById('cursorDot');
     const ring = document.getElementById('cursorRing');

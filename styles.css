@@ -2152,17 +2152,23 @@ html, body {
     pointer-events: none;
     transition: opacity 0.3s ease;
 }
-.bento-bg {
+.bento-bg,
+.bento-video {
     position: absolute;
     inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover !important;
     border-radius: 24px;
     background-size: cover !important;
     background-position: center !important;
     opacity: 0.65 !important;
     transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1), opacity 0.4s ease !important;
     z-index: 0;
+    pointer-events: none;
 }
-.bento-card:hover .bento-bg {
+.bento-card:hover .bento-bg,
+.bento-card:hover .bento-video {
     opacity: 0.85 !important;
     transform: scale(1.04);
 }
@@ -2202,7 +2208,8 @@ html, body {
         grid-column: span 1 !important;
         min-height: 220px !important;
     }
-    .bento-bg {
+    .bento-bg,
+    .bento-video {
         opacity: 0.75 !important;
     }
     .bento-content {
