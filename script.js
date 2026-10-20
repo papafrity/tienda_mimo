@@ -2874,6 +2874,133 @@ document.head.appendChild(st);
         });
     }
 
+    // ─── BENTO GALLERY SCROLL ANIMATION (GSAP + SCROLLTRIGGER) ───
+    function initBentoScrollAnimation() {
+        if (typeof gsap === 'undefined' || typeof ScrollTrigger === 'undefined') return;
+        if (window.isLowEndDevice && window.isLowEndDevice()) return;
+
+        const bentoSection = document.querySelector('.bento-section');
+        const bentoGrid = document.querySelector('.bento-grid');
+        const bentoHeader = document.querySelector('.bento-header');
+        const cards = document.querySelectorAll('.bento-card');
+
+        if (!bentoSection || !bentoGrid || cards.length < 4) return;
+
+        const cardLarge = cards[0];      // Sonido Inmersivo (Col 1, Row 1-2)
+        const cardSmall1 = cards[1];     // Smartphones (Col 2, Row 1)
+        const cardSmall2 = cards[2];     // Smart TVs (Col 2, Row 2)
+        const cardWide = cards[3];       // Accesorios Pro (Col 1-2, Row 3)
+
+        ScrollTrigger.matchMedia({
+            // Desktop & Tablets (>= 769px): Convergence & Scale like hero-gallery-scroll-animation
+            "(min-width: 769px)": function() {
+                // Set origins for corner expansion matching 21st.dev component
+                gsap.set(cardLarge, { transformOrigin: "top right", force3D: true });
+                gsap.set(cardSmall1, { transformOrigin: "bottom left", force3D: true });
+                gsap.set(cardSmall2, { transformOrigin: "bottom right", force3D: true });
+                gsap.set(cardWide, { transformOrigin: "top center", force3D: true });
+
+                const tl = gsap.timeline({
+                    scrollTrigger: {
+                        trigger: bentoSection,
+                        start: "top 85%",
+                        end: "top 20%",
+                        scrub: 1.2,
+                        invalidateOnRefresh: true
+                    }
+                });
+
+                // Header smooth scale and reveal
+                if (bentoHeader) {
+                    tl.fromTo(bentoHeader, 
+                        { y: 35, opacity: 0.35, scale: 0.94 },
+                        { y: 0, opacity: 1, scale: 1, ease: "power2.out" },
+                        0
+                    );
+                }
+
+                // Bento cards convergence and zoom from 0.78 to 1
+                tl.fromTo(cardLarge,
+                    { scale: 0.78, x: -35, y: 30, opacity: 0.65 },
+                    { scale: 1, x: 0, y: 0, opacity: 1, ease: "power2.out" },
+                    0
+                );
+
+                tl.fromTo(cardSmall1,
+                    { scale: 0.78, x: 35, y: -25, opacity: 0.65 },
+                    { scale: 1, x: 0, y: 0, opacity: 1, ease: "power2.out" },
+                    0
+                );
+
+                tl.fromTo(cardSmall2,
+                    { scale: 0.78, x: 35, y: 25, opacity: 0.65 },
+                    { scale: 1, x: 0, y: 0, opacity: 1, ease: "power2.out" },
+                    0
+                );
+
+                tl.fromTo(cardWide,
+                    { scale: 0.82, y: 45, opacity: 0.65 },
+                    { scale: 1, y: 0, opacity: 1, ease: "power2.out" },
+                    0
+                );
+
+                // Smooth hover on cards when resting in view
+                cards.forEach(card => {
+                    card.addEventListener('mouseenter', () => {
+                        if (tl.scrollTrigger && tl.scrollTrigger.progress > 0.9) {
+                            gsap.to(card, { y: -5, duration: 0.25, ease: 'power2.out', overwrite: 'auto' });
+                        }
+                    });
+                    card.addEventListener('mouseleave', () => {
+                        if (tl.scrollTrigger && tl.scrollTrigger.progress > 0.9) {
+                            gsap.to(card, { y: 0, duration: 0.25, ease: 'power2.out', overwrite: 'auto' });
+                        }
+                    });
+                });
+            },
+
+            // Mobile screens (<= 768px): Vertical scrub zoom (no horizontal offset to prevent mobile jitter)
+            "(max-width: 768px)": function() {
+                cards.forEach((card) => {
+                    gsap.fromTo(card,
+                        { scale: 0.88, y: 35, opacity: 0.65 },
+                        {
+                            scale: 1,
+                            y: 0,
+                            opacity: 1,
+                            ease: "power2.out",
+                            scrollTrigger: {
+                                trigger: card,
+                                start: "top 92%",
+                                end: "top 60%",
+                                scrub: 0.8,
+                                invalidateOnRefresh: true
+                            }
+                        }
+                    );
+                });
+
+                if (bentoHeader) {
+                    gsap.fromTo(bentoHeader,
+                        { y: 25, opacity: 0.4, scale: 0.95 },
+                        {
+                            y: 0,
+                            opacity: 1,
+                            scale: 1,
+                            ease: "power2.out",
+                            scrollTrigger: {
+                                trigger: bentoHeader,
+                                start: "top 92%",
+                                end: "top 70%",
+                                scrub: 0.8
+                            }
+                        }
+                    );
+                }
+            }
+        });
+    }
+
     // Init after products render
     if (typeof renderPage === 'function') {
         const origRender = renderPage;
@@ -2885,6 +3012,7 @@ document.head.appendChild(st);
         setTimeout(initScrollReveals, 500);
     }
     initScrollReveals();
+    initBentoScrollAnimation();
 })();
 
 // ─── MODAL 3D ANIMATION (GSAP) ──────────────────────────
