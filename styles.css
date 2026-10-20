@@ -1065,10 +1065,7 @@ body{padding-bottom:70px}
 .chatbot-send:hover{transform:scale(1.05)}
 .chatbot-send:disabled{opacity:.4;cursor:not-allowed;transform:none}
 
-@media(max-width:480px){
-    .chatbot-wrapper{bottom:1rem;right:1rem}
-    .chatbot-panel{width:calc(100vw - 2rem);height:calc(100vh - 100px);right:0;bottom:70px}
-}
+/* Mobile chatbot panel sizing is handled in max-width: 768px below */
 
 
 
@@ -2301,6 +2298,23 @@ html, body {
     .chatbot-bubble {
         width: 48px !important;
         height: 48px !important;
+    }
+    .chatbot-panel {
+        position: fixed !important;
+        top: max(16px, env(safe-area-inset-top, 16px)) !important;
+        bottom: calc(5.5rem + 56px) !important;
+        left: 12px !important;
+        right: 12px !important;
+        width: auto !important;
+        max-width: calc(100vw - 24px) !important;
+        height: auto !important;
+        max-height: calc(100dvh - 5.5rem - 76px) !important;
+        border-radius: 20px !important;
+        z-index: 100000 !important;
+        transform: translateY(12px) scale(0.98);
+    }
+    .chatbot-wrapper.open .chatbot-panel {
+        transform: translateY(0) scale(1) !important;
     }
     .back-to-top {
         bottom: 9.5rem !important;
