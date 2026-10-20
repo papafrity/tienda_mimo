@@ -3311,39 +3311,3 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
-
-
-// ─── INTERACTIVE SEPARATOR SHOWCASE SWITCHER (10 DESIGNS) ───
-document.addEventListener('DOMContentLoaded', () => {
-    const showcase = document.getElementById('separatorShowcase');
-    if (!showcase) return;
-
-    const buttons = showcase.querySelectorAll('.st-btn');
-    const designs = showcase.querySelectorAll('.sep-design');
-
-    function setActiveDesign(num) {
-        designs.forEach(d => d.classList.remove('active'));
-        buttons.forEach(b => b.classList.remove('active'));
-
-        const targetDesign = showcase.querySelector(`.sep-design.sep-${num}`);
-        const targetBtn = showcase.querySelector(`.st-btn[data-design="${num}"]`);
-
-        if (targetDesign) targetDesign.classList.add('active');
-        if (targetBtn) targetBtn.classList.add('active');
-
-        try { localStorage.setItem('mimo_sep_design', num); } catch(e) {}
-    }
-
-    buttons.forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.preventDefault();
-            const num = btn.getAttribute('data-design');
-            setActiveDesign(num);
-        });
-    });
-
-    const saved = localStorage.getItem('mimo_sep_design');
-    if (saved && showcase.querySelector(`.sep-design.sep-${saved}`)) {
-        setActiveDesign(saved);
-    }
-});
