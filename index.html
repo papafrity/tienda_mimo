@@ -360,11 +360,125 @@
         </div>
     </section>
 
-    <!-- Wave Divider -->
-    <div class="wave-divider">
-        <svg viewBox="0 0 1200 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-            <path class="wave-path" d="M0,40 C150,80 350,0 600,40 C850,80 1050,0 1200,40 L1200,80 L0,80 Z"></path>
-        </svg>
+    <!-- ═══════════════════════════════════════════════════════════
+         PROBADOR EN VIVO DE SEPARADORES (10 DISEÑOS INTERACTIVOS)
+         ═══════════════════════════════════════════════════════════ -->
+    <div id="separatorShowcase" class="separator-showcase">
+        <div class="separator-toolbar">
+            <div class="separator-toolbar-header">
+                <span class="st-badge">🎨 Probador de Separadores en Vivo</span>
+                <p>Tocá cada botón para ver en tiempo real cómo queda cada diseño sobre tu fondo estrellado:</p>
+            </div>
+            <div class="separator-buttons">
+                <button type="button" class="st-btn active" data-design="1">1. Línea Láser</button>
+                <button type="button" class="st-btn" data-design="2">2. Insignia Mimo</button>
+                <button type="button" class="st-btn" data-design="3">3. Aura Neón</button>
+                <button type="button" class="st-btn" data-design="4">4. Onda Cyberpunk</button>
+                <button type="button" class="st-btn" data-design="5">5. Doble Línea</button>
+                <button type="button" class="st-btn" data-design="6">6. Matriz Puntos</button>
+                <button type="button" class="st-btn" data-design="7">7. Flecha Neón</button>
+                <button type="button" class="st-btn" data-design="8">8. Barra Glass</button>
+                <button type="button" class="st-btn" data-design="9">9. Constelación</button>
+                <button type="button" class="st-btn" data-design="10">10. 100% Puro</button>
+            </div>
+        </div>
+
+        <div class="separator-viewport">
+            <!-- 1. Línea Láser Neón -->
+            <div class="sep-design sep-1 active">
+                <div class="sep-laser-line">
+                    <span class="sep-laser-pulse"></span>
+                </div>
+            </div>
+
+            <!-- 2. Insignia Mimo -->
+            <div class="sep-design sep-2">
+                <div class="sep-badge-line">
+                    <span class="sep-badge-line-left"></span>
+                    <div class="sep-badge-pill">
+                        <span class="sep-star">✦</span>
+                        <span class="sep-badge-text">MIMO TECH</span>
+                        <span class="sep-star">✦</span>
+                    </div>
+                    <span class="sep-badge-line-right"></span>
+                </div>
+            </div>
+
+            <!-- 3. Aura Neón -->
+            <div class="sep-design sep-3">
+                <div class="sep-aura-glow"></div>
+            </div>
+
+            <!-- 4. Onda Cyberpunk -->
+            <div class="sep-design sep-4">
+                <svg viewBox="0 0 1200 60" preserveAspectRatio="none" class="sep-wave-svg">
+                    <defs>
+                        <linearGradient id="cyberWaveGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#00f0ff" stop-opacity="0" />
+                            <stop offset="20%" stop-color="#00f0ff" stop-opacity="0.8" />
+                            <stop offset="50%" stop-color="#a855f7" stop-opacity="1" />
+                            <stop offset="80%" stop-color="#00f0ff" stop-opacity="0.8" />
+                            <stop offset="100%" stop-color="#a855f7" stop-opacity="0" />
+                        </linearGradient>
+                    </defs>
+                    <path d="M0,30 C300,5 600,55 900,15 C1050,0 1150,45 1200,30" fill="none" stroke="url(#cyberWaveGrad)" stroke-width="2.5" />
+                </svg>
+            </div>
+
+            <!-- 5. Doble Línea Offset -->
+            <div class="sep-design sep-5">
+                <div class="sep-dual-track">
+                    <div class="sep-track-top"></div>
+                    <div class="sep-track-bottom"></div>
+                </div>
+            </div>
+
+            <!-- 6. Matriz de Puntos Digital -->
+            <div class="sep-design sep-6">
+                <div class="sep-dots-matrix">
+                    <span class="sdot d1"></span><span class="sdot d2"></span><span class="sdot d3"></span><span class="sdot d4"></span>
+                    <span class="sdot d5"></span><span class="sdot d6"></span><span class="sdot d7"></span><span class="sdot d8"></span>
+                    <span class="sdot d9"></span><span class="sdot d10"></span><span class="sdot d11"></span><span class="sdot d12"></span>
+                    <span class="sdot d13"></span><span class="sdot d14"></span><span class="sdot d15"></span>
+                </div>
+            </div>
+
+            <!-- 7. Flecha Neón Sutil -->
+            <div class="sep-design sep-7">
+                <div class="sep-chevron-wrap">
+                    <span class="sep-chevron-line left"></span>
+                    <div class="sep-chevron-icon">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </div>
+                    <span class="sep-chevron-line right"></span>
+                </div>
+            </div>
+
+            <!-- 8. Barra Glassmorphism -->
+            <div class="sep-design sep-8">
+                <div class="sep-glass-bar"></div>
+            </div>
+
+            <!-- 9. Constelación de 3 Estrellas -->
+            <div class="sep-design sep-9">
+                <div class="sep-constellation">
+                    <span class="sep-line-thin"></span>
+                    <div class="sep-stars-cluster">
+                        <span class="sep-diamond s-side">✦</span>
+                        <span class="sep-diamond s-center">✦</span>
+                        <span class="sep-diamond s-side">✦</span>
+                    </div>
+                    <span class="sep-line-thin"></span>
+                </div>
+            </div>
+
+            <!-- 10. Flujo Puro 100% Invisible -->
+            <div class="sep-design sep-10">
+                <div class="sep-pure-flow"></div>
+            </div>
+        </div>
     </div>
 
 
