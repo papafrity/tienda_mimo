@@ -74,11 +74,55 @@ document.addEventListener('DOMContentLoaded', () => {
         setTimeout(() => { if (navbar) navbar.classList.add('--active'); }, 110);
     }, 50);
 
-    // ─── BENTO BACKGROUND VIDEOS AUTOPLAY ───────────────────
-    document.querySelectorAll('.bento-video').forEach(video => {
+    // ─── BENTO VIDEOS: REPRODUCCIÓN SOLO AL PASAR EL MOUSE (HOVER) ───
+    const bentoCards = document.querySelectorAll('.bento-card');
+    const isTouchOnly = window.matchMedia('(hover: none)').matches;
+
+    bentoCards.forEach(card => {
+        const video = card.querySelector('.bento-video');
+        if (!video) return;
+
         video.muted = true;
-        const p = video.play();
-        if (p !== undefined) p.catch(() => {});
+        video.pause();
+
+        if (!isTouchOnly) {
+            // En Desktop: Solo se reproduce al pasar el cursor encima
+            let playPromise = null;
+
+            card.addEventListener('mouseenter', () => {
+                playPromise = video.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(() => {});
+                }
+            });
+
+            card.addEventListener('mouseleave', () => {
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        video.pause();
+                        video.currentTime = 0;
+                    }).catch(() => {
+                        video.pause();
+                        video.currentTime = 0;
+                    });
+                } else {
+                    video.pause();
+                    video.currentTime = 0;
+                }
+            });
+        } else {
+            // En Móviles (sin mouse): Reproduce automáticamente solo cuando está visible en pantalla
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        video.play().catch(() => {});
+                    } else {
+                        video.pause();
+                    }
+                });
+            }, { threshold: 0.35 });
+            observer.observe(card);
+        }
     });
 
     // ─── CUSTOM CURSOR ──────────────────────────────────────

@@ -1635,8 +1635,10 @@ body.low-end-mode .hero-visual {
 
 .bento-grid {
     display: grid;
-    grid-template-columns: 1fr; max-width: 900px; margin: 0 auto;
-    grid-auto-rows: minmax(280px, auto);
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 1040px;
+    margin: 0 auto;
+    grid-auto-rows: minmax(260px, auto);
     gap: 24px;
 }
 
@@ -2171,6 +2173,17 @@ html, body {
 .bento-card:hover .bento-video {
     opacity: 0.85 !important;
     transform: scale(1.04);
+}
+
+/* Enfoque y encuadre óptimo según la proporción de cada tarjeta */
+.bento-card.large .bento-video {
+    object-position: 35% center !important;
+}
+.bento-card.wide .bento-video {
+    object-position: center 32% !important;
+}
+.bento-card.small .bento-video {
+    object-position: center center !important;
 }
 .bento-content {
     position: relative;
