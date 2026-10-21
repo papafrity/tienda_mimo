@@ -638,6 +638,7 @@ function openModal(id = null) {
         const p = adminProducts.find(x => x.id === id);
         if (p) {
             document.getElementById('prodId').value = p.id;
+            document.getElementById('prodName').value = p.name || '';
             let cat = p.category || '';
             if (cat === 'monopatines') cat = 'movilidad';
             if (cat === 'fitness' || cat === 'fitness-deportes') cat = 'deportes';
@@ -694,7 +695,7 @@ function openModal(id = null) {
     // Disparar evento para que aparezca la cruz de borrar imagen
     document.getElementById('prodImg').dispatchEvent(new Event('input'));
     // Update profit display
-    document.getElementById('prodPrice').dispatchEvent(new Event('input'));
+    updateProfitDisplay();
     // Update live cost conversion (USD → ARS)
     updateCostARSDisplay();
 }
@@ -831,6 +832,38 @@ function updateCostARSDisplay() {
     }
 }
 
+// Profit calculation helper (supports normal price and reduced profit on active offer)
+function updateProfitDisplay() {
+    const costARS = getCostInARS();
+    const regularPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
+    const offerInput = document.getElementById('prodOffer');
+    const offerPrice = offerInput ? parseFloat(offerInput.value) || 0 : 0;
+
+    // Si tiene un precio de oferta válido y menor al regular, la ganancia real disminuye según la oferta
+    const hasOffer = offerPrice > 0 && offerPrice < regularPrice;
+    const effectivePrice = hasOffer ? offerPrice : regularPrice;
+
+    const profit = effectivePrice * (1 - MP_REAL_FEE) - costARS;
+    const marginPct = costARS > 0 ? Math.round((profit / costARS) * 100) : 0;
+    const display = document.getElementById('prodProfitDisplay');
+    const currency = getCostCurrency();
+    const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
+
+    if (display) {
+        if (hasOffer) {
+            const regularProfit = regularPrice * (1 - MP_REAL_FEE) - costARS;
+            display.innerHTML = `<span style="color:#ff9f43;font-weight:700">Ganancia con Oferta: $${fmt(profit)} (${marginPct}% s/costo${rateInfo})</span> <span style="font-size:0.82em;opacity:0.75;color:var(--text-secondary)">(Normal: $${fmt(regularProfit)})</span>`;
+        } else {
+            display.textContent = `Ganancia: $${fmt(profit)} (${marginPct}% sobre costo${rateInfo})`;
+        }
+        if (profit < 0) {
+            display.style.color = '#ff4757';
+        } else if (!hasOffer) {
+            display.style.color = '#2ed573';
+        }
+    }
+}
+
 // Auto-calculate price
 function updateCalculatedPrice() {
     const costARS = getCostInARS();
@@ -840,11 +873,7 @@ function updateCalculatedPrice() {
     const finalPrice = rawFinal < 100 ? rawFinal : Math.ceil(rawFinal / 100) * 100;
     document.getElementById('prodPrice').value = finalPrice;
     
-    const profit = finalPrice * (1 - MP_REAL_FEE) - costARS;
-    const display = document.getElementById('prodProfitDisplay');
-    const currency = getCostCurrency();
-    const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
-    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
+    updateProfitDisplay();
     updateCostARSDisplay();
     updateTierPrices();
 }
@@ -929,16 +958,9 @@ document.getElementById('prodCurrency').addEventListener('click', () => {
     updateCalculatedPrice();
 });
 
-// Also update profit display if user manually edits the final price
-document.getElementById('prodPrice').addEventListener('input', () => {
-    const costARS = getCostInARS();
-    const finalPrice = parseFloat(document.getElementById('prodPrice').value) || 0;
-    const profit = finalPrice * (1 - MP_REAL_FEE) - costARS;
-    const display = document.getElementById('prodProfitDisplay');
-    const currency = getCostCurrency();
-    const rateInfo = (currency === 'USD' && usdRateARS) ? ` (${usdRateARS} ARS/USD)` : '';
-    if (display) display.textContent = `Ganancia: $${fmt(profit)} (${Math.round((profit / costARS) * 100) || 0}% sobre costo${rateInfo})`;
-});
+// Update profit display if user manually edits final price or offer price
+document.getElementById('prodPrice').addEventListener('input', updateProfitDisplay);
+document.getElementById('prodOffer').addEventListener('input', updateProfitDisplay);
 
 async function deleteProduct(id) {
     if (confirm("¿Estás seguro de que quieres borrar este producto?")) {
