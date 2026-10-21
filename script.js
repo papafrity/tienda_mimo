@@ -361,6 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'relojes-fundas', label: 'Smartwatches', img: 'img/subcats/1790441077547.jpg' },
             { id: 'televisores', label: 'Smart TVs', img: 'img/subcats/1790441082430.jpg' },
             { id: 'parlantes', label: 'Parlantes', img: 'img/subcats/1790365183333.jpg' },
+            { id: 'proyectores', label: 'Proyectores', img: 'img/subcats/1790442036440.jpg' },
             { id: 'gaming', label: 'Gaming', img: 'img/subcats/1790365187178.jpg' },
             { id: 'pc', label: 'Notebooks', img: 'img/subcats/1790365190741.jpg' },
             { id: 'tvbox', label: 'TV Box / Sticks', img: 'img/subcats/1790365195074.jpg' },
@@ -468,17 +469,23 @@ window.getInstallmentsHtml = function(price) {
 
         if (currentSubCategory !== 'all') {
             filtered = filtered.filter(p => {
-                let cat = p.category;
+                let cat = (p.category || '').toLowerCase().trim();
                 if (cat === 'monopatines') cat = 'movilidad';
                 if (cat === 'fitness' || cat === 'fitness-deportes' || cat === 'fitness-deporte') cat = 'deportes';
+                if (cat === 'cargadores') cat = 'cargadores-accesorios';
+                if (cat === 'relojes' || cat === 'fundas') cat = 'relojes-fundas';
+                if (cat === 'iluminacion') cat = 'iluminacion-gadgets';
                 return cat === currentSubCategory;
             });
         } else if (currentGroup !== 'all' && subCategoriesMap[currentGroup]) {
             const groupCatIds = subCategoriesMap[currentGroup].map(s => s.id);
             filtered = filtered.filter(p => {
-                let cat = p.category;
+                let cat = (p.category || '').toLowerCase().trim();
                 if (cat === 'monopatines') cat = 'movilidad';
                 if (cat === 'fitness' || cat === 'fitness-deportes' || cat === 'fitness-deporte') cat = 'deportes';
+                if (cat === 'cargadores') cat = 'cargadores-accesorios';
+                if (cat === 'relojes' || cat === 'fundas') cat = 'relojes-fundas';
+                if (cat === 'iluminacion') cat = 'iluminacion-gadgets';
                 return groupCatIds.includes(cat);
             });
         }

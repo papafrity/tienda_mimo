@@ -262,23 +262,92 @@ function renderAdminProducts() {
         return;
     }
 
-    // Populate category filter safely
+    // Populate category filter with ALL official categories + custom ones
     const prevCat = adminCategoryFilter.value;
-    const cats = [...new Set(adminProducts.map(p => p.category).filter(Boolean))].sort();
     
     function escapeHtml(unsafe) {
         return (unsafe || "").toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;").replace(/\n/g, " ");
     }
 
+    // Official labels map matching the modal
     const catLabelMap = {
+        'auriculares': 'Auriculares',
+        'bano': 'Baño',
+        'belleza': 'Belleza',
+        'bicicletas': 'Bicicletas',
+        'calefaccion': 'Calefacción',
+        'cargadores-accesorios': 'Cargadores',
+        'cargadores': 'Cargadores',
+        'celulares': 'Celulares',
+        'climatizacion': 'Climatización',
+        'cocinas': 'Cocinas',
+        'decoracion': 'Decoración',
+        'exteriores': 'Exteriores',
+        'deportes': 'Fitness y Deporte',
+        'fitness': 'Fitness y Deporte',
+        'fitness-deportes': 'Fitness y Deporte',
+        'gadgets': 'Gadgets',
+        'gaming': 'Gaming',
+        'herramientas': 'Herramientas',
+        'hogar-muebles': 'Hogar y Muebles',
+        'iluminacion-gadgets': 'Iluminación',
+        'iluminacion': 'Iluminación',
+        'limpieza': 'Limpieza',
         'movilidad': 'Monopatines',
         'monopatines': 'Monopatines',
-        'deportes': 'Fitness y Deporte',
-        'fitness': 'Fitness y Deporte'
+        'parlantes': 'Parlantes',
+        'pc': 'PC',
+        'proyectores': 'Proyectores',
+        'relojes-fundas': 'Relojes y Fundas',
+        'relojes': 'Relojes y Fundas',
+        'televisores': 'Televisores',
+        'tvbox': 'TV Box',
+        'ventilacion': 'Ventilación'
     };
-    adminCategoryFilter.innerHTML = '<option value="all">Todas</option>' + cats.map(c => {
-        const label = catLabelMap[c] || (c.charAt(0).toUpperCase() + c.slice(1));
-        return `<option value="${escapeHtml(c)}">${escapeHtml(label)}</option>`;
+
+    // Load from #prodCategory so filter is always in complete sync
+    const prodCatSelect = document.getElementById('prodCategory');
+    const categoryOptionsMap = new Map();
+    if (prodCatSelect) {
+        Array.from(prodCatSelect.options).forEach(opt => {
+            if (opt.value) categoryOptionsMap.set(opt.value, opt.textContent.trim());
+        });
+    }
+
+    // Ensure all official categories are registered
+    Object.keys(catLabelMap).forEach(key => {
+        if (!['monopatines', 'fitness', 'fitness-deportes', 'cargadores', 'relojes', 'iluminacion'].includes(key)) {
+            if (!categoryOptionsMap.has(key)) {
+                categoryOptionsMap.set(key, catLabelMap[key]);
+            }
+        }
+    });
+
+    // Also include any other category present in database products
+    adminProducts.forEach(p => {
+        if (p.category) {
+            let normalized = p.category.toLowerCase().trim();
+            if (!categoryOptionsMap.has(normalized)) {
+                const label = catLabelMap[normalized] || (normalized.charAt(0).toUpperCase() + normalized.slice(1).replace(/-/g, ' '));
+                categoryOptionsMap.set(normalized, label);
+            }
+        }
+    });
+
+    const sortedCats = Array.from(categoryOptionsMap.entries()).sort((a, b) => a[1].localeCompare(b[1], 'es'));
+
+    adminCategoryFilter.innerHTML = '<option value="all">Todas las Categorías</option>' + sortedCats.map(([val, label]) => {
+        const count = adminProducts.filter(p => {
+            let pCat = (p.category || '').toLowerCase().trim();
+            if (val === 'movilidad' && (pCat === 'monopatines' || pCat === 'movilidad')) return true;
+            if (val === 'deportes' && (pCat === 'fitness' || pCat === 'fitness-deportes' || pCat === 'deportes')) return true;
+            if (val === 'cargadores-accesorios' && (pCat === 'cargadores' || pCat === 'cargadores-accesorios')) return true;
+            if (val === 'relojes-fundas' && (pCat === 'relojes' || pCat === 'fundas' || pCat === 'relojes-fundas')) return true;
+            if (val === 'iluminacion-gadgets' && (pCat === 'iluminacion' || pCat === 'iluminacion-gadgets')) return true;
+            return pCat === val;
+        }).length;
+        const countBadge = count > 0 ? ` (${count})` : '';
+        return `<option value="${escapeHtml(val)}">${escapeHtml(label)}${countBadge}</option>`;
     }).join('');
     
     const optionsArray = Array.from(adminCategoryFilter.options);
@@ -288,13 +357,28 @@ function renderAdminProducts() {
         adminCategoryFilter.value = 'all';
     }
 
-    // Apply filters
+    // Apply filters with normalization so legacy and canonical categories match seamlessly
     const searchTerm = (adminSearchInput.value || '').toLowerCase().trim();
-    const catFilter = adminCategoryFilter.value;
+    const catFilter = (adminCategoryFilter.value || 'all').toLowerCase().trim();
     const statusFilter = adminStatusFilter.value;
     const filtered = adminProducts.filter(p => {
         const matchSearch = !searchTerm || (p.name && p.name.toLowerCase().includes(searchTerm));
-        const matchCat = catFilter === 'all' || p.category === catFilter;
+        
+        let pCat = (p.category || '').toLowerCase().trim();
+        if (pCat === 'monopatines') pCat = 'movilidad';
+        if (pCat === 'fitness' || pCat === 'fitness-deportes' || pCat === 'fitness-deporte') pCat = 'deportes';
+        if (pCat === 'cargadores') pCat = 'cargadores-accesorios';
+        if (pCat === 'relojes' || pCat === 'fundas') pCat = 'relojes-fundas';
+        if (pCat === 'iluminacion') pCat = 'iluminacion-gadgets';
+
+        let fCat = catFilter;
+        if (fCat === 'monopatines') fCat = 'movilidad';
+        if (fCat === 'fitness' || fCat === 'fitness-deportes') fCat = 'deportes';
+        if (fCat === 'cargadores') fCat = 'cargadores-accesorios';
+        if (fCat === 'relojes') fCat = 'relojes-fundas';
+        if (fCat === 'iluminacion') fCat = 'iluminacion-gadgets';
+
+        const matchCat = fCat === 'all' || pCat === fCat;
         const matchStatus = statusFilter === 'all' || (statusFilter === 'active' ? p.isActive !== false : p.isActive === false);
         return matchSearch && matchCat && matchStatus;
     });
