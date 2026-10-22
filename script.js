@@ -394,6 +394,171 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentGroup = 'all';
     let currentSubCategory = 'all';
 
+    // ─── PC EDGE-HOVER HORIZONTAL SCROLL FOR SUBCATEGORIES ───
+    let subcatScrollInitialized = false;
+    let stopSubcatEdgeScroll = () => {};
+
+    function initSubcategoriesPcScroll() {
+        if (subcatScrollInitialized) return;
+        const container = document.getElementById('subcategoriesContainer');
+        if (!container) return;
+        subcatScrollInitialized = true;
+
+        let animId = null;
+        let speed = 0;
+        let isMouseDown = false;
+        let startX = 0;
+        let scrollStart = 0;
+        let hasDragged = false;
+
+        const isPc = () => {
+            return !window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+        };
+
+        const stopScroll = () => {
+            speed = 0;
+            if (animId) {
+                cancelAnimationFrame(animId);
+                animId = null;
+            }
+        };
+        stopSubcatEdgeScroll = stopScroll;
+
+        const step = () => {
+            if (Math.abs(speed) > 0.05) {
+                const maxScroll = container.scrollWidth - container.clientWidth;
+                if (maxScroll <= 2) {
+                    stopScroll();
+                    return;
+                }
+                const oldScroll = container.scrollLeft;
+                container.scrollLeft += speed;
+                // Si llega al borde y no cambia la posición, detener
+                if (Math.abs(container.scrollLeft - oldScroll) < 0.1) {
+                    stopScroll();
+                    return;
+                }
+                animId = requestAnimationFrame(step);
+            } else {
+                stopScroll();
+            }
+        };
+
+        const startScroll = (targetSpeed) => {
+            speed = targetSpeed;
+            if (!animId) {
+                animId = requestAnimationFrame(step);
+            }
+        };
+
+        // Detección de acercamiento a bordes en PC (Edge Hover Scroll)
+        container.addEventListener('mousemove', (e) => {
+            if (!isPc() || isMouseDown) return;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            if (maxScroll <= 4) {
+                stopScroll();
+                return;
+            }
+
+            const rect = container.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const width = rect.width;
+            const edgeZone = Math.min(130, Math.max(70, width * 0.18));
+
+            if (x > width - edgeZone) {
+                // Borde derecho: mover hacia el final para mostrar el resto de la lista
+                if (container.scrollLeft < maxScroll - 2) {
+                    const factor = (x - (width - edgeZone)) / edgeZone;
+                    const curved = Math.pow(Math.max(0, Math.min(1, factor)), 1.2);
+                    const newSpeed = curved * 12 + 2;
+                    startScroll(newSpeed);
+                } else {
+                    stopScroll();
+                }
+            } else if (x < edgeZone) {
+                // Borde izquierdo: mover hacia el inicio
+                if (container.scrollLeft > 2) {
+                    const factor = (edgeZone - x) / edgeZone;
+                    const curved = Math.pow(Math.max(0, Math.min(1, factor)), 1.2);
+                    const newSpeed = -(curved * 12 + 2);
+                    startScroll(newSpeed);
+                } else {
+                    stopScroll();
+                }
+            } else {
+                // Zona central cómoda: reposo
+                stopScroll();
+            }
+        });
+
+        container.addEventListener('mouseleave', () => {
+            if (!isMouseDown) {
+                stopScroll();
+            }
+        });
+
+        // Soporte adicional: Rueda del mouse horizontal en PC
+        container.addEventListener('wheel', (e) => {
+            if (!isPc()) return;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            if (maxScroll <= 4) return;
+
+            if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+                const canScrollLeft = e.deltaY < 0 && container.scrollLeft > 0;
+                const canScrollRight = e.deltaY > 0 && container.scrollLeft < maxScroll - 2;
+                if (canScrollLeft || canScrollRight) {
+                    e.preventDefault();
+                    stopScroll();
+                    container.scrollLeft += e.deltaY * 0.85;
+                }
+            }
+        }, { passive: false });
+
+        // Soporte adicional: Click y arrastre horizontal (Drag to scroll) en PC
+        container.addEventListener('mousedown', (e) => {
+            if (!isPc() || e.button !== 0) return;
+            const maxScroll = container.scrollWidth - container.clientWidth;
+            if (maxScroll <= 4) return;
+
+            isMouseDown = true;
+            hasDragged = false;
+            startX = e.pageX - container.offsetLeft;
+            scrollStart = container.scrollLeft;
+            stopScroll();
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (!isMouseDown) return;
+            const x = e.pageX - container.offsetLeft;
+            const walk = x - startX;
+            if (Math.abs(walk) > 4) {
+                hasDragged = true;
+                container.classList.add('is-dragging');
+            }
+            if (hasDragged) {
+                container.scrollLeft = scrollStart - walk;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            if (isMouseDown) {
+                isMouseDown = false;
+                container.classList.remove('is-dragging');
+                if (hasDragged) {
+                    setTimeout(() => { hasDragged = false; }, 60);
+                }
+            }
+        });
+
+        // Evitar clic accidental al terminar de arrastrar
+        container.addEventListener('click', (e) => {
+            if (hasDragged) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        }, true);
+    }
+
     function renderSubcategories(group) {
         const container = document.getElementById('subcategoriesContainer');
         if (!container) return;
@@ -401,11 +566,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (group === 'all' || !subCategoriesMap[group]) {
             container.style.display = 'none';
             container.innerHTML = '';
+            stopSubcatEdgeScroll();
             return;
         }
 
         const items = subCategoriesMap[group];
         container.style.display = 'flex';
+        container.scrollLeft = 0;
+        stopSubcatEdgeScroll();
+        initSubcategoriesPcScroll();
 
         let html = `
             <div class="sub-cat-item ${currentSubCategory === 'all' ? 'active' : ''}" data-filter="all">

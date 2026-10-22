@@ -1443,11 +1443,20 @@ body{padding-bottom:70px}
     padding: 0.8rem 0.5rem 1.2rem 0.5rem;
     scrollbar-width: none;
     -webkit-overflow-scrolling: touch;
+    scroll-behavior: auto;
+    overscroll-behavior-x: contain;
     margin-bottom: 1.2rem;
     border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .subcategories-container::-webkit-scrollbar {
     display: none;
+}
+.subcategories-container.is-dragging {
+    cursor: grabbing !important;
+    user-select: none !important;
+}
+.subcategories-container.is-dragging .sub-cat-item {
+    pointer-events: none !important;
 }
 .sub-cat-item {
     display: flex;
