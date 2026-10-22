@@ -579,7 +579,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let html = `
             <div class="sub-cat-item ${currentSubCategory === 'all' ? 'active' : ''}" data-filter="all">
                 <div class="sub-cat-circle sub-cat-all-circle">
-                    <img src="img/subcats/1790441829833.jpg" alt="Ver Todo" loading="lazy" decoding="async">
+                    <img src="img/subcats/infinito.jpg" alt="Ver Todo" loading="lazy" decoding="async">
                 </div>
                 <span class="sub-cat-label">Ver Todo</span>
             </div>
