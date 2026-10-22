@@ -271,6 +271,9 @@ background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='htt
 .product-info .price-offer{font-size:1.35rem;font-weight:800;color:#fff}
 .tier-hint{display:flex;flex-wrap:wrap;gap:.35rem;margin:.1rem 0 .8rem}
 .tier-hint span{font-size:.72rem;color:#2ed573;background:rgba(46,213,115,.08);border:1px solid rgba(46,213,115,.25);border-radius:20px;padding:.15rem .6rem;white-space:nowrap}
+.tier-more-btn{font-size:.72rem;font-weight:600;color:var(--accent-color);background:rgba(0,240,255,.08);border:1px solid rgba(0,240,255,.3);border-radius:20px;padding:.15rem .6rem;white-space:nowrap;cursor:pointer;font-family:'Outfit',sans-serif;transition:all .25s ease;display:inline-flex;align-items:center;gap:.2rem;user-select:none}
+.tier-more-btn:hover{background:rgba(0,240,255,.2);border-color:var(--accent-color);color:#fff;transform:translateY(-1px)}
+.tier-more-btn.open{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.25);color:var(--text-secondary)}
 .modal-tiers-toggle{background:transparent;border:1px solid var(--surface-border);color:var(--text-primary);border-radius:10px;padding:.55rem 1rem;font-size:.85rem;font-weight:600;cursor:pointer;margin-top:.7rem;transition:border-color .3s,color .3s;font-family:'Outfit',sans-serif}
 .modal-tiers-toggle:hover{border-color:var(--accent-color);color:var(--accent-color)}
 .modal-tiers-toggle .tiers-arrow{display:inline-block;transition:transform .3s}

@@ -304,8 +304,48 @@ document.addEventListener('DOMContentLoaded', () => {
     function tiersHintHtml(p) {
         const ts = validTiers(p);
         if (!ts.length) return '';
-        return `<div class="tier-hint">${ts.map(t => `<span>Llevando ${t.minQty}+: $${fmt(t.price)}</span>`).join('')}</div>`;
+        if (ts.length <= 3) {
+            return `<div class="tier-hint">${ts.map(t => `<span>Llevando ${t.minQty}+: $${fmt(t.price)}</span>`).join('')}</div>`;
+        }
+
+        const standardTiers = ts.slice(0, 3);
+        const extraTiers = ts.slice(3);
+
+        return `
+            <div class="tier-hint tier-hint-expandable">
+                ${standardTiers.map(t => `<span>Llevando ${t.minQty}+: $${fmt(t.price)}</span>`).join('')}
+                <div class="tier-extra-list" style="display:none;">
+                    ${extraTiers.map(t => `<span>Llevando ${t.minQty}+: $${fmt(t.price)}</span>`).join('')}
+                </div>
+                <button type="button" class="tier-more-btn" onclick="toggleCardTiers(this, event)" data-total="${ts.length}" title="Ver todos los precios mayoristas">
+                    Precios mayorista (${ts.length}) ▾
+                </button>
+            </div>
+        `;
     }
+
+    window.toggleCardTiers = function(btn, event) {
+        if (event) {
+            event.stopPropagation();
+            event.preventDefault();
+        }
+        const container = btn.closest('.tier-hint-expandable');
+        if (!container) return;
+        const extraList = container.querySelector('.tier-extra-list');
+        if (!extraList) return;
+
+        const isHidden = extraList.style.display === 'none';
+        if (isHidden) {
+            extraList.style.display = 'contents';
+            btn.innerHTML = 'Ver menos ▴';
+            btn.classList.add('open');
+        } else {
+            extraList.style.display = 'none';
+            const total = btn.dataset.total || '';
+            btn.innerHTML = `Precios mayorista (${total}) ▾`;
+            btn.classList.remove('open');
+        }
+    };
 
     // ─── PRECIOS DINÁMICOS CON DÓLAR ─────────────────
     // Los productos con costCurrency = 'USD' recalculan su precio en ARS

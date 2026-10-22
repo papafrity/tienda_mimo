@@ -963,75 +963,150 @@ function updateCalculatedPrice() {
 }
 
 // ─── PRECIOS POR CANTIDAD (MAYORISTA) ─────────────────────
-// Tramo 1 = costo/precio base. Tramos 2-4: misma fórmula (margen + MP + redondeo).
+// Tramo 1 = costo/precio base. Tramos siguientes: misma fórmula (margen + MP + redondeo).
 function calcFinalPrice(costARS, margin) {
     const basePrice = costARS * (1 + (margin / 100));
     const rawFinal = basePrice / (1 - MP_REAL_FEE);
     return rawFinal < 100 ? Math.round(rawFinal * 100) / 100 : Math.ceil(rawFinal / 100) * 100;
 }
 
-function getTierCostInARS(n) {
-    const cost = parseFloat(document.getElementById('tier' + n + 'Cost').value) || 0;
-    const currency = getCostCurrency();
-    if (currency === 'USD' && usdRateARS) return cost * usdRateARS;
-    return cost;
+const DEFAULT_TIER_QTYS = [3, 6, 10];
+
+function createTierRowElement(minQty = '', cost = '') {
+    const row = document.createElement('div');
+    row.className = 'tier-row-input';
+    row.style.cssText = 'display:grid;grid-template-columns:1fr 1fr 1fr 34px;gap:.5rem;align-items:center;margin-bottom:.4rem;';
+    
+    row.innerHTML = `
+        <input type="number" class="tier-qty-input" min="2" step="1" value="${minQty}" placeholder="Ej: 3">
+        <input type="number" class="tier-cost-input" min="0" step="0.01" value="${cost !== '' ? cost : ''}" placeholder="Costo">
+        <strong style="color:#2ed573;font-size:.9rem;" class="tier-price-display">—</strong>
+        <button type="button" class="tier-remove-btn" title="Eliminar / limpiar tramo" style="background:rgba(255,71,87,.1);border:1px solid rgba(255,71,87,.25);color:#ff4757;border-radius:6px;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1.1rem;line-height:1;transition:all .2s;">&times;</button>
+    `;
+
+    const qtyInput = row.querySelector('.tier-qty-input');
+    const costInput = row.querySelector('.tier-cost-input');
+    const removeBtn = row.querySelector('.tier-remove-btn');
+
+    qtyInput.addEventListener('input', updateTierPrices);
+    costInput.addEventListener('input', updateTierPrices);
+    removeBtn.addEventListener('click', () => {
+        const container = document.getElementById('tiersContainer');
+        if (!container) return;
+        const allRows = container.querySelectorAll('.tier-row-input');
+        if (allRows.length > 3) {
+            row.remove();
+        } else {
+            // Mantener los 3 tramos estándar visibles, solo limpiar el costo
+            costInput.value = '';
+        }
+        updateTierPrices();
+    });
+
+    return row;
 }
 
 function updateTierPrices() {
     const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
-    [2, 3, 4].forEach(n => {
-        const el = document.getElementById('tier' + n + 'Price');
-        if (!el) return;
-        const costARS = getTierCostInARS(n);
-        el.textContent = costARS > 0 ? '$' + fmt(calcFinalPrice(costARS, margin)) : '—';
+    const currency = getCostCurrency();
+    const rows = document.querySelectorAll('#tiersContainer .tier-row-input');
+
+    rows.forEach(row => {
+        const costInput = row.querySelector('.tier-cost-input');
+        const priceDisplay = row.querySelector('.tier-price-display');
+        if (!costInput || !priceDisplay) return;
+
+        let cost = parseFloat(costInput.value) || 0;
+        let costARS = (currency === 'USD' && usdRateARS) ? cost * usdRateARS : cost;
+
+        if (costARS > 0) {
+            priceDisplay.textContent = '$' + fmt(calcFinalPrice(costARS, margin));
+        } else {
+            priceDisplay.textContent = '—';
+        }
     });
 }
 
 function readTiersFromForm() {
     const tiers = [];
-    [2, 3, 4].forEach(n => {
-        const minQty = parseInt(document.getElementById('tier' + n + 'Qty').value) || 0;
-        const cost = parseFloat(document.getElementById('tier' + n + 'Cost').value) || 0;
+    const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
+    const currency = getCostCurrency();
+    const rows = document.querySelectorAll('#tiersContainer .tier-row-input');
+
+    rows.forEach(row => {
+        const qtyInput = row.querySelector('.tier-qty-input');
+        const costInput = row.querySelector('.tier-cost-input');
+        if (!qtyInput || !costInput) return;
+
+        const minQty = parseInt(qtyInput.value) || 0;
+        const cost = parseFloat(costInput.value) || 0;
+
         if (minQty >= 2 && cost > 0) {
-            const margin = parseFloat(document.getElementById('prodMargin').value) || 0;
+            let costARS = (currency === 'USD' && usdRateARS) ? cost * usdRateARS : cost;
             tiers.push({
                 minQty,
                 cost,
-                costCurrency: getCostCurrency(),
-                price: calcFinalPrice(getTierCostInARS(n), margin)
+                costCurrency: currency,
+                price: calcFinalPrice(costARS, margin)
             });
         }
     });
+
     tiers.sort((a, b) => a.minQty - b.minQty);
     return tiers;
 }
 
-const TIER_DEFAULT_QTY = { 2: 3, 3: 5, 4: 10 };
-
 function resetTierForm() {
-    [2, 3, 4].forEach(n => {
-        document.getElementById('tier' + n + 'Qty').value = TIER_DEFAULT_QTY[n];
-        document.getElementById('tier' + n + 'Cost').value = '';
+    const container = document.getElementById('tiersContainer');
+    if (!container) return;
+    container.innerHTML = '';
+    DEFAULT_TIER_QTYS.forEach(qty => {
+        container.appendChild(createTierRowElement(qty, ''));
     });
     updateTierPrices();
 }
 
 function loadTiersToForm(tiers) {
+    const container = document.getElementById('tiersContainer');
+    if (!container) return;
+    container.innerHTML = '';
+
+    if (Array.isArray(tiers) && tiers.length > 0) {
+        const valid = tiers.filter(t => t && t.minQty >= 2 && (t.cost > 0 || t.price > 0));
+        if (valid.length > 0) {
+            valid.forEach(t => {
+                container.appendChild(createTierRowElement(t.minQty, t.cost || ''));
+            });
+            // Si hay menos de 3, rellenar hasta los 3 estándar
+            while (container.querySelectorAll('.tier-row-input').length < 3) {
+                const count = container.querySelectorAll('.tier-row-input').length;
+                const nextQty = DEFAULT_TIER_QTYS[count] || (count + 1) * 5;
+                container.appendChild(createTierRowElement(nextQty, ''));
+            }
+            updateTierPrices();
+            return;
+        }
+    }
     resetTierForm();
-    if (!Array.isArray(tiers)) return;
-    const valid = tiers.filter(t => t && t.minQty >= 2 && (t.cost > 0 || t.price > 0)).slice(0, 3);
-    valid.forEach((t, i) => {
-        const n = i + 2;
-        document.getElementById('tier' + n + 'Qty').value = t.minQty;
-        document.getElementById('tier' + n + 'Cost').value = t.cost || '';
-    });
-    updateTierPrices();
 }
 
-['tier2Qty', 'tier2Cost', 'tier3Qty', 'tier3Cost', 'tier4Qty', 'tier4Cost'].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.addEventListener('input', updateTierPrices);
-});
+const addTierBtn = document.getElementById('addTierBtn');
+if (addTierBtn) {
+    addTierBtn.addEventListener('click', () => {
+        const container = document.getElementById('tiersContainer');
+        if (!container) return;
+        const rows = container.querySelectorAll('.tier-row-input');
+        let nextQty = 15;
+        if (rows.length > 0) {
+            const lastRowQty = parseInt(rows[rows.length - 1].querySelector('.tier-qty-input')?.value) || 10;
+            nextQty = lastRowQty >= 10 ? lastRowQty + 5 : lastRowQty + 3;
+        }
+        container.appendChild(createTierRowElement(nextQty, ''));
+        updateTierPrices();
+    });
+}
+resetTierForm();
+
 document.getElementById('prodCost').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodMargin').addEventListener('input', updateCalculatedPrice);
 document.getElementById('prodCurrency').addEventListener('click', () => {
