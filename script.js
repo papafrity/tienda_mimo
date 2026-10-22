@@ -361,7 +361,7 @@ document.addEventListener('DOMContentLoaded', () => {
             { id: 'relojes-fundas', label: 'Smartwatches', img: 'img/subcats/1790441077547.jpg' },
             { id: 'televisores', label: 'Smart TVs', img: 'img/subcats/1790441082430.jpg' },
             { id: 'parlantes', label: 'Parlantes', img: 'img/subcats/1790365183333.jpg' },
-            { id: 'proyectores', label: 'Proyectores', img: 'img/subcats/1790442036440.jpg' },
+            { id: 'proyectores', label: 'Proyectores', img: 'img/subcats/proyector.jpg', isCustom: true },
             { id: 'gaming', label: 'Gaming', img: 'img/subcats/1790365187178.jpg' },
             { id: 'pc', label: 'Notebooks', img: 'img/subcats/1790365190741.jpg' },
             { id: 'tvbox', label: 'TV Box / Sticks', img: 'img/subcats/1790365195074.jpg' },
@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         html += items.map(sub => {
             const catalogProd = (products || []).find(p => p.category === sub.id && p.image && p.isActive !== false);
-            const isCustomCover = sub.img && (sub.img.includes('1790') || sub.isCustom);
+            const isCustomCover = sub.img && (sub.img.includes('1790') || sub.isCustom || sub.img.includes('proyector'));
             const fallbackSrc = (catalogProd && catalogProd.image) ? catalogProd.image : '';
             const imgSrc = isCustomCover ? sub.img : (fallbackSrc || sub.img);
             const isActive = currentSubCategory === sub.id ? 'active' : '';
